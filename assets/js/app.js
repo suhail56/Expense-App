@@ -91,6 +91,15 @@ function confirmAction(title, text, confirmButtonText, actionCallback) {
 // Initialize
 $(document).ready(function() {
     
+    // Initialize Premium DatePicker
+    flatpickr('#txDate', { 
+        enableTime: true, 
+        dateFormat: "Y-m-d\\TH:i", 
+        altInput: true,
+        altFormat: "F j, Y h:i K",
+        time_24hr: false 
+    });
+
     // Auth Check
     if (ghRepo && ghToken) {
         authOverlay.style.display = 'none';
