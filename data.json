@@ -601,5 +601,8 @@
         "talabat"
       ]
     }
-  ]
+  ],
+  "categoryLimits": {
+    "Dining": 1000
+  }
 }
