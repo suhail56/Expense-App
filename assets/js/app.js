@@ -16,7 +16,9 @@ let currentSortCol = 'date'; // 'date' or 'amount'
 let currentSortDir = 'desc'; // 'desc' or 'asc'
 
 // Dashboard State
-let currentDashboardTimeframe = 'this_month';
+let currentDashYear = ''; 
+let currentDashMonth = ''; // '' means "All Year"
+let yearlyChartInstance = null;
 
 // Pagination Variables
 let fileSha = null;
@@ -34,7 +36,6 @@ const loadingOverlay = document.getElementById('loadingOverlay');
 
 // Initialize
 $(document).ready(function() {
-    initCharts();
     
     // Auth Check
     if (ghRepo && ghToken) {
@@ -119,8 +120,16 @@ $(document).ready(function() {
     $('#filterType').on('change', function() { currentPage = 1; renderTransactionsPage(); });
     $('#filterStartDate').on('change', function() { currentPage = 1; renderTransactionsPage(); });
     
-    $('#dashboardTimeframe').on('change', function() {
-        currentDashboardTimeframe = $(this).val();
+    // Dashboard Filters Event Listeners
+    $('#dashYearFilter').change(function() {
+        currentDashYear = $(this).val();
+        currentDashMonth = ''; // Reset to all year when year changes
+        updateDashMonthFilter();
+        renderDashboard();
+    });
+
+    $('#dashMonthFilter').change(function() {
+        currentDashMonth = $(this).val();
         renderDashboard();
     });
 
@@ -257,6 +266,7 @@ $(document).ready(function() {
         const startDate = appData.settings.syncStartDate || '';
 
         $('#triggerSyncBtn').prop('disabled', true).html('<i class="fa-solid fa-spinner fa-spin me-2"></i>Syncing...');
+        $('#dashSyncBtn').prop('disabled', true).html('<i class="fa-solid fa-spinner fa-spin me-2"></i>Syncing...');
         
         $.ajax({
             url: gasUrl,
@@ -270,6 +280,7 @@ $(document).ready(function() {
             },
             success: function(res) {
                 $('#triggerSyncBtn').prop('disabled', false).html('<i class="fa-solid fa-bolt me-2"></i> Sync Now');
+                $('#dashSyncBtn').prop('disabled', false).html('<i class="fa-solid fa-bolt me-1"></i> Sync Now');
                 if (res.status === 'success') {
                     alert(res.message);
                     fetchData();
@@ -279,6 +290,7 @@ $(document).ready(function() {
             },
             error: function(err) {
                 $('#triggerSyncBtn').prop('disabled', false).html('<i class="fa-solid fa-bolt me-2"></i> Sync Now');
+                $('#dashSyncBtn').prop('disabled', false).html('<i class="fa-solid fa-bolt me-1"></i> Sync Now');
                 alert('Error contacting Google Apps Script.');
                 console.error(err);
             }
@@ -400,6 +412,7 @@ function saveData() {
 function refreshUI() {
     renderCategories();
     updateTransactionModalCategories();
+    populateDashboardFilters();
     updateFilterDropdown();
     renderRulesTable();
     renderLimitsTable();
@@ -773,27 +786,95 @@ window.changePage = function(page) {
     renderTransactionsPage();
 }
 
+function populateDashboardFilters() {
+    const yearSelector = $('#dashYearFilter');
+    const monthSelector = $('#dashMonthFilter');
+    
+    // Extract unique years and months from transactions
+    const years = new Set();
+    const monthsData = {}; // Format: { "2026": new Set(["01", "05"]) }
+
+    if (appData.transactions && appData.transactions.length > 0) {
+        appData.transactions.forEach(tx => {
+            const d = new Date(tx.date);
+            const y = d.getFullYear().toString();
+            const m = String(d.getMonth() + 1).padStart(2, '0');
+            
+            years.add(y);
+            if (!monthsData[y]) monthsData[y] = new Set();
+            monthsData[y].add(m);
+        });
+    } else {
+        const currentY = new Date().getFullYear().toString();
+        years.add(currentY);
+        monthsData[currentY] = new Set();
+    }
+    
+    // Populate Year Selector
+    const sortedYears = Array.from(years).sort().reverse();
+    yearSelector.empty();
+    sortedYears.forEach(y => {
+        yearSelector.append(`<option value="${y}">${y}</option>`);
+    });
+    
+    // Set Year State
+    if (!currentDashYear) {
+        const currentY = new Date().getFullYear().toString();
+        if (sortedYears.includes(currentY)) {
+            currentDashYear = currentY;
+        } else {
+            currentDashYear = sortedYears[0] || '';
+        }
+    } else if (!sortedYears.includes(currentDashYear)) {
+        currentDashYear = sortedYears[0] || '';
+    }
+    yearSelector.val(currentDashYear);
+    
+    // Attach monthsData to global scope for easy access by month updater
+    window.dashboardMonthsData = monthsData;
+    
+    updateDashMonthFilter();
+}
+
+function updateDashMonthFilter() {
+    const monthSelector = $('#dashMonthFilter');
+    monthSelector.empty();
+    monthSelector.append('<option value="">All Year</option>');
+    
+    if (window.dashboardMonthsData && window.dashboardMonthsData[currentDashYear]) {
+        const sortedMonths = Array.from(window.dashboardMonthsData[currentDashYear]).sort();
+        sortedMonths.forEach(m => {
+            const dateObj = new Date(currentDashYear, parseInt(m) - 1, 1);
+            const display = dateObj.toLocaleString('default', { month: 'long' });
+            monthSelector.append(`<option value="${m}">${display}</option>`);
+        });
+    }
+
+    if (!currentDashMonth) {
+        const currentM = String(new Date().getMonth() + 1).padStart(2, '0');
+        if (monthSelector.find(`option[value="${currentM}"]`).length > 0) {
+            currentDashMonth = currentM;
+        } else {
+            currentDashMonth = '';
+        }
+    } else if (monthSelector.find(`option[value="${currentDashMonth}"]`).length === 0) {
+        currentDashMonth = '';
+    }
+    monthSelector.val(currentDashMonth);
+}
+
 function getFilteredDashboardTransactions() {
-    const now = new Date();
-    const currentMonth = now.getMonth();
-    const currentYear = now.getFullYear();
+    if (!currentDashYear) return [];
     
     return appData.transactions.filter(tx => {
-        const txDate = new Date(tx.date);
-        if (currentDashboardTimeframe === 'this_month') {
-            return txDate.getMonth() === currentMonth && txDate.getFullYear() === currentYear;
-        } else if (currentDashboardTimeframe === 'last_month') {
-            let lastMonth = currentMonth - 1;
-            let year = currentYear;
-            if (lastMonth < 0) {
-                lastMonth = 11;
-                year--;
-            }
-            return txDate.getMonth() === lastMonth && txDate.getFullYear() === year;
-        } else if (currentDashboardTimeframe === 'this_year') {
-            return txDate.getFullYear() === currentYear;
-        }
-        return true; // all_time
+        const d = new Date(tx.date);
+        const y = d.getFullYear().toString();
+        const m = String(d.getMonth() + 1).padStart(2, '0');
+        
+        if (y !== currentDashYear) return false;
+        if (currentDashMonth && m !== currentDashMonth) return false;
+        
+        return true;
     });
 }
 
@@ -802,15 +883,6 @@ function renderDashboard() {
     
     let income = 0;
     let expense = 0;
-    let netBalance = 0;
-
-    // Calculate total net balance across ALL time regardless of timeframe filter
-    appData.transactions.forEach(tx => {
-        const amt = parseFloat(tx.amount);
-        if (tx.type === 'income') netBalance += amt;
-        else netBalance -= amt;
-    });
-
     // Calculate timeframe specific income and expense
     filteredTx.forEach(tx => {
         const amt = parseFloat(tx.amount);
@@ -818,90 +890,274 @@ function renderDashboard() {
         else expense += amt;
     });
 
+    const timeframeBalance = income - expense;
     const savingsRate = income > 0 ? (((income - expense) / income) * 100).toFixed(1) : 0;
 
-    $('#dashBalance').text(`AED ${netBalance.toFixed(2)}`);
+    $('#dashBalance').text(`AED ${timeframeBalance.toFixed(2)}`);
     $('#dashIncome').text(`AED ${income.toFixed(2)}`);
     $('#dashExpense').text(`AED ${expense.toFixed(2)}`);
     $('#dashSavingsRate').text(`${savingsRate}%`);
 
-    // Render Recent Activity (Top 5 from ALL transactions)
-    renderRecentTransactions();
+    // Render Category Summary Table
+    let catUsage = {};
+    if (appData.expenseCategories) {
+        appData.expenseCategories.forEach(cat => catUsage[cat] = 0);
+    }
+    
+    filteredTx.forEach(tx => {
+        if (tx.type === 'expense') {
+            if (catUsage[tx.category] !== undefined) {
+                catUsage[tx.category] += parseFloat(tx.amount);
+            } else {
+                catUsage[tx.category] = parseFloat(tx.amount);
+            }
+        }
+    });
 
-    // Generate Smart Insights
-    generateSmartInsights(filteredTx, income, expense, savingsRate);
+    const tbody = $('#dashboardCategoryTableBody');
+    tbody.empty();
 
-    // Update Charts with timeframe specific data
-    updateCharts(filteredTx, currentDashboardTimeframe);
-}
-
-function generateSmartInsights(filteredTx, income, expense, savingsRate) {
-    const container = $('#smartInsightsContainer');
-    container.empty();
-
-    if (filteredTx.length === 0) {
-        container.html(`<p class="text-white-50 small mb-0">No transactions found for this period to generate insights.</p>`);
+    if (Object.keys(catUsage).length === 0) {
+        tbody.html('<tr><td colspan="4" class="text-center text-white-50">No categories found.</td></tr>');
         return;
     }
 
-    // Insight 1: Savings Rate Analysis
-    let savingsHtml = '';
-    if (savingsRate > 20) {
-        savingsHtml = `<div class="d-flex align-items-start gap-3"><i class="fa-solid fa-face-smile-beam text-success mt-1"></i><div><p class="mb-0 text-white small">Great job! You saved <span class="fw-bold text-success">${savingsRate}%</span> of your income this period.</p></div></div>`;
-    } else if (savingsRate > 0) {
-        savingsHtml = `<div class="d-flex align-items-start gap-3"><i class="fa-solid fa-face-meh text-warning mt-1"></i><div><p class="mb-0 text-white small">You saved <span class="fw-bold text-warning">${savingsRate}%</span> of your income. Aim for at least 20%!</p></div></div>`;
-    } else if (income > 0) {
-        savingsHtml = `<div class="d-flex align-items-start gap-3"><i class="fa-solid fa-face-frown text-danger mt-1"></i><div><p class="mb-0 text-white small">You spent more than you earned this period. Your savings rate is <span class="fw-bold text-danger">${savingsRate}%</span>.</p></div></div>`;
-    } else {
-        savingsHtml = `<div class="d-flex align-items-start gap-3"><i class="fa-solid fa-info-circle text-info mt-1"></i><div><p class="mb-0 text-white small">You had expenses but no income recorded for this period.</p></div></div>`;
-    }
+    let totalLimit = 0;
+    let totalSpent = 0;
 
-    // Insight 2: Top Expense Category
-    let categoryData = {};
-    filteredTx.forEach(tx => {
-        if (tx.type === 'expense') {
-            categoryData[tx.category] = (categoryData[tx.category] || 0) + parseFloat(tx.amount);
+    Object.keys(catUsage).forEach(cat => {
+        const spent = catUsage[cat];
+        let limit = 0;
+        if (appData.categoryLimits && appData.categoryLimits[cat]) {
+            limit = parseFloat(appData.categoryLimits[cat]);
         }
-    });
-
-    let topCategory = '';
-    let topAmount = 0;
-    Object.keys(categoryData).forEach(cat => {
-        if (categoryData[cat] > topAmount) {
-            topAmount = categoryData[cat];
-            topCategory = cat;
-        }
-    });
-
-    let topCatHtml = '';
-    if (topCategory) {
-        const pct = expense > 0 ? ((topAmount / expense) * 100).toFixed(0) : 0;
-        topCatHtml = `<div class="d-flex align-items-start gap-3"><i class="fa-solid fa-chart-pie text-info mt-1"></i><div><p class="mb-0 text-white small">Your biggest expense was <span class="fw-bold text-info">${topCategory}</span> (AED ${topAmount.toFixed(2)}), making up ${pct}% of your total spending.</p></div></div>`;
-    }
-
-    // Insight 3: Budget Warnings (Only for this_month)
-    let budgetHtml = '';
-    if (currentDashboardTimeframe === 'this_month' && appData.categoryLimits) {
-        let warnings = [];
-        Object.keys(appData.categoryLimits).forEach(cat => {
-            const limit = parseFloat(appData.categoryLimits[cat]);
-            const spent = categoryData[cat] || 0;
+        
+        totalLimit += limit;
+        totalSpent += spent;
+        
+        let limitDisplay = limit > 0 ? `AED ${limit.toFixed(2)}` : `<span class="text-white-50 small">No Limit</span>`;
+        let remainingDisplay = '-';
+        let statusDisplay = '';
+        
+        if (limit > 0) {
+            const remaining = limit - spent;
             const pct = (spent / limit) * 100;
-            if (pct >= 90) {
-                warnings.push(cat);
+            
+            if (remaining < 0) {
+                remainingDisplay = `<span class="text-danger fw-bold">- AED ${Math.abs(remaining).toFixed(2)}</span>`;
+            } else {
+                remainingDisplay = `<span class="text-success fw-bold">AED ${remaining.toFixed(2)}</span>`;
+            }
+
+            if (pct >= 100) statusDisplay = `<span class="badge bg-danger bg-opacity-25 border border-danger text-danger">Over Budget</span>`;
+            else if (pct >= 80) statusDisplay = `<span class="badge bg-warning bg-opacity-25 border border-warning text-warning">Near Limit</span>`;
+            else statusDisplay = `<span class="badge bg-success bg-opacity-25 border border-success text-success">Good</span>`;
+        } else {
+            statusDisplay = `<span class="text-white-50">-</span>`;
+        }
+
+        tbody.append(`
+            <tr>
+                <td><span class="fw-bold"><i class="fa-solid fa-tag me-2 text-primary opacity-75"></i>${cat}</span></td>
+                <td class="text-end text-white-50">${limitDisplay}</td>
+                <td class="text-end fw-bold text-white">AED ${spent.toFixed(2)}</td>
+                <td class="text-end">${remainingDisplay}</td>
+                <td class="text-end">${statusDisplay}</td>
+            </tr>
+        `);
+    });
+
+    let totalRemaining = totalLimit - totalSpent;
+    let totalRemainingDisplay = '-';
+    
+    if (totalLimit > 0) {
+        if (totalRemaining < 0) {
+            totalRemainingDisplay = `<span class="text-danger fw-bold">- AED ${Math.abs(totalRemaining).toFixed(2)}</span>`;
+        } else {
+            totalRemainingDisplay = `<span class="text-success fw-bold">AED ${totalRemaining.toFixed(2)}</span>`;
+        }
+    }
+
+    let mathString = `${income.toFixed(2)} - ${expense.toFixed(2)} =`;
+    let exactBalanceDisplay = timeframeBalance < 0 
+        ? `<span class="text-white-50">${mathString}</span> <br><span class="text-danger fw-bold">-AED ${Math.abs(timeframeBalance).toFixed(2)}</span>`
+        : `<span class="text-white-50">${mathString}</span> <br><span class="text-success fw-bold">AED ${timeframeBalance.toFixed(2)}</span>`;
+
+    tbody.append(`
+        <tr style="background: rgba(255,255,255,0.05);">
+            <td><span class="fw-bold text-white">TOTAL</span></td>
+            <td class="text-end fw-bold text-info">AED ${totalLimit.toFixed(2)}</td>
+            <td class="text-end fw-bold text-white">AED ${totalSpent.toFixed(2)}</td>
+            <td class="text-end">${totalRemainingDisplay}</td>
+            <td class="text-end">
+                <div class="small text-white-50 mb-1">Exact Balance</div>
+                ${exactBalanceDisplay}
+            </td>
+        </tr>
+    `);
+    
+    renderYearlyChart();
+}
+
+function renderYearlyChart() {
+    if (!currentDashYear) return;
+    
+    const ctx = document.getElementById('yearlyChart');
+    if (!ctx) return;
+    
+    // Arrays for 12 months (Jan-Dec)
+    const monthlyIncome = new Array(12).fill(0);
+    const monthlyExpense = new Array(12).fill(0);
+    const monthlyBalance = new Array(12).fill(0);
+    
+    // Process transactions for the selected year
+    if (appData.transactions) {
+        appData.transactions.forEach(tx => {
+            const d = new Date(tx.date);
+            if (d.getFullYear().toString() === currentDashYear) {
+                const monthIndex = d.getMonth(); // 0 to 11
+                const amt = parseFloat(tx.amount);
+                
+                if (tx.type === 'income') {
+                    monthlyIncome[monthIndex] += amt;
+                } else if (tx.type === 'expense') {
+                    monthlyExpense[monthIndex] += amt;
+                }
             }
         });
-
-        if (warnings.length > 0) {
-            budgetHtml = `<div class="d-flex align-items-start gap-3"><i class="fa-solid fa-triangle-exclamation text-danger mt-1"></i><div><p class="mb-0 text-white small">Watch out! You are near or over your budget limit for: <span class="fw-bold text-danger">${warnings.join(', ')}</span>.</p></div></div>`;
-        } else if (Object.keys(appData.categoryLimits).length > 0) {
-            budgetHtml = `<div class="d-flex align-items-start gap-3"><i class="fa-solid fa-shield-check text-success mt-1"></i><div><p class="mb-0 text-white small">You are well within your budget limits for all tracked categories this month.</p></div></div>`;
-        }
     }
-
-    container.append(savingsHtml);
-    if (topCatHtml) container.append('<hr class="border-secondary my-1">' + topCatHtml);
-    if (budgetHtml) container.append('<hr class="border-secondary my-1">' + budgetHtml);
+    
+    // Calculate net balance for each month
+    for (let i = 0; i < 12; i++) {
+        monthlyBalance[i] = monthlyIncome[i] - monthlyExpense[i];
+    }
+    
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const labels = [];
+    
+    for(let i = 0; i < 12; i++) {
+        let bal = monthlyBalance[i];
+        let balStr = '';
+        if (bal !== 0) {
+            if (Math.abs(bal) >= 1000) {
+                balStr = (bal / 1000).toFixed(1) + 'k';
+            } else {
+                balStr = bal.toFixed(0);
+            }
+            // Add a plus or minus for clarity
+            balStr = (bal > 0 ? '+' : '') + balStr;
+        } else {
+            balStr = '-';
+        }
+        labels.push([monthNames[i], balStr]);
+    }
+    
+    if (yearlyChartInstance) {
+        yearlyChartInstance.destroy();
+    }
+    
+    yearlyChartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [
+                {
+                    type: 'line',
+                    label: 'Net Balance',
+                    data: monthlyBalance,
+                    borderColor: '#3b82f6',
+                    backgroundColor: 'rgba(59, 130, 246, 0.2)',
+                    borderWidth: 2,
+                    tension: 0.3,
+                    fill: false,
+                    order: 0,
+                    datalabels: {
+                        display: false
+                    }
+                },
+                {
+                    type: 'bar',
+                    label: 'Income',
+                    data: monthlyIncome,
+                    backgroundColor: 'rgba(34, 197, 94, 0.7)',
+                    borderRadius: 4,
+                    order: 1
+                },
+                {
+                    type: 'bar',
+                    label: 'Expense',
+                    data: monthlyExpense,
+                    backgroundColor: 'rgba(239, 68, 68, 0.7)',
+                    borderRadius: 4,
+                    order: 2
+                }
+            ]
+        },
+        plugins: [ChartDataLabels],
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: {
+                mode: 'index',
+                intersect: false,
+            },
+            plugins: {
+                datalabels: {
+                    anchor: 'end',
+                    align: 'top',
+                    color: 'rgba(255, 255, 255, 0.9)',
+                    font: {
+                        weight: 'bold',
+                        size: 10
+                    },
+                    formatter: function(value) {
+                        if (value === 0) return '';
+                        if (Math.abs(value) >= 1000) {
+                            return (value / 1000).toFixed(1) + 'k';
+                        }
+                        return value.toFixed(0);
+                    }
+                },
+                legend: {
+                    labels: {
+                        color: 'rgba(255, 255, 255, 0.7)'
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            let label = context.dataset.label || '';
+                            if (label) {
+                                label += ': ';
+                            }
+                            if (context.parsed.y !== null) {
+                                label += 'AED ' + context.parsed.y.toFixed(2);
+                            }
+                            return label;
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    grid: {
+                        color: 'rgba(255, 255, 255, 0.1)'
+                    },
+                    ticks: {
+                        color: 'rgba(255, 255, 255, 0.7)'
+                    }
+                },
+                y: {
+                    grid: {
+                        color: 'rgba(255, 255, 255, 0.1)'
+                    },
+                    ticks: {
+                        color: 'rgba(255, 255, 255, 0.7)'
+                    }
+                }
+            }
+        }
+    });
 }
 
 window.editTransaction = function(id) {
