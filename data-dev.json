@@ -574,6 +574,14 @@
       "type": "income",
       "category": "Salary",
       "amount": "6600.00"
+    },
+    {
+      "id": "1782557960642",
+      "date": "2026-05-27T14:59",
+      "merchant": "Etihad Rail ABU DHABI AE",
+      "type": "expense",
+      "category": "Others",
+      "amount": "100.00"
     }
   ],
   "settings": {
