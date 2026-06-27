@@ -39,4 +39,10 @@ function handleRouteChange() {
             renderTransactionsPage();
         }
     }
+
+    // Reset scroll position to top when changing views
+    const mainContent = document.querySelector('.main-content');
+    if (mainContent) {
+        mainContent.scrollTo(0, 0);
+    }
 }
