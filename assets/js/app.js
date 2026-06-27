@@ -489,6 +489,7 @@ function initializeDatabaseSchema(data) {
     if (!appData.expenseCategories) appData.expenseCategories = [];
     if (!appData.incomeCategories) appData.incomeCategories = [];
     if (!appData.transactions) appData.transactions = [];
+    if (!appData.goals) appData.goals = [];
 }
 
 window.fetchData = function() {
@@ -740,6 +741,17 @@ function mergeState(local, remote) {
     }
 
     if (local.settings) merged.settings = { ...merged.settings, ...local.settings };
+
+    // Merge Goals
+    if (local.goals && Array.isArray(local.goals)) {
+        if (!merged.goals) merged.goals = [];
+        local.goals.forEach(localGoal => {
+            const remoteIdx = merged.goals.findIndex(rG => rG.id === localGoal.id);
+            if (remoteIdx === -1) merged.goals.push(localGoal);
+            else merged.goals[remoteIdx] = localGoal; // Trust local progress
+        });
+    }
+
     return merged;
 }
 
@@ -816,6 +828,7 @@ function refreshUI() {
     renderBudgetsPage();
     renderTransactionsPage();
     renderDashboard(); // Replaces calculateTotals() and updates charts/insights
+    renderGoals();
     renderSyncMetadata();
 }
 
@@ -1545,6 +1558,8 @@ function renderDashboard() {
     const timeframeBalance = income - expense;
     const savingsRate = income > 0 ? (((income - expense) / income) * 100).toFixed(1) : 0;
 
+    renderDashboardAnalytics(filteredTx, expense);
+
     $('#dashBalance').text(`AED ${timeframeBalance.toFixed(2)}`);
     $('#dashIncome').text(`AED ${income.toFixed(2)}`);
     $('#dashExpense').text(`AED ${expense.toFixed(2)}`);
@@ -2211,3 +2226,204 @@ window.renderBudgetsPage = function() {
         });
     }, 100);
 }
+
+// ==========================================
+// GOALS & GAMIFICATION MODULE
+// ==========================================
+
+window.showAddGoalModal = function() {
+    $('#goalForm')[0].reset();
+    $('#goalId').val('');
+    $('#goalModalTitle').text('Create Goal');
+    $('#addGoalModal').modal('show');
+};
+
+$('#goalForm').submit(function(e) {
+    e.preventDefault();
+    const id = $('#goalId').val();
+    const name = $('#goalName').val().trim();
+    const target = parseFloat($('#goalTarget').val());
+
+    if (!name || isNaN(target) || target <= 0) {
+        Toast.fire({ icon: 'warning', title: 'Invalid Goal Data' });
+        return;
+    }
+
+    if (!appData.goals) appData.goals = [];
+
+    if (id) {
+        const goal = appData.goals.find(g => g.id === id);
+        if (goal) {
+            goal.name = name;
+            goal.targetAmount = target;
+        }
+    } else {
+        appData.goals.push({
+            id: generateUUID(),
+            name: name,
+            targetAmount: target,
+            savedAmount: 0,
+            createdAt: new Date().toISOString()
+        });
+    }
+
+    $('#addGoalModal').modal('hide');
+    renderGoals();
+    saveData();
+});
+
+window.editGoal = function(id) {
+    const goal = appData.goals.find(g => g.id === id);
+    if (!goal) return;
+    $('#goalId').val(goal.id);
+    $('#goalName').val(goal.name);
+    $('#goalTarget').val(goal.targetAmount);
+    $('#goalModalTitle').text('Edit Goal');
+    $('#addGoalModal').modal('show');
+};
+
+window.deleteGoal = function(id) {
+    confirmAction('Delete Goal?', 'Are you sure you want to delete this goal? Saved funds will not be lost, just uncategorized.', 'Yes, Delete', () => {
+        appData.goals = appData.goals.filter(g => g.id !== id);
+        renderGoals();
+        saveData();
+    });
+};
+
+window.showDepositModal = function(id) {
+    $('#depositGoalForm')[0].reset();
+    $('#depositGoalId').val(id);
+    $('#depositGoalModal').modal('show');
+};
+
+$('#depositGoalForm').submit(function(e) {
+    e.preventDefault();
+    const id = $('#depositGoalId').val();
+    const amt = parseFloat($('#depositAmount').val());
+
+    if (isNaN(amt) || amt <= 0) {
+        Toast.fire({ icon: 'warning', title: 'Invalid Amount' });
+        return;
+    }
+
+    const goal = appData.goals.find(g => g.id === id);
+    if (goal) {
+        goal.savedAmount += amt;
+        Toast.fire({ icon: 'success', title: 'Funds Deposited! 🎉' });
+        $('#depositGoalModal').modal('hide');
+        renderGoals();
+        saveData();
+    }
+});
+
+function renderGoals() {
+    const container = $('#goalsContainer');
+    container.empty();
+
+    if (!appData.goals || appData.goals.length === 0) {
+        container.append(`<div class="col-12 text-center py-5 text-muted"><i class="fa-solid fa-bullseye fa-3x mb-3 opacity-50"></i><h5>No Goals Yet</h5><p>Set a savings target to track your progress.</p></div>`);
+        return;
+    }
+
+    appData.goals.forEach(goal => {
+        let pct = (goal.savedAmount / goal.targetAmount) * 100;
+        let isComplete = pct >= 100;
+        if (pct > 100) pct = 100;
+
+        container.append(`
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="card glass-card h-100 border-0 shadow-lg" style="background: rgba(15, 23, 42, 0.6); position: relative; overflow: hidden;">
+                    ${isComplete ? '<div style="position: absolute; top: -15px; right: -15px; width: 60px; height: 60px; background: #10b981; transform: rotate(45deg); display: flex; align-items: flex-end; justify-content: center; padding-bottom: 5px;"><i class="fa-solid fa-check text-white" style="transform: rotate(-45deg);"></i></div>' : ''}
+                    <div class="card-body p-4 d-flex flex-column">
+                        <div class="d-flex justify-content-between mb-3">
+                            <h5 class="fw-bold text-white mb-0 text-truncate" title="${escapeHTML(goal.name)}">${escapeHTML(goal.name)}</h5>
+                            <div class="dropdown">
+                                <i class="fa-solid fa-ellipsis-vertical text-muted" data-bs-toggle="dropdown" style="cursor: pointer;"></i>
+                                <ul class="dropdown-menu dropdown-menu-end dropdown-menu-dark">
+                                    <li><a class="dropdown-item" href="javascript:void(0);" onclick="editGoal('${goal.id}')">Edit Goal</a></li>
+                                    <li><a class="dropdown-item text-danger" href="javascript:void(0);" onclick="deleteGoal('${goal.id}')">Delete</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="mt-auto">
+                            <div class="d-flex justify-content-between text-white-50 small mb-2">
+                                <span>AED ${goal.savedAmount.toFixed(2)} saved</span>
+                                <span>AED ${goal.targetAmount.toFixed(2)}</span>
+                            </div>
+                            <div class="progress" style="height: 10px; background: rgba(255,255,255,0.1); border-radius: 10px;">
+                                <div class="progress-bar ${isComplete ? 'bg-success' : 'bg-primary'} progress-bar-striped ${isComplete ? '' : 'progress-bar-animated'}" role="progressbar" style="width: ${pct}%"></div>
+                            </div>
+                            <div class="mt-3 text-center">
+                                ${isComplete 
+                                    ? '<span class="badge bg-success w-100 py-2"><i class="fa-solid fa-trophy me-2"></i>Goal Reached!</span>' 
+                                    : `<button class="btn btn-outline-success btn-sm w-100 fw-bold" onclick="showDepositModal('${goal.id}')"><i class="fa-solid fa-coins me-2"></i>Deposit Funds</button>`
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `);
+    });
+}
+
+function renderDashboardAnalytics(filteredTx, totalExpense) {
+    const now = new Date();
+    const currentDashYear = $('#dashYearFilter').val();
+    const currentDashMonth = $('#dashMonthFilter').val();
+    
+    const isCurrentMonth = (!currentDashYear || currentDashYear == now.getFullYear()) && (!currentDashMonth || currentDashMonth == (now.getMonth() + 1));
+    
+    let daysPassed = 1;
+    let daysInMonth = 30;
+
+    if (isCurrentMonth) {
+        daysPassed = now.getDate() || 1;
+        daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+    } else if (currentDashYear && currentDashMonth) {
+        daysPassed = new Date(currentDashYear, currentDashMonth, 0).getDate();
+        daysInMonth = daysPassed;
+    }
+
+    const dailyAvg = totalExpense / daysPassed;
+    const projectedEOM = dailyAvg * daysInMonth;
+
+    $('#forecastDailyAvg').text(`AED ${dailyAvg.toFixed(2)}`);
+    $('#forecastEOM').text(`AED ${projectedEOM.toFixed(2)}`);
+
+    const heatmapGrid = $('#heatmapGrid');
+    heatmapGrid.empty();
+    
+    const dailyExpenses = {};
+    let maxDaily = 0;
+    
+    filteredTx.forEach(tx => {
+        if (tx.type !== 'expense') return;
+        const d = new Date(tx.date);
+        const day = d.getDate();
+        dailyExpenses[day] = (dailyExpenses[day] || 0) + parseFloat(tx.amount);
+        if (dailyExpenses[day] > maxDaily) maxDaily = dailyExpenses[day];
+    });
+
+    for (let i = 1; i <= daysInMonth; i++) {
+        const spent = dailyExpenses[i] || 0;
+        let opacity = 0;
+        if (spent > 0) {
+            opacity = 0.2 + (0.8 * (spent / maxDaily)); 
+        }
+        
+        let bgColor = spent > 0 ? `rgba(239, 68, 68, ${opacity})` : 'rgba(255,255,255,0.05)';
+        
+        heatmapGrid.append(`
+            <div style="width: 25px; height: 25px; background: ${bgColor}; border-radius: 4px; cursor: pointer; transition: transform 0.2s;"
+                 title="Day ${i}: AED ${spent.toFixed(2)}"
+                 data-bs-toggle="tooltip"
+                 onmouseover="this.style.transform='scale(1.2)'"
+                 onmouseout="this.style.transform='scale(1)'">
+            </div>
+        `);
+    }
+
+    $('[data-bs-toggle="tooltip"]').tooltip();
+}
+

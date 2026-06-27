@@ -47,16 +47,13 @@
                     <span>Transactions</span>
                 </a>
 
-                <!-- Center Add Button (Mobile Only) -->
-                <div class="nav-fab-container d-md-none">
-                    <button class="nav-fab" data-bs-toggle="modal" data-bs-target="#addTransactionModal">
-                        <i class="fa-solid fa-plus"></i>
-                    </button>
-                </div>
-
                 <a href="#budgets" class="nav-link" data-view="budgets">
                     <i class="fa-solid fa-chart-pie"></i>
                     <span>Budgets</span>
+                </a>
+                <a href="#goals" class="nav-link" data-view="goals">
+                    <i class="fa-solid fa-bullseye"></i>
+                    <span>Goals</span>
                 </a>
                 <a href="#settings" class="nav-link" data-view="settings">
                     <i class="fa-solid fa-gear"></i>
@@ -208,7 +205,46 @@
                         </div>
                     </div>
 
-                        <!-- Yearly Chart Section -->
+                    <!-- ADVANCED ANALYTICS SECTION -->
+                    <div class="row mb-4">
+                        <div class="col-lg-4 mb-4 mb-lg-0">
+                            <div class="card glass-card border-0 shadow-lg h-100" style="background: rgba(15, 23, 42, 0.6);">
+                                <div class="card-body p-4 d-flex flex-column justify-content-center">
+                                    <h5 class="card-title fw-bold text-white mb-4"><i class="fa-solid fa-wand-magic-sparkles text-warning me-2"></i>AI Forecast</h5>
+                                    <div class="text-center mb-4">
+                                        <div class="small text-white-50 text-uppercase tracking-wider mb-1">Average Daily Spend</div>
+                                        <h3 class="fw-bold text-white mb-0" id="forecastDailyAvg">AED 0.00</h3>
+                                    </div>
+                                    <div class="text-center p-3 rounded" style="background: rgba(255,255,255,0.05);">
+                                        <div class="small text-white-50 text-uppercase tracking-wider mb-1">Projected End of Month</div>
+                                        <h2 class="fw-bold text-danger mb-0" id="forecastEOM">AED 0.00</h2>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-8">
+                            <div class="card glass-card border-0 shadow-lg h-100" style="background: rgba(15, 23, 42, 0.6);">
+                                <div class="card-body p-4">
+                                    <h5 class="card-title fw-bold text-white mb-4"><i class="fa-solid fa-fire text-danger me-2"></i>Spending Heatmap</h5>
+                                    <div class="heatmap-container d-flex flex-wrap gap-2 justify-content-start" id="heatmapGrid">
+                                        <!-- Populated by JS -->
+                                    </div>
+                                    <div class="d-flex align-items-center mt-3 small text-white-50 justify-content-end">
+                                        <span class="me-2">Less</span>
+                                        <div style="width: 12px; height: 12px; background: rgba(255,255,255,0.05); border-radius: 2px;" class="me-1"></div>
+                                        <div style="width: 12px; height: 12px; background: #ef4444; opacity: 0.3; border-radius: 2px;" class="me-1"></div>
+                                        <div style="width: 12px; height: 12px; background: #ef4444; opacity: 0.6; border-radius: 2px;" class="me-1"></div>
+                                        <div style="width: 12px; height: 12px; background: #ef4444; border-radius: 2px;" class="me-2"></div>
+                                        <span>More</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Yearly Chart Section -->
+                    <div class="row mb-4">
                         <div class="col-12 mb-4">
                             <div class="card glass-card border-0 shadow-lg" style="background: rgba(15, 23, 42, 0.6);">
                                 <div class="card-body p-4">
@@ -389,6 +425,20 @@
                     
                     <div class="row" id="budgetsListContainer">
                         <!-- Loaded via JS -->
+                    </div>
+                </div>
+
+                <!-- GOALS VIEW -->
+                <div id="view-goals" class="app-view">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h4 class="fw-bold mb-0 text-white"><i class="fa-solid fa-bullseye me-2 text-primary"></i>Savings Goals</h4>
+                        <button class="btn btn-primary fw-bold btn-sm" onclick="showAddGoalModal()">
+                            <i class="fa-solid fa-plus me-1"></i> New Goal
+                        </button>
+                    </div>
+                    
+                    <div class="row" id="goalsContainer">
+                        <!-- Populated by JS -->
                     </div>
                 </div>
 
@@ -614,6 +664,54 @@
                     </div>
                     <button type="submit" class="btn btn-primary w-100 py-2 fw-bold">Log In</button>
                 </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Goal Modal -->
+    <div class="modal fade" id="addGoalModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content glass-card">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title fw-bold" id="goalModalTitle">Create Goal</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body border-0">
+                    <form id="goalForm">
+                        <input type="hidden" id="goalId">
+                        <div class="mb-3">
+                            <label class="form-label">Goal Name</label>
+                            <input type="text" class="form-control" id="goalName" maxlength="50" required placeholder="e.g. New Car">
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label">Target Amount (AED)</label>
+                            <input type="number" step="0.01" class="form-control" id="goalTarget" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100 py-2 fw-bold" id="saveGoalBtn">Save Goal</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Deposit Funds Modal -->
+    <div class="modal fade" id="depositGoalModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content glass-card">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title fw-bold">Deposit Funds</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body border-0">
+                    <form id="depositGoalForm">
+                        <input type="hidden" id="depositGoalId">
+                        <div class="mb-4">
+                            <label class="form-label">Amount to Deposit (AED)</label>
+                            <input type="number" step="0.01" class="form-control" id="depositAmount" required>
+                        </div>
+                        <button type="submit" class="btn btn-success w-100 py-2 fw-bold" id="saveDepositBtn">Deposit</button>
+                    </form>
+                </div>
             </div>
         </div>
     </div>

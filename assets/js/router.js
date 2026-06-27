@@ -1,6 +1,6 @@
 // SPA Hash Router Logic
 
-const views = ['dashboard', 'transactions', 'budgets', 'settings'];
+const views = ['dashboard', 'transactions', 'budgets', 'goals', 'settings'];
 const defaultView = 'dashboard';
 
 function initRouter() {
