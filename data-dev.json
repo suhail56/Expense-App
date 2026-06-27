@@ -580,7 +580,7 @@
   "settings": {
     "gasUrl": "https://script.google.com/macros/s/AKfycbweKCSnhIufBxre0f-psbbhODSaljNCyXoXRtRrrFNselEuCWnnp0BJG9QH__vWvmVo/exec",
     "syncStartDate": "2026-06-01",
-    "lastLogin": "2026-06-27T13:39:35.824Z",
+    "lastLogin": "2026-06-27T13:40:51.893Z",
     "lastSyncCount": 64,
     "lastSyncDate": "2026-06-27T13:33:29.533Z",
     "emailSender": "MashreqAlerts@mashreq.com",
@@ -634,8 +634,8 @@
     }
   ],
   "categoryLimits": {
-    "Transportation": 300,
     "Housing & Utilities": 1000,
-    "Food": 1000
+    "Food": 1000,
+    "Transportation": 300
   }
 }
