@@ -586,7 +586,6 @@
   "incomeCategories": [
     "Salary",
     "Refunds",
-    "Dividends",
     "Other"
   ],
   "categoryRules": [],
