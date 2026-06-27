@@ -1643,102 +1643,171 @@ window.renderBudgetsPage = function() {
 
     if (totalLimit > 0) {
         const oDisplayPct = ((totalSpent / totalLimit) * 100).toFixed(1);
-        const oBarWidth = Math.min((totalSpent / totalLimit) * 100, 100).toFixed(1);
+        const cappedPct = Math.min(oDisplayPct, 100);
         const oAvailable = Math.max(totalLimit - totalSpent, 0).toFixed(2);
         
-        let oColor = 'bg-primary';
-        if (oDisplayPct >= 100) oColor = 'bg-danger';
-        else if (oDisplayPct >= 80) oColor = 'bg-warning';
-        else if (oDisplayPct >= 50) oColor = 'bg-info';
+        // Colors for circular progress
+        let ringColor = 'rgba(59, 130, 246, 1)'; // Blue
+        let ringShadow = 'rgba(59, 130, 246, 0.5)';
+        if (oDisplayPct >= 100) { ringColor = 'rgba(239, 68, 68, 1)'; ringShadow = 'rgba(239, 68, 68, 0.6)'; }
+        else if (oDisplayPct >= 80) { ringColor = 'rgba(245, 158, 11, 1)'; ringShadow = 'rgba(245, 158, 11, 0.5)'; }
         
-        let oTextColor = oDisplayPct >= 100 ? 'text-danger' : 'text-info';
+        // SVG Math
+        const radius = 90;
+        const circumference = 2 * Math.PI * radius;
+        const dashOffset = circumference - (cappedPct / 100) * circumference;
+
+        // Find Most At Risk Category
+        let mostAtRisk = { cat: 'None', pct: 0 };
+        Object.keys(appData.categoryLimits).forEach(c => {
+            const l = parseFloat(appData.categoryLimits[c] || 0);
+            const s = usage[c] || 0;
+            if(l > 0) {
+                const p = (s/l)*100;
+                if(p > mostAtRisk.pct) { mostAtRisk = { cat: c, pct: p }; }
+            }
+        });
+
+        let insightHtml = '';
+        if (mostAtRisk.pct > 0) {
+            let msg = `You are spending fastest in <strong>${mostAtRisk.cat}</strong>.`;
+            if (mostAtRisk.pct >= 100) msg = `Warning: You have exceeded your <strong>${mostAtRisk.cat}</strong> budget!`;
+            insightHtml = `
+            <div class="insight-banner mt-4 d-flex align-items-center">
+                <i class="fa-solid fa-lightbulb text-warning me-3 fs-4"></i>
+                <div class="text-white-50 small">
+                    <span class="d-block fw-bold text-white mb-1">Smart Insight</span>
+                    ${msg}
+                </div>
+            </div>`;
+        }
 
         overallContainer.html(`
-            <div class="col-12">
-                <div class="card glass-card h-100" style="background: linear-gradient(145deg, rgba(30, 41, 59, 0.8) 0%, rgba(15, 23, 42, 0.9) 100%); border: 2px solid rgba(255,255,255,0.15); box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);">
-                    <div class="card-body p-4">
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h5 class="fw-bold mb-0 text-white"><i class="fa-solid fa-bullseye me-2 text-success"></i>Overall Monthly Goal</h5>
-                            <span class="badge ${oColor} bg-opacity-25 border border-${oColor.replace('bg-','')} ${oTextColor} px-3 py-2 rounded-pill shadow-sm" style="font-size: 0.95rem;">
-                                ${oDisplayPct}% Used
-                            </span>
+            <div class="budget-hero-card p-4 p-md-5">
+                <div class="row align-items-center">
+                    <div class="col-md-5 text-center mb-4 mb-md-0">
+                        <div class="circular-progress-container">
+                            <svg class="circular-progress-svg" style="filter: drop-shadow(0 0 10px ${ringShadow});">
+                                <circle class="circular-progress-bg" cx="110" cy="110" r="${radius}"></circle>
+                                <circle class="circular-progress-fill" cx="110" cy="110" r="${radius}" 
+                                        stroke="${ringColor}" stroke-dasharray="${circumference}" 
+                                        stroke-dashoffset="${circumference}">
+                                </circle>
+                            </svg>
+                            <div class="circular-progress-text">
+                                <span class="d-block fs-2 fw-bold text-white mb-0 lh-1">${oDisplayPct}%</span>
+                                <span class="d-block small text-white-50 text-uppercase tracking-wider mt-1">Used</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-7 ps-md-4">
+                        <h3 class="fw-bold text-white mb-1">Command Center</h3>
+                        <p class="text-white-50 mb-4">Your overall monthly spending pace.</p>
+                        
+                        <div class="row g-3">
+                            <div class="col-6">
+                                <div class="p-3 rounded" style="background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.05);">
+                                    <span class="d-block text-white-50 small text-uppercase fw-bold mb-1">Total Limit</span>
+                                    <span class="fw-bold text-white fs-5">AED ${totalLimit.toFixed(2)}</span>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="p-3 rounded" style="background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.05);">
+                                    <span class="d-block text-white-50 small text-uppercase fw-bold mb-1">Total Spent</span>
+                                    <span class="fw-bold text-white fs-5">AED ${totalSpent.toFixed(2)}</span>
+                                </div>
+                            </div>
                         </div>
                         
-                        <div class="progress mb-4" style="height: 16px; background: rgba(0,0,0,0.4); border-radius: 10px; box-shadow: inset 0 1px 3px rgba(0,0,0,0.6);">
-                            <div class="progress-bar ${oColor} progress-bar-striped progress-bar-animated" role="progressbar" style="width: ${oBarWidth}%; border-radius: 10px;"></div>
-                        </div>
-                        
-                        <div class="row text-center mt-4">
-                            <div class="col-4">
-                                <span class="d-block text-white-50 small text-uppercase fw-bold mb-1">Spent</span>
-                                <span class="fw-bold text-white fs-4">AED ${totalSpent.toFixed(2)}</span>
-                            </div>
-                            <div class="col-4 border-start border-end border-secondary">
-                                <span class="d-block text-white-50 small text-uppercase fw-bold mb-1">Total Limit</span>
-                                <span class="fw-bold text-white fs-4">AED ${totalLimit.toFixed(2)}</span>
-                            </div>
-                            <div class="col-4">
-                                <span class="d-block text-white-50 small text-uppercase fw-bold mb-1">Available</span>
-                                <span class="fw-bold text-success fs-4">AED ${oAvailable}</span>
-                            </div>
-                        </div>
+                        ${insightHtml}
                     </div>
                 </div>
             </div>
         `);
+
+        // Animate the SVG ring after a tiny delay
+        setTimeout(() => {
+            const circle = overallContainer.find('.circular-progress-fill');
+            if(circle.length) circle.css('stroke-dashoffset', dashOffset);
+        }, 100);
     }
 
-    // Render Progress Cards
-    Object.keys(appData.categoryLimits).forEach(cat => {
+    // Sort categories by % used descending
+    let catArray = Object.keys(appData.categoryLimits).map(cat => {
         const limit = parseFloat(appData.categoryLimits[cat]);
         const spent = usage[cat];
+        return { cat, limit, spent, pct: limit > 0 ? (spent/limit)*100 : 0 };
+    });
+    catArray.sort((a, b) => b.pct - a.pct);
+
+    // Render Premium Cards
+    catArray.forEach(item => {
+        const cat = item.cat;
+        const limit = item.limit;
+        const spent = item.spent;
         
-        // Display percentage can go over 100%
-        const displayPercentage = ((spent / limit) * 100).toFixed(1);
-        // Progress bar width visually caps at 100%
-        const barWidth = Math.min((spent / limit) * 100, 100).toFixed(1);
-        
+        const displayPercentage = item.pct.toFixed(1);
+        const barWidth = Math.min(item.pct, 100).toFixed(1);
         const available = Math.max(limit - spent, 0).toFixed(2);
         
-        let progressColor = 'bg-primary';
-        if (displayPercentage >= 100) progressColor = 'bg-danger';
-        else if (displayPercentage >= 80) progressColor = 'bg-warning';
-        else if (displayPercentage >= 50) progressColor = 'bg-info';
-
-        let textColor = displayPercentage >= 100 ? 'text-danger' : 'text-info';
+        // Dynamic gradient colors based on status
+        let gradStart = 'rgba(59, 130, 246, 1)';
+        let gradEnd = 'rgba(14, 165, 233, 1)';
+        let badgeColor = 'bg-primary';
+        
+        if (item.pct >= 100) {
+            gradStart = 'rgba(239, 68, 68, 1)'; gradEnd = 'rgba(220, 38, 38, 1)'; badgeColor = 'bg-danger text-white';
+        } else if (item.pct >= 80) {
+            gradStart = 'rgba(245, 158, 11, 1)'; gradEnd = 'rgba(217, 119, 6, 1)'; badgeColor = 'bg-warning text-dark';
+        } else if (item.pct >= 50) {
+            gradStart = 'rgba(16, 185, 129, 1)'; gradEnd = 'rgba(5, 150, 105, 1)'; badgeColor = 'bg-success text-white';
+        }
 
         container.append(`
-            <div class="col-md-6 mb-4">
-                <div class="card glass-card h-100" style="background: linear-gradient(145deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.01) 100%); border: 1px solid rgba(255,255,255,0.1); border-top: 1px solid rgba(255,255,255,0.2); box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);">
-                    <div class="card-body p-4">
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h5 class="fw-bold mb-0 text-white"><i class="fa-solid fa-tag me-2" style="color: var(--accent-blue);"></i>${cat}</h5>
-                            <span class="badge ${progressColor} bg-opacity-25 border border-${progressColor.replace('bg-','')} ${textColor} px-3 py-2 rounded-pill shadow-sm" style="font-size: 0.85rem;">
-                                ${displayPercentage}% Used
-                            </span>
+            <div class="col-md-6 col-xl-4 mb-4">
+                <div class="premium-cat-card p-4 h-100 d-flex flex-column">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <div class="d-flex align-items-center">
+                            <div class="rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px; background: rgba(255,255,255,0.1);">
+                                <i class="fa-solid fa-tags text-white"></i>
+                            </div>
+                            <h5 class="fw-bold mb-0 text-white">${cat}</h5>
                         </div>
-                        
-                        <div class="progress mb-4" style="height: 12px; background: rgba(0,0,0,0.3); border-radius: 10px; box-shadow: inset 0 1px 2px rgba(0,0,0,0.5);">
-                            <div class="progress-bar ${progressColor} progress-bar-striped progress-bar-animated" role="progressbar" style="width: ${barWidth}%; border-radius: 10px;"></div>
+                        <span class="badge ${badgeColor} rounded-pill shadow-sm px-3 py-2 fw-bold" style="font-size: 0.8rem;">
+                            ${displayPercentage}%
+                        </span>
+                    </div>
+                    
+                    <div class="gradient-track mb-4">
+                        <div class="gradient-fill" style="width: 0%; background: linear-gradient(90deg, ${gradStart}, ${gradEnd});"></div>
+                    </div>
+                    
+                    <div class="mt-auto row text-center">
+                        <div class="col-4">
+                            <span class="d-block text-white-50 small text-uppercase mb-1" style="font-size: 0.65rem;">Spent</span>
+                            <span class="fw-bold text-white small">AED ${spent.toFixed(0)}</span>
                         </div>
-                        
-                        <div class="d-flex justify-content-between align-items-center rounded p-3" style="background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.05);">
-                            <div class="text-center">
-                                <span class="d-block text-white-50 small text-uppercase fw-bold mb-1" style="letter-spacing: 0.5px;">Spent</span>
-                                <span class="fw-bold text-white fs-5">AED ${spent.toFixed(2)}</span>
-                            </div>
-                            <div class="text-center">
-                                <span class="d-block text-white-50 small text-uppercase fw-bold mb-1" style="letter-spacing: 0.5px;">Limit</span>
-                                <span class="text-white-50 fs-6">AED ${limit.toFixed(2)}</span>
-                            </div>
-                            <div class="text-center">
-                                <span class="d-block text-white-50 small text-uppercase fw-bold mb-1" style="letter-spacing: 0.5px;">Left</span>
-                                <span class="fw-bold ${displayPercentage >= 100 ? 'text-danger' : 'text-success'} fs-5">AED ${available}</span>
-                            </div>
+                        <div class="col-4 border-start border-end border-secondary">
+                            <span class="d-block text-white-50 small text-uppercase mb-1" style="font-size: 0.65rem;">Limit</span>
+                            <span class="fw-bold text-white-50 small">AED ${limit.toFixed(0)}</span>
+                        </div>
+                        <div class="col-4">
+                            <span class="d-block text-white-50 small text-uppercase mb-1" style="font-size: 0.65rem;">Left</span>
+                            <span class="fw-bold ${item.pct >= 100 ? 'text-danger' : 'text-success'} small">AED ${available}</span>
                         </div>
                     </div>
                 </div>
             </div>
         `);
     });
+
+    // Trigger gradient fill animation
+    setTimeout(() => {
+        container.find('.premium-cat-card').each(function(index) {
+            const card = $(this);
+            const fill = card.find('.gradient-fill');
+            const targetWidth = Math.min(catArray[index].pct, 100) + '%';
+            fill.css('width', targetWidth);
+        });
+    }, 100);
 }
