@@ -410,6 +410,7 @@ window.fetchData = function() {
             $('#emailRegex').val(appData.settings.emailRegex || 'purchase of (?:AED|USD)\\s+([\\d,.]+)\\s+at\\s+(.*?)\\s+on\\s+([\\d]{2}-[A-Z]{3}-[\\d]{4}\\s+[\\d]{2}:[\\d]{2}\\s+[A-Z]{2})');
 
             refreshUI();
+            startAutoPoll();
             showLoading(false);
         },
         error: function(err) {
@@ -424,6 +425,30 @@ window.fetchData = function() {
     });
 }
 
+let pollInterval;
+function startAutoPoll() {
+    if (pollInterval) clearInterval(pollInterval);
+    // Poll every 3 minutes
+    pollInterval = setInterval(() => {
+        if (!ghRepo || !ghToken) return;
+        
+        $.ajax({
+            url: getApiUrl(),
+            method: 'GET',
+            headers: getHeaders(),
+            success: function(response) {
+                if (response.sha && response.sha !== fileSha) {
+                    fileSha = response.sha;
+                    const decodedContent = window.atob(response.content);
+                    appData = JSON.parse(decodeURIComponent(escape(decodedContent)));
+                    refreshUI();
+                    Toast.fire({ icon: 'info', title: 'New data synced in background!' });
+                }
+            }
+        });
+    }, 180000);
+}
+
 function saveData() {
     // Auto-correct Sync Count if transactions were deleted
     if (appData.settings && appData.settings.lastSyncCount !== undefined) {
@@ -433,7 +458,7 @@ function saveData() {
         }
     }
 
-    showLoading(true);
+    // Silent background save for optimistic UI
     const contentStr = JSON.stringify(appData, null, 2);
     const encodedContent = window.btoa(unescape(encodeURIComponent(contentStr)));
 
@@ -450,11 +475,9 @@ function saveData() {
         data: JSON.stringify(data),
         success: function(response) {
             fileSha = response.content.sha;
-            showLoading(false);
         },
         error: function(err) {
-            showLoading(false);
-            Toast.fire({ icon: 'error', title: 'Error saving data!' });
+            Toast.fire({ icon: 'error', title: 'Error saving data in background!' });
             console.error(err);
         }
     });
