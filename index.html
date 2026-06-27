@@ -370,7 +370,7 @@
                                     <h5 class="fw-bold mb-4"><i class="fa-solid fa-database me-2 text-success"></i>Database Connection</h5>
                                     <div class="mb-3">
                                         <label class="form-label text-secondary small">Connected GitHub Repository</label>
-                                        <input type="text" class="form-control" id="displayRepo" readonly disabled>
+                                        <input type="text" class="form-control" id="displayRepo" readonly>
                                     </div>
                                     <button class="btn btn-outline-primary w-100" onclick="fetchData()">
                                         <i class="fa-solid fa-arrows-rotate me-2"></i> Force Sync Database
@@ -386,6 +386,18 @@
                                         <div class="mb-3">
                                             <label class="form-label text-secondary small">Google Apps Script Web App URL</label>
                                             <input type="url" class="form-control" id="gasUrl" placeholder="https://script.google.com/macros/s/.../exec">
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label text-secondary small">Email Sender Address</label>
+                                            <input type="email" class="form-control" id="emailSender" placeholder="MashreqAlerts@mashreq.com">
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label text-secondary small">Email Subject Match</label>
+                                            <input type="text" class="form-control" id="emailSubject" placeholder="Transaction Confirmation on Mashreq Card">
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label text-secondary small">Regex Extraction Pattern <i class="fa-solid fa-circle-info ms-1 text-muted" title="Extracts (Amount), (Merchant), and (Date) from the email body."></i></label>
+                                            <input type="text" class="form-control text-monospace small" id="emailRegex" placeholder="purchase of (?:AED|USD)\s+([\d,.]+)\s+at\s+(.*?)\s+on\s+([\d]{2}-[A-Z]{3}-[\d]{4}\s+[\d]{2}:[\d]{2}\s+[A-Z]{2})">
                                         </div>
                                         <div class="mb-4">
                                             <label class="form-label text-secondary small">Sync Start Date</label>

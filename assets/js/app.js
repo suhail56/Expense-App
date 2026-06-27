@@ -242,6 +242,11 @@ $(document).ready(function() {
         if (!appData.settings) appData.settings = {};
         appData.settings.gasUrl = $('#gasUrl').val().trim();
         appData.settings.syncStartDate = $('#syncStartDate').val();
+        
+        appData.settings.emailSender = $('#emailSender').val().trim();
+        appData.settings.emailSubject = $('#emailSubject').val().trim();
+        appData.settings.emailRegex = $('#emailRegex').val().trim();
+        
         saveData();
         alert('Sync settings saved!');
     });
@@ -368,6 +373,11 @@ window.fetchData = function() {
             // Populate settings inputs
             $('#gasUrl').val(appData.settings.gasUrl || '');
             $('#syncStartDate').val(appData.settings.syncStartDate || '');
+            
+            // Populate email parser settings (or use defaults)
+            $('#emailSender').val(appData.settings.emailSender || 'MashreqAlerts@mashreq.com');
+            $('#emailSubject').val(appData.settings.emailSubject || 'Transaction Confirmation on Mashreq Card');
+            $('#emailRegex').val(appData.settings.emailRegex || 'purchase of (?:AED|USD)\\s+([\\d,.]+)\\s+at\\s+(.*?)\\s+on\\s+([\\d]{2}-[A-Z]{3}-[\\d]{4}\\s+[\\d]{2}:[\\d]{2}\\s+[A-Z]{2})');
 
             refreshUI();
             showLoading(false);

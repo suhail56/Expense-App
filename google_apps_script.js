@@ -53,7 +53,11 @@ function doPost(e) {
     }
 
     // 2. Build Gmail Search Query
-    let searchQuery = 'from:MashreqAlerts@mashreq.com subject:"Transaction Confirmation on Mashreq Card"';
+    const emailSender = (appData.settings && appData.settings.emailSender) ? appData.settings.emailSender : 'MashreqAlerts@mashreq.com';
+    const emailSubject = (appData.settings && appData.settings.emailSubject) ? appData.settings.emailSubject : 'Transaction Confirmation on Mashreq Card';
+    const emailRegexPattern = (appData.settings && appData.settings.emailRegex) ? appData.settings.emailRegex : null;
+
+    let searchQuery = `from:${emailSender} subject:"${emailSubject}"`;
     if (startDate) {
       // If start date is provided, format it properly (must be YYYY/MM/DD)
       const dateParts = startDate.split('-');
@@ -82,7 +86,7 @@ function doPost(e) {
         }
 
         const body = msg.getPlainBody();
-        const tx = parseMashreqEmail(body, appData.categoryRules || []);
+        const tx = parseMashreqEmail(body, appData.categoryRules || [], emailRegexPattern);
         
         if (tx) {
           tx.gmailId = msgId; // Store the ID to prevent duplicates later
@@ -153,20 +157,17 @@ function processBankEmails() {
   Logger.log("This function is deprecated. Use the Web App Webhook POST method instead.");
 }
 
-function parseMashreqEmail(body, rules) {
+function parseMashreqEmail(body, rules, emailRegexPattern) {
   try {
-    const amountRegex = /purchase of AED ([\d,.]+)/i;
-    const merchantRegex = /at (.*?) on \d{2}-[A-Z]{3}-\d{4}/i;
-    const dateRegex = /on (\d{2}-[A-Z]{3}-\d{4} \d{2}:\d{2} (?:AM|PM))/i;
+    const regexStr = emailRegexPattern || "purchase of (?:AED|USD)\\s+([\\d,.]+)\\s+at\\s+(.*?)\\s+on\\s+([\\d]{2}-[A-Z]{3}-[\\d]{4}\\s+[\\d]{2}:[\\d]{2}\\s+[A-Z]{2})";
+    const regex = new RegExp(regexStr, 'i');
+    
+    const match = body.match(regex);
 
-    const amountMatch = body.match(amountRegex);
-    const merchantMatch = body.match(merchantRegex);
-    const dateMatch = body.match(dateRegex);
-
-    if (amountMatch && merchantMatch && dateMatch) {
-      let amount = parseFloat(amountMatch[1].replace(/,/g, ''));
-      let merchant = merchantMatch[1].trim();
-      let dateStr = dateMatch[1].trim(); 
+    if (match && match.length >= 4) {
+      let amount = parseFloat(match[1].replace(/,/g, ''));
+      let merchant = match[2].trim();
+      let dateStr = match[3].trim(); 
       
       const parsedDate = new Date(dateStr);
       const tzOffset = (new Date()).getTimezoneOffset() * 60000; 
