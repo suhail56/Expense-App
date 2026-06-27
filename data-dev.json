@@ -44,6 +44,528 @@
       "category": "Other",
       "amount": "25.31",
       "gmailId": "19f042caece91cc9"
+    },
+    {
+      "id": "1782555718227512",
+      "date": "2026-06-25T18:33",
+      "merchant": "talabat.com Dubai AE",
+      "type": "expense",
+      "category": "Other",
+      "amount": "31.09",
+      "gmailId": "19eff3334dc67ddc"
+    },
+    {
+      "id": "1782555718335192",
+      "date": "2026-06-23T12:32",
+      "merchant": "HOUSE OF PAKISTAN FOOD FUJAIRAH AE",
+      "type": "expense",
+      "category": "Other",
+      "amount": "8.00",
+      "gmailId": "19ef39c02e79b25e"
+    },
+    {
+      "id": "1782555718337106",
+      "date": "2026-06-23T17:34",
+      "merchant": "AL SEWAR AUTO SERVICE C KALBA AE",
+      "type": "expense",
+      "category": "Other",
+      "amount": "320.00",
+      "gmailId": "19ef4b064c22dce1"
+    },
+    {
+      "id": "1782555718339250",
+      "date": "2026-06-23T18:02",
+      "merchant": "ENOC SITE 7511 FUJAIRAH AE",
+      "type": "expense",
+      "category": "Other",
+      "amount": "31.00",
+      "gmailId": "19ef4ca82998a190"
+    },
+    {
+      "id": "1782555718340966",
+      "date": "2026-06-23T18:22",
+      "merchant": "LULU HYPERMARKET FUJAIRAH AE",
+      "type": "expense",
+      "category": "Other",
+      "amount": "44.90",
+      "gmailId": "19ef4dcfc57bf2d5"
+    },
+    {
+      "id": "1782555718341710",
+      "date": "2026-06-23T21:00",
+      "merchant": "MYF*KEETA Dubai AE",
+      "type": "expense",
+      "category": "Other",
+      "amount": "22.30",
+      "gmailId": "19ef56cf6c33f33b"
+    },
+    {
+      "id": "1782555718343630",
+      "date": "2026-06-24T08:31",
+      "merchant": "Etihad Rail ABU DHABI AE",
+      "type": "expense",
+      "category": "Other",
+      "amount": "195.00",
+      "gmailId": "19ef7e5c35c9ff5e"
+    },
+    {
+      "id": "1782555718345615",
+      "date": "2026-06-24T18:44",
+      "merchant": "MYF*KEETA Dubai AE",
+      "type": "expense",
+      "category": "Other",
+      "amount": "32.55",
+      "gmailId": "19efa16fd84b6550"
+    },
+    {
+      "id": "1782555718417401",
+      "date": "2026-06-22T12:48",
+      "merchant": "HOUSE OF PAKISTAN FOOD FUJAIRAH AE",
+      "type": "expense",
+      "category": "Other",
+      "amount": "17.00",
+      "gmailId": "19eee84ae1cfd995"
+    },
+    {
+      "id": "178255571841955",
+      "date": "2026-06-22T18:01",
+      "merchant": "TAP*Keeta Dubai AE",
+      "type": "expense",
+      "category": "Other",
+      "amount": "31.35",
+      "gmailId": "19eefa33b3536523"
+    },
+    {
+      "id": "1782555718497186",
+      "date": "2026-06-21T09:24",
+      "merchant": "TAP*Keeta Dubai AE",
+      "type": "expense",
+      "category": "Other",
+      "amount": "20.30",
+      "gmailId": "19ee8a30fa48400b"
+    },
+    {
+      "id": "178255571849910",
+      "date": "2026-06-21T15:08",
+      "merchant": "talabat.com Dubai AE",
+      "type": "expense",
+      "category": "Other",
+      "amount": "25.10",
+      "gmailId": "19ee9de34cb5e732"
+    },
+    {
+      "id": "1782555718585418",
+      "date": "2026-06-20T10:10",
+      "merchant": "KEETA DB DELIVERY SERV DUBAI AE",
+      "type": "expense",
+      "category": "Other",
+      "amount": "19.80",
+      "gmailId": "19ee3a73b63beefb"
+    },
+    {
+      "id": "1782555718587582",
+      "date": "2026-06-20T11:18",
+      "merchant": "Emarat - Al Helaifat Fujairah Coun AE",
+      "type": "expense",
+      "category": "Other",
+      "amount": "105.02",
+      "gmailId": "19ee3e4f505de40a"
+    },
+    {
+      "id": "1782555718588704",
+      "date": "2026-06-20T12:14",
+      "merchant": "ENOC 1155 SHARJAH AE",
+      "type": "expense",
+      "category": "Other",
+      "amount": "6.50",
+      "gmailId": "19ee418bb99b8968"
+    },
+    {
+      "id": "1782555718590213",
+      "date": "2026-06-20T15:29",
+      "merchant": "MYF*KEETA SUP Dubai AE",
+      "type": "expense",
+      "category": "Other",
+      "amount": "28.05",
+      "gmailId": "19ee4cacb5e6b22c"
+    },
+    {
+      "id": "1782555718591257",
+      "date": "2026-06-20T20:17",
+      "merchant": "Noon Minutes 80038888 AE",
+      "type": "expense",
+      "category": "Other",
+      "amount": "34.20",
+      "gmailId": "19ee5d287c2574f0"
+    },
+    {
+      "id": "1782555718666529",
+      "date": "2026-06-19T12:47",
+      "merchant": "TAP*Keeta Dubai AE",
+      "type": "expense",
+      "category": "Other",
+      "amount": "31.50",
+      "gmailId": "19edf103c1b0c9cf"
+    },
+    {
+      "id": "1782555718668159",
+      "date": "2026-06-19T19:07",
+      "merchant": "TAP*Keeta Dubai AE",
+      "type": "expense",
+      "category": "Other",
+      "amount": "38.25",
+      "gmailId": "19ee06c2d227d7b5"
+    },
+    {
+      "id": "178255571874998",
+      "date": "2026-06-18T15:54",
+      "merchant": "MYF*KEETA SUP Dubai AE",
+      "type": "expense",
+      "category": "Other",
+      "amount": "21.80",
+      "gmailId": "19eda957e3678958"
+    },
+    {
+      "id": "1782555718818854",
+      "date": "2026-06-17T16:42",
+      "merchant": "MYF*KEETA Dubai AE",
+      "type": "expense",
+      "category": "Other",
+      "amount": "31.50",
+      "gmailId": "19ed59b2db610218"
+    },
+    {
+      "id": "1782555718897528",
+      "date": "2026-06-16T14:03",
+      "merchant": "HOUSE OF PAKISTAN FOOD FUJAIRAH AE",
+      "type": "expense",
+      "category": "Other",
+      "amount": "15.00",
+      "gmailId": "19ecfe3175eb8342"
+    },
+    {
+      "id": "17825557188994",
+      "date": "2026-06-16T14:37",
+      "merchant": "e& Digital App Abu Dhabi AE",
+      "type": "expense",
+      "category": "Other",
+      "amount": "10.00",
+      "gmailId": "19ed002218797d36"
+    },
+    {
+      "id": "1782555718900395",
+      "date": "2026-06-16T18:10",
+      "merchant": "MYF*KEETA Dubai AE",
+      "type": "expense",
+      "category": "Other",
+      "amount": "21.80",
+      "gmailId": "19ed0c58cc6dc341"
+    },
+    {
+      "id": "178255571897458",
+      "date": "2026-06-15T10:30",
+      "merchant": "talabat.com Dubai AE",
+      "type": "expense",
+      "category": "Other",
+      "amount": "23.80",
+      "gmailId": "19ec9f93c2c70af8"
+    },
+    {
+      "id": "1782555718976282",
+      "date": "2026-06-15T16:06",
+      "merchant": "MYF*KEETA SUP Dubai AE",
+      "type": "expense",
+      "category": "Other",
+      "amount": "26.25",
+      "gmailId": "19ecb2d17948e071"
+    },
+    {
+      "id": "1782555718978169",
+      "date": "2026-06-15T20:15",
+      "merchant": "Noon Food 80038888 AE",
+      "type": "expense",
+      "category": "Other",
+      "amount": "25.89",
+      "gmailId": "19ecc111be5006f9"
+    },
+    {
+      "id": "1782555719084914",
+      "date": "2026-06-14T10:41",
+      "merchant": "TAP*Keeta Dubai AE",
+      "type": "expense",
+      "category": "Other",
+      "amount": "21.80",
+      "gmailId": "19ec4dd3a5d2899b"
+    },
+    {
+      "id": "178255571908636",
+      "date": "2026-06-14T14:21",
+      "merchant": "Keeta Dubai AE",
+      "type": "expense",
+      "category": "Other",
+      "amount": "21.80",
+      "gmailId": "19ec5a6fc15bfd14"
+    },
+    {
+      "id": "1782555719087284",
+      "date": "2026-06-14T18:34",
+      "merchant": "TAP*Keeta Dubai AE",
+      "type": "expense",
+      "category": "Other",
+      "amount": "32.03",
+      "gmailId": "19ec68e4246ad47e"
+    },
+    {
+      "id": "1782555719198365",
+      "date": "2026-06-13T10:29",
+      "merchant": "TAP*Keeta Dubai AE",
+      "type": "expense",
+      "category": "Other",
+      "amount": "23.80",
+      "gmailId": "19ebfac1148a27b6"
+    },
+    {
+      "id": "178255571920120",
+      "date": "2026-06-13T12:44",
+      "merchant": "ENOC 1155 SHARJAH AE",
+      "type": "expense",
+      "category": "Other",
+      "amount": "105.02",
+      "gmailId": "19ec027f13b36967"
+    },
+    {
+      "id": "178255571920259",
+      "date": "2026-06-13T12:48",
+      "merchant": "ENOC 1155 SHARJAH AE",
+      "type": "expense",
+      "category": "Other",
+      "amount": "5.75",
+      "gmailId": "19ec02ae3a5c24b7"
+    },
+    {
+      "id": "1782555719204833",
+      "date": "2026-06-13T17:14",
+      "merchant": "TAP*Keeta Dubai AE",
+      "type": "expense",
+      "category": "Other",
+      "amount": "27.20",
+      "gmailId": "19ec11e8bbf5125b"
+    },
+    {
+      "id": "178255571928366",
+      "date": "2026-06-12T12:45",
+      "merchant": "Keeta Dubai AE",
+      "type": "expense",
+      "category": "Other",
+      "amount": "31.50",
+      "gmailId": "19ebb028c10fe693"
+    },
+    {
+      "id": "1782555719285122",
+      "date": "2026-06-12T16:33",
+      "merchant": "e& Digital App Abu Dhabi AE",
+      "type": "expense",
+      "category": "Other",
+      "amount": "10.00",
+      "gmailId": "19ebbd3430e2530e"
+    },
+    {
+      "id": "1782555719287233",
+      "date": "2026-06-12T18:58",
+      "merchant": "talabat.com Dubai AE",
+      "type": "expense",
+      "category": "Other",
+      "amount": "23.19",
+      "gmailId": "19ebc575dee5d28a"
+    },
+    {
+      "id": "1782555719360570",
+      "date": "2026-06-11T16:01",
+      "merchant": "KEETA DB DELIVERY SERV DUBAI AE",
+      "type": "expense",
+      "category": "Other",
+      "amount": "27.19",
+      "gmailId": "19eb68ee4b09654b"
+    },
+    {
+      "id": "1782555719430832",
+      "date": "2026-06-10T15:51",
+      "merchant": "KEETA DB DELIVERY SERV DUBAI AE",
+      "type": "expense",
+      "category": "Other",
+      "amount": "27.50",
+      "gmailId": "19eb15f63f467ca7"
+    },
+    {
+      "id": "1782555719502301",
+      "date": "2026-06-09T08:52",
+      "merchant": "Keeta Dubai AE",
+      "type": "expense",
+      "category": "Other",
+      "amount": "22.80",
+      "gmailId": "19eaab9518b5fb4a"
+    },
+    {
+      "id": "1782555719505232",
+      "date": "2026-06-09T16:03",
+      "merchant": "MYF*KEETA Dubai AE",
+      "type": "expense",
+      "category": "Other",
+      "amount": "26.78",
+      "gmailId": "19eac447dc305e43"
+    },
+    {
+      "id": "178255571950690",
+      "date": "2026-06-09T20:32",
+      "merchant": "Noon Minutes 80038888 AE",
+      "type": "expense",
+      "category": "Other",
+      "amount": "29.65",
+      "gmailId": "19ead3a25d5548e2"
+    },
+    {
+      "id": "1782555719571878",
+      "date": "2026-06-08T15:54",
+      "merchant": "MYF*KEETA SUP Dubai AE",
+      "type": "expense",
+      "category": "Other",
+      "amount": "27.30",
+      "gmailId": "19ea7157221d4a9c"
+    },
+    {
+      "id": "1782555719638254",
+      "date": "2026-06-07T11:34",
+      "merchant": "MYF*KEETA Dubai AE",
+      "type": "expense",
+      "category": "Other",
+      "amount": "33.60",
+      "gmailId": "19ea100ddcda9f4c"
+    },
+    {
+      "id": "1782555719640855",
+      "date": "2026-06-07T16:26",
+      "merchant": "Keeta Dubai AE",
+      "type": "expense",
+      "category": "Other",
+      "amount": "43.05",
+      "gmailId": "19ea20cb9545a3c7"
+    },
+    {
+      "id": "1782555719720719",
+      "date": "2026-06-06T14:19",
+      "merchant": "TAP*Keeta Dubai AE",
+      "type": "expense",
+      "category": "Other",
+      "amount": "20.80",
+      "gmailId": "19e9c71bbd36b8b4"
+    },
+    {
+      "id": "1782555719722226",
+      "date": "2026-06-06T18:52",
+      "merchant": "talabat.com Dubai AE",
+      "type": "expense",
+      "category": "Other",
+      "amount": "31.79",
+      "gmailId": "19e9d6bc8cf0c94b"
+    },
+    {
+      "id": "1782555719815795",
+      "date": "2026-06-05T12:44",
+      "merchant": "MYF*KEETA SUP Dubai AE",
+      "type": "expense",
+      "category": "Other",
+      "amount": "31.50",
+      "gmailId": "19e96f506cce1f52"
+    },
+    {
+      "id": "178255571981757",
+      "date": "2026-06-05T20:07",
+      "merchant": "talabat.com Dubai AE",
+      "type": "expense",
+      "category": "Other",
+      "amount": "23.89",
+      "gmailId": "19e988a88fc26e20"
+    },
+    {
+      "id": "1782555719901694",
+      "date": "2026-06-04T13:19",
+      "merchant": "HOUSE OF PAKISTAN FOOD FUJAIRAH AE",
+      "type": "expense",
+      "category": "Other",
+      "amount": "17.00",
+      "gmailId": "19e91ee05d116d7e"
+    },
+    {
+      "id": "1782555719903331",
+      "date": "2026-06-04T16:44",
+      "merchant": "talabat.com Dubai AE",
+      "type": "expense",
+      "category": "Other",
+      "amount": "36.31",
+      "gmailId": "19e92aa251a9b2f5"
+    },
+    {
+      "id": "1782555719983445",
+      "date": "2026-06-03T09:52",
+      "merchant": "AL MALEEHA CAFETERIA AN Fujairah AE",
+      "type": "expense",
+      "category": "Other",
+      "amount": "12.00",
+      "gmailId": "19e8c0af96944133"
+    },
+    {
+      "id": "1782555719988310",
+      "date": "2026-06-03T15:58",
+      "merchant": "TAP*Keeta Dubai AE",
+      "type": "expense",
+      "category": "Other",
+      "amount": "33.99",
+      "gmailId": "19e8d593b45dc778"
+    },
+    {
+      "id": "1782555720065395",
+      "date": "2026-06-02T16:53",
+      "merchant": "LULU HYPERMARKET FUJAIRAH AE",
+      "type": "expense",
+      "category": "Other",
+      "amount": "68.60",
+      "gmailId": "19e88655cdd2470f"
+    },
+    {
+      "id": "1782555720067272",
+      "date": "2026-06-02T19:49",
+      "merchant": "TAP*Keeta Dubai AE",
+      "type": "expense",
+      "category": "Other",
+      "amount": "19.80",
+      "gmailId": "19e89070c144326f"
+    },
+    {
+      "id": "1782555720147679",
+      "date": "2026-06-01T09:52",
+      "merchant": "AL MALEEHA CAFETERIA AN Fujairah AE",
+      "type": "expense",
+      "category": "Other",
+      "amount": "13.00",
+      "gmailId": "19e81bdda605245f"
+    },
+    {
+      "id": "1782555720149137",
+      "date": "2026-06-01T16:17",
+      "merchant": "McDonalds 1840241 Fujairah AE",
+      "type": "expense",
+      "category": "Other",
+      "amount": "15.00",
+      "gmailId": "19e831e4f29ce8a4"
+    },
+    {
+      "id": "1782555720150795",
+      "date": "2026-06-01T19:46",
+      "merchant": "talabat.com Dubai AE",
+      "type": "expense",
+      "category": "Other",
+      "amount": "25.55",
+      "gmailId": "19e83ddf6cb85bcd"
     }
   ],
   "settings": {
