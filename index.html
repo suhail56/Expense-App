@@ -158,8 +158,8 @@
 
                     <!-- Category Summary Section -->
                     <div class="row">
-                        <div class="col-12 mb-4">
-                            <div class="card glass-card border-0 shadow-lg" style="background: rgba(15, 23, 42, 0.6);">
+                        <div class="col-lg-7 mb-4">
+                            <div class="card glass-card border-0 shadow-lg h-100" style="background: rgba(15, 23, 42, 0.6);">
                                 <div class="card-body p-4">
                                     <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
                                         <h5 class="card-title fw-bold text-white mb-0">Monthly Category Summary</h5>
@@ -195,6 +195,18 @@
                                 </div>
                             </div>
                         </div>
+
+                        <div class="col-lg-5 mb-4">
+                            <div class="card glass-card border-0 shadow-lg h-100" style="background: rgba(15, 23, 42, 0.6);">
+                                <div class="card-body p-4 d-flex flex-column align-items-center justify-content-start">
+                                    <h5 class="card-title fw-bold text-white w-100 text-start mb-4">Expense Breakdown</h5>
+                                    <div style="position: relative; width: 100%; max-width: 400px; aspect-ratio: 1/1;">
+                                        <canvas id="expensePieChart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
                         <!-- Yearly Chart Section -->
                         <div class="col-12 mb-4">
@@ -250,6 +262,9 @@
                                         class="fa-solid fa-list-ul me-2 text-primary"></i>Transactions</h5>
                             </div>
                             <div class="d-flex gap-2">
+                                <button class="btn btn-sm btn-outline-info fw-bold" onclick="exportTransactionsToCSV()">
+                                    <i class="fa-solid fa-file-csv me-1"></i> Export
+                                </button>
                                 <button class="btn btn-sm btn-outline-success fw-bold dashSyncBtn">
                                     <i class="fa-solid fa-bolt me-1"></i> Sync Now
                                 </button>
@@ -361,8 +376,12 @@
                         <div class="col-12">
                             <div class="card glass-card">
                                 <div class="card-body">
-                                    <p class="text-white-50 small mb-4">Track your spending against your monthly
-                                        category limits.</p>
+                                    <div class="row mb-4" id="overallBudgetContainer">
+                                        <!-- Loaded via JS -->
+                                    </div>
+                                    <hr class="border-secondary mb-4">
+                                    <h6 class="fw-bold text-white mb-3"><i class="fa-solid fa-list me-2"></i>Category Breakdown</h6>
+                                    <p class="text-white-50 small mb-4">Track your spending against your monthly category limits.</p>
                                     <div class="row" id="budgetsListContainer">
                                         <!-- Loaded via JS -->
                                     </div>

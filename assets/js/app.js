@@ -19,6 +19,7 @@ let currentSortDir = 'desc'; // 'desc' or 'asc'
 let currentDashYear = ''; 
 let currentDashMonth = ''; // '' means "All Year"
 let yearlyChartInstance = null;
+let expensePieChartInstance = null;
 
 // Pagination Variables
 let fileSha = null;
@@ -850,6 +851,38 @@ function renderRecentTransactions() {
     });
 }
 
+window.exportTransactionsToCSV = function() {
+    const txs = window.currentFilteredTransactions || appData.transactions;
+    if (txs.length === 0) {
+        Toast.fire({ icon: 'info', title: 'No transactions to export' });
+        return;
+    }
+
+    let csvContent = "Date,Merchant,Type,Category,Amount\n";
+    
+    txs.forEach(tx => {
+        const date = tx.date;
+        const merchant = `"${(tx.merchant || '').replace(/"/g, '""')}"`;
+        const type = tx.type;
+        const category = `"${(tx.category || '').replace(/"/g, '""')}"`;
+        const amount = tx.amount;
+        
+        csvContent += `${date},${merchant},${type},${category},${amount}\n`;
+    });
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    link.setAttribute("href", url);
+    link.setAttribute("download", `transactions_export_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    Toast.fire({ icon: 'success', title: 'Exported to CSV successfully' });
+};
+
 // Transactions Page: Full List
 window.renderTransactionsPage = function() {
     const tbody = $('#transactionsTableBody');
@@ -912,6 +945,8 @@ window.renderTransactionsPage = function() {
         }
         return 0;
     });
+
+    window.currentFilteredTransactions = filtered;
 
     // Update Header Icons
     $('#sortDateBtn').html(`Date <i class="fa-solid fa-sort${currentSortCol === 'date' ? (currentSortDir === 'desc' ? '-down' : '-up') : ''} ms-1 ${currentSortCol !== 'date' ? 'text-muted' : ''}"></i>`);
@@ -1216,6 +1251,124 @@ function renderDashboard() {
     `);
     
     renderYearlyChart();
+    renderExpensePieChart();
+}
+
+function renderExpensePieChart() {
+    if (!currentDashMonth || !currentDashYear) return;
+    
+    const ctx = document.getElementById('expensePieChart');
+    if (!ctx) return;
+    
+    // Calculate category totals for the current month
+    let catTotals = {};
+    appData.transactions.forEach(tx => {
+        if (tx.type === 'expense') {
+            const dateObj = new Date(tx.date);
+            const m = String(dateObj.getMonth() + 1).padStart(2, '0');
+            const y = dateObj.getFullYear().toString();
+            
+            if (m === currentDashMonth && y === currentDashYear) {
+                catTotals[tx.category] = (catTotals[tx.category] || 0) + parseFloat(tx.amount);
+            }
+        }
+    });
+
+    const labels = Object.keys(catTotals);
+    const data = Object.values(catTotals);
+    
+    if (expensePieChartInstance) {
+        expensePieChartInstance.destroy();
+    }
+    
+    // Default colors for pie slices
+    const colors = [
+        'rgba(59, 130, 246, 0.8)', // blue
+        'rgba(16, 185, 129, 0.8)', // emerald
+        'rgba(239, 68, 68, 0.8)',  // red
+        'rgba(245, 158, 11, 0.8)', // amber
+        'rgba(139, 92, 246, 0.8)', // violet
+        'rgba(236, 72, 153, 0.8)', // pink
+        'rgba(14, 165, 233, 0.8)', // sky
+        'rgba(20, 184, 166, 0.8)'  // teal
+    ];
+    
+    expensePieChartInstance = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: labels.length > 0 ? labels : ['No Data'],
+            datasets: [{
+                data: data.length > 0 ? data : [1],
+                backgroundColor: data.length > 0 ? colors.slice(0, data.length) : ['rgba(255,255,255,0.1)'],
+                borderWidth: 1,
+                borderColor: 'rgba(15, 23, 42, 1)'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        color: '#ffffff',
+                        font: { size: 12, family: "'Inter', sans-serif" },
+                        padding: 15,
+                        generateLabels: (chart) => {
+                            const datasets = chart.data.datasets;
+                            return chart.data.labels.map((label, i) => {
+                                const ds = datasets[0];
+                                const value = ds.data[i];
+                                
+                                let sum = 0;
+                                ds.data.forEach(d => sum += d);
+                                const pct = sum > 0 ? (value * 100 / sum).toFixed(0) + '%' : '';
+                                
+                                const text = (ds.data.length === 1 && label === 'No Data') 
+                                    ? 'No Data' 
+                                    : `${label}: AED ${value.toFixed(2)} (${pct})`;
+
+                                return {
+                                    text: text,
+                                    fillStyle: ds.backgroundColor[i],
+                                    fontColor: '#ffffff',
+                                    hidden: false,
+                                    index: i
+                                };
+                            });
+                        }
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            if (data.length === 0) return 'No expenses this month';
+                            let label = context.label || '';
+                            if (label) label += ': ';
+                            if (context.parsed !== null) {
+                                label += 'AED ' + context.parsed.toFixed(2);
+                            }
+                            return label;
+                        }
+                    }
+                },
+                datalabels: {
+                    color: '#fff',
+                    font: { weight: 'bold', size: 11 },
+                    formatter: (value, ctx) => {
+                        if (data.length === 0) return '';
+                        let sum = 0;
+                        let dataArr = ctx.chart.data.datasets[0].data;
+                        dataArr.map(data => { sum += data; });
+                        let percentage = (value * 100 / sum).toFixed(0) + "%";
+                        return percentage === "0%" ? "" : percentage;
+                    }
+                }
+            },
+            cutout: '55%'
+        },
+        plugins: [ChartDataLabels]
+    });
 }
 
 function renderYearlyChart() {
@@ -1477,6 +1630,63 @@ window.renderBudgetsPage = function() {
             }
         }
     });
+
+    let totalLimit = 0;
+    let totalSpent = 0;
+    Object.keys(appData.categoryLimits).forEach(cat => {
+        totalLimit += parseFloat(appData.categoryLimits[cat] || 0);
+        totalSpent += usage[cat] || 0;
+    });
+
+    const overallContainer = $('#overallBudgetContainer');
+    overallContainer.empty();
+
+    if (totalLimit > 0) {
+        const oDisplayPct = ((totalSpent / totalLimit) * 100).toFixed(1);
+        const oBarWidth = Math.min((totalSpent / totalLimit) * 100, 100).toFixed(1);
+        const oAvailable = Math.max(totalLimit - totalSpent, 0).toFixed(2);
+        
+        let oColor = 'bg-primary';
+        if (oDisplayPct >= 100) oColor = 'bg-danger';
+        else if (oDisplayPct >= 80) oColor = 'bg-warning';
+        else if (oDisplayPct >= 50) oColor = 'bg-info';
+        
+        let oTextColor = oDisplayPct >= 100 ? 'text-danger' : 'text-info';
+
+        overallContainer.html(`
+            <div class="col-12">
+                <div class="card glass-card h-100" style="background: linear-gradient(145deg, rgba(30, 41, 59, 0.8) 0%, rgba(15, 23, 42, 0.9) 100%); border: 2px solid rgba(255,255,255,0.15); box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);">
+                    <div class="card-body p-4">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="fw-bold mb-0 text-white"><i class="fa-solid fa-bullseye me-2 text-success"></i>Overall Monthly Goal</h5>
+                            <span class="badge ${oColor} bg-opacity-25 border border-${oColor.replace('bg-','')} ${oTextColor} px-3 py-2 rounded-pill shadow-sm" style="font-size: 0.95rem;">
+                                ${oDisplayPct}% Used
+                            </span>
+                        </div>
+                        
+                        <div class="progress mb-4" style="height: 16px; background: rgba(0,0,0,0.4); border-radius: 10px; box-shadow: inset 0 1px 3px rgba(0,0,0,0.6);">
+                            <div class="progress-bar ${oColor} progress-bar-striped progress-bar-animated" role="progressbar" style="width: ${oBarWidth}%; border-radius: 10px;"></div>
+                        </div>
+                        
+                        <div class="row text-center mt-4">
+                            <div class="col-4">
+                                <span class="d-block text-white-50 small text-uppercase fw-bold mb-1">Spent</span>
+                                <span class="fw-bold text-white fs-4">AED ${totalSpent.toFixed(2)}</span>
+                            </div>
+                            <div class="col-4 border-start border-end border-secondary">
+                                <span class="d-block text-white-50 small text-uppercase fw-bold mb-1">Total Limit</span>
+                                <span class="fw-bold text-white fs-4">AED ${totalLimit.toFixed(2)}</span>
+                            </div>
+                            <div class="col-4">
+                                <span class="d-block text-white-50 small text-uppercase fw-bold mb-1">Available</span>
+                                <span class="fw-bold text-success fs-4">AED ${oAvailable}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `);
+    }
 
     // Render Progress Cards
     Object.keys(appData.categoryLimits).forEach(cat => {
