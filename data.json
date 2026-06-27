@@ -1,5 +1,51 @@
 {
-  "transactions": [],
+  "transactions": [
+    {
+      "id": "178254751702298",
+      "date": "2026-06-27T09:21",
+      "merchant": "TAP*Keeta Dubai AE",
+      "type": "expense",
+      "category": "Other",
+      "amount": "19.80",
+      "gmailId": "19f0786f368a4908"
+    },
+    {
+      "id": "1782547517026856",
+      "date": "2026-06-27T10:17",
+      "merchant": "GOOGLE*TEMPORARY HOLD MOUNTAIN VIEW US",
+      "type": "expense",
+      "category": "Other",
+      "amount": "4.00",
+      "gmailId": "19f07ba22352a865"
+    },
+    {
+      "id": "1782547517029538",
+      "date": "2026-06-27T10:17",
+      "merchant": "Google One 650-2530000 US",
+      "type": "expense",
+      "category": "Other",
+      "amount": "18.99",
+      "gmailId": "19f07ba580ef7fcc"
+    },
+    {
+      "id": "178254751711380",
+      "date": "2026-06-26T12:46",
+      "merchant": "talabat.com Dubai AE",
+      "type": "expense",
+      "category": "Other",
+      "amount": "28.49",
+      "gmailId": "19f031c3620aa063"
+    },
+    {
+      "id": "1782547517116331",
+      "date": "2026-06-26T17:44",
+      "merchant": "talabat.com Dubai AE",
+      "type": "expense",
+      "category": "Other",
+      "amount": "25.31",
+      "gmailId": "19f042caece91cc9"
+    }
+  ],
   "settings": {
     "gasUrl": "https://script.google.com/macros/s/AKfycbweKCSnhIufBxre0f-psbbhODSaljNCyXoXRtRrrFNselEuCWnnp0BJG9QH__vWvmVo/exec",
     "syncStartDate": "2026-06-26"
