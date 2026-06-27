@@ -34,6 +34,36 @@ const authOverlay = document.getElementById('authOverlay');
 const appContent = document.getElementById('appContent');
 const loadingOverlay = document.getElementById('loadingOverlay');
 
+// SweetAlert2 Configuration
+const Toast = Swal.mixin({
+    toast: true,
+    position: 'top-end',
+    showConfirmButton: false,
+    timer: 3000,
+    timerProgressBar: true,
+    background: 'rgba(15, 23, 42, 0.95)',
+    color: '#f8fafc',
+    iconColor: '#3b82f6'
+});
+
+function confirmAction(title, text, confirmButtonText, actionCallback) {
+    Swal.fire({
+        title: title,
+        text: text,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#ef4444',
+        cancelButtonColor: 'transparent',
+        confirmButtonText: confirmButtonText,
+        background: 'rgba(15, 23, 42, 0.85)',
+        color: '#f8fafc'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            actionCallback();
+        }
+    });
+}
+
 // Initialize
 $(document).ready(function() {
     
@@ -192,21 +222,21 @@ $(document).ready(function() {
     // Apply Rules to Past Transactions
     $('#applyRulesToPastBtn').click(function() {
         if (!appData.categoryRules || appData.categoryRules.length === 0) {
-            alert('You have no rules to apply!');
+            Toast.fire({ icon: 'warning', title: 'You have no rules to apply!' });
             return;
         }
-        if (confirm('This will scan all existing transactions and update their categories based on your current rules. Do you want to continue?')) {
+        
+        confirmAction('Apply Rules?', 'This will scan all existing transactions and update their categories based on your current rules.', 'Yes, Apply Rules', () => {
             let updatedCount = 0;
             appData.transactions.forEach(tx => {
                 const merchantLower = tx.merchant.toLowerCase();
-                // Find matching rule
                 for (const rule of appData.categoryRules) {
                     if (rule.keywords.some(kw => merchantLower.includes(kw))) {
                         if (tx.category !== rule.category) {
                             tx.category = rule.category;
                             updatedCount++;
                         }
-                        break; // Stop checking other rules once a match is found
+                        break;
                     }
                 }
             });
@@ -214,11 +244,11 @@ $(document).ready(function() {
             if (updatedCount > 0) {
                 refreshUI();
                 saveData();
-                alert(`Successfully updated ${updatedCount} transactions!`);
+                Swal.fire({ title: 'Success!', text: `Updated ${updatedCount} transactions!`, icon: 'success', background: 'rgba(15, 23, 42, 0.85)', color: '#f8fafc' });
             } else {
-                alert('All transactions already match your rules. No changes were made.');
+                Toast.fire({ icon: 'info', title: 'All transactions already match your rules.' });
             }
-        }
+        });
     });
 
     // Add Limit Form
@@ -248,23 +278,23 @@ $(document).ready(function() {
         appData.settings.emailRegex = $('#emailRegex').val().trim();
         
         saveData();
-        alert('Sync settings saved!');
+        Toast.fire({ icon: 'success', title: 'Sync settings saved!' });
     });
 
     // Reset Database
     $('#resetDatabaseBtn').click(function() {
-        if(confirm('WARNING: This will permanently delete ALL transactions. Are you absolutely sure?')) {
+        confirmAction('DANGER', 'This will permanently delete ALL transactions. Are you absolutely sure?', 'Yes, Delete All', () => {
             appData.transactions = [];
             refreshUI();
             saveData();
-            alert('Database has been reset.');
-        }
+            Toast.fire({ icon: 'success', title: 'Database has been reset.' });
+        });
     });
 
     // Trigger Manual Sync
     $('#triggerSyncBtn').click(function() {
         if (!appData.settings || !appData.settings.gasUrl) {
-            alert('Please save your Google Apps Script URL first.');
+            Swal.fire({ title: 'Configuration Missing', text: 'Please save your Google Apps Script URL first.', icon: 'warning', background: 'rgba(15, 23, 42, 0.85)', color: '#f8fafc' });
             return;
         }
         const gasUrl = appData.settings.gasUrl;
@@ -287,17 +317,17 @@ $(document).ready(function() {
                 $('#triggerSyncBtn').prop('disabled', false).html('<i class="fa-solid fa-bolt me-2"></i> Sync Now');
                 $('#dashSyncBtn').prop('disabled', false).html('<i class="fa-solid fa-bolt me-1"></i> Sync Now');
                 if (res.status === 'success') {
-                    alert(res.message);
+                    Swal.fire({ title: 'Sync Complete', text: res.message, icon: 'success', background: 'rgba(15, 23, 42, 0.85)', color: '#f8fafc' });
                     localStorage.setItem('lastSyncNowTime', new Date().toISOString());
                     fetchData();
                 } else {
-                    alert('Sync failed: ' + res.message);
+                    Swal.fire({ title: 'Sync Failed', text: res.message, icon: 'error', background: 'rgba(15, 23, 42, 0.85)', color: '#f8fafc' });
                 }
             },
             error: function(err) {
                 $('#triggerSyncBtn').prop('disabled', false).html('<i class="fa-solid fa-bolt me-2"></i> Sync Now');
                 $('#dashSyncBtn').prop('disabled', false).html('<i class="fa-solid fa-bolt me-1"></i> Sync Now');
-                alert('Error contacting Google Apps Script.');
+                Swal.fire({ title: 'Error', text: 'Error contacting Google Apps Script.', icon: 'error', background: 'rgba(15, 23, 42, 0.85)', color: '#f8fafc' });
                 console.error(err);
             }
         });
@@ -385,9 +415,9 @@ window.fetchData = function() {
         error: function(err) {
             showLoading(false);
             if(err.status === 404) {
-                alert(`${getDatabaseFileName()} not found in repository. Please ensure it exists.`);
+                Swal.fire({ title: 'Database Not Found', text: `${getDatabaseFileName()} not found in repository. Please ensure it exists.`, icon: 'error', background: 'rgba(15, 23, 42, 0.85)', color: '#f8fafc' });
             } else {
-                alert("Error fetching data. Check your Repo and Token.");
+                Swal.fire({ title: 'Connection Error', text: 'Error fetching data. Check your Repo and Token.', icon: 'error', background: 'rgba(15, 23, 42, 0.85)', color: '#f8fafc' });
                 console.error(err);
             }
         }
@@ -424,7 +454,7 @@ function saveData() {
         },
         error: function(err) {
             showLoading(false);
-            alert("Error saving data!");
+            Toast.fire({ icon: 'error', title: 'Error saving data!' });
             console.error(err);
         }
     });
@@ -495,7 +525,7 @@ window.addCategory = function(type) {
 }
 
 window.deleteCategory = function(type, cat) {
-    if(confirm(`Delete category "${cat}"?`)) {
+    confirmAction('Delete Category?', `Delete category "${cat}"?`, 'Yes, Delete', () => {
         if (type === 'expense') {
             appData.expenseCategories = appData.expenseCategories.filter(c => c !== cat);
         } else {
@@ -505,7 +535,8 @@ window.deleteCategory = function(type, cat) {
         updateTransactionModalCategories();
         updateFilterDropdown();
         saveData();
-    }
+        Toast.fire({ icon: 'success', title: 'Category deleted' });
+    });
 }
 
 function renderCategories() {
@@ -615,11 +646,12 @@ window.editRule = function(index) {
 }
 
 window.deleteRule = function(index) {
-    if(confirm('Delete this rule?')) {
+    confirmAction('Delete Rule?', 'Are you sure you want to delete this auto-categorization rule?', 'Yes, Delete', () => {
         appData.categoryRules.splice(index, 1);
         renderRulesTable();
         saveData();
-    }
+        Toast.fire({ icon: 'success', title: 'Rule deleted' });
+    });
 }
 
 // Settings: Limits
@@ -657,11 +689,12 @@ window.editLimit = function(cat) {
 }
 
 window.deleteLimit = function(cat) {
-    if(confirm(`Remove budget limit for ${cat}?`)) {
+    confirmAction('Remove Limit?', `Remove budget limit for ${cat}?`, 'Yes, Remove', () => {
         delete appData.categoryLimits[cat];
         refreshUI();
         saveData();
-    }
+        Toast.fire({ icon: 'success', title: 'Limit removed' });
+    });
 }
 
 // Dashboard: Top 5 Recent
@@ -1275,11 +1308,12 @@ window.editTransaction = function(id) {
 }
 
 window.deleteTransaction = function(id) {
-    if(confirm('Are you sure you want to delete this transaction?')) {
+    confirmAction('Delete Transaction?', 'Are you sure you want to delete this transaction?', 'Yes, Delete', () => {
         appData.transactions = appData.transactions.filter(t => t.id !== id);
         refreshUI();
         saveData();
-    }
+        Toast.fire({ icon: 'success', title: 'Transaction deleted' });
+    });
 }
 
 // Reset modal on close

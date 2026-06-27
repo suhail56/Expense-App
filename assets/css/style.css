@@ -451,3 +451,24 @@ input:-webkit-autofill:active{
         font-size: 1.75rem;
     }
 }
+
+/* SweetAlert2 Glassmorphism Overrides */
+.swal2-popup {
+    background: rgba(15, 23, 42, 0.85) !important;
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    color: #f8fafc !important;
+    border-radius: 12px !important;
+}
+.swal2-title, .swal2-html-container {
+    color: #f8fafc !important;
+}
+.swal2-confirm {
+    background-color: #3b82f6 !important;
+}
+.swal2-cancel {
+    background-color: transparent !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    color: #f8fafc !important;
+}
