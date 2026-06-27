@@ -585,5 +585,7 @@
     "Other"
   ],
   "categoryRules": [],
-  "categoryLimits": {}
+  "categoryLimits": {
+    "Transportation": 300
+  }
 }
