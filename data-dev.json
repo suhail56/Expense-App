@@ -573,7 +573,8 @@
     "syncStartDate": "2026-06-01"
   },
   "expenseCategories": [
-    "Food"
+    "Food",
+    "Transportation"
   ],
   "incomeCategories": [
     "Salary",
