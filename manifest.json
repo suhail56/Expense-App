@@ -1,6 +1,6 @@
 {
   "name": "Expense Tracker",
-  "short_name": "ExpenseApp",
+  "short_name": "Expense",
   "description": "Secure, real-time expense tracking.",
   "start_url": "./",
   "display": "standalone",
