@@ -575,7 +575,8 @@
   "expenseCategories": [
     "Food",
     "Transportation",
-    "Housing & Utilities"
+    "Housing & Utilities",
+    "Shopping"
   ],
   "incomeCategories": [
     "Salary",
