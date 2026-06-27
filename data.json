@@ -589,14 +589,7 @@
     "Dividends",
     "Other"
   ],
-  "categoryRules": [
-    {
-      "category": "Dining",
-      "keywords": [
-        "talabat"
-      ]
-    }
-  ],
+  "categoryRules": [],
   "categoryLimits": {
     "Dining": 1000,
     "Other": 1000
