@@ -650,7 +650,5 @@
       ]
     }
   ],
-  "categoryLimits": {
-    "Other": 1000
-  }
+  "categoryLimits": {}
 }
