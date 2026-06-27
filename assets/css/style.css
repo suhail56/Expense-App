@@ -9,6 +9,10 @@
     --accent-green: #10b981;
 }
 
+html {
+    font-size: 14px;
+}
+
 body {
     background-color: var(--bg-dark);
     color: var(--text-primary);
@@ -176,6 +180,19 @@ body {
     padding: 1rem;
     font-size: 1.1rem;
     color: white;
+}
+
+/* Sticky first column for horizontal scrolling on mobile */
+.custom-table th:first-child,
+.custom-table td:first-child {
+    position: sticky;
+    left: 0;
+    background-color: rgba(15, 23, 42, 0.95); /* Solid background to prevent overlap */
+    z-index: 2;
+    border-right: 1px solid rgba(255, 255, 255, 0.05); /* Visual separator */
+}
+.custom-table thead th:first-child {
+    z-index: 3;
 }
 
 /* Pagination Dark Theme */
