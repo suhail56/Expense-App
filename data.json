@@ -32,7 +32,7 @@
       "date": "2026-06-26T12:46",
       "merchant": "talabat.com Dubai AE",
       "type": "expense",
-      "category": "Other",
+      "category": "Dining",
       "amount": "28.49",
       "gmailId": "19f031c3620aa063"
     },
@@ -41,7 +41,7 @@
       "date": "2026-06-26T17:44",
       "merchant": "talabat.com Dubai AE",
       "type": "expense",
-      "category": "Other",
+      "category": "Dining",
       "amount": "25.31",
       "gmailId": "19f042caece91cc9"
     },
@@ -50,7 +50,7 @@
       "date": "2026-06-25T18:33",
       "merchant": "talabat.com Dubai AE",
       "type": "expense",
-      "category": "Other",
+      "category": "Dining",
       "amount": "31.09",
       "gmailId": "19eff3334dc67ddc"
     },
@@ -149,7 +149,7 @@
       "date": "2026-06-21T15:08",
       "merchant": "talabat.com Dubai AE",
       "type": "expense",
-      "category": "Other",
+      "category": "Dining",
       "amount": "25.10",
       "gmailId": "19ee9de34cb5e732"
     },
@@ -266,7 +266,7 @@
       "date": "2026-06-15T10:30",
       "merchant": "talabat.com Dubai AE",
       "type": "expense",
-      "category": "Other",
+      "category": "Dining",
       "amount": "23.80",
       "gmailId": "19ec9f93c2c70af8"
     },
@@ -374,7 +374,7 @@
       "date": "2026-06-12T18:58",
       "merchant": "talabat.com Dubai AE",
       "type": "expense",
-      "category": "Other",
+      "category": "Dining",
       "amount": "23.19",
       "gmailId": "19ebc575dee5d28a"
     },
@@ -464,7 +464,7 @@
       "date": "2026-06-06T18:52",
       "merchant": "talabat.com Dubai AE",
       "type": "expense",
-      "category": "Other",
+      "category": "Dining",
       "amount": "31.79",
       "gmailId": "19e9d6bc8cf0c94b"
     },
@@ -482,7 +482,7 @@
       "date": "2026-06-05T20:07",
       "merchant": "talabat.com Dubai AE",
       "type": "expense",
-      "category": "Other",
+      "category": "Dining",
       "amount": "23.89",
       "gmailId": "19e988a88fc26e20"
     },
@@ -500,7 +500,7 @@
       "date": "2026-06-04T16:44",
       "merchant": "talabat.com Dubai AE",
       "type": "expense",
-      "category": "Other",
+      "category": "Dining",
       "amount": "36.31",
       "gmailId": "19e92aa251a9b2f5"
     },
@@ -563,7 +563,7 @@
       "date": "2026-06-01T19:46",
       "merchant": "talabat.com Dubai AE",
       "type": "expense",
-      "category": "Other",
+      "category": "Dining",
       "amount": "25.55",
       "gmailId": "19e83ddf6cb85bcd"
     },
