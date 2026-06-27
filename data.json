@@ -12,11 +12,10 @@
     {
       "id": "1782547820323783",
       "date": "2026-06-27T10:17",
-      "merchant": "GOOGLE*TEMPORARY HOLD MOUNTAIN VIEW US",
+      "merchant": "GOOGLE*TEMPORARY HOLD MOUNTAIN VIEW U",
       "type": "expense",
       "category": "Other",
-      "amount": "4.00",
-      "gmailId": "19f07ba22352a865"
+      "amount": "4.00"
     },
     {
       "id": "1782547820327622",
