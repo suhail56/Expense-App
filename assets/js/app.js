@@ -361,6 +361,9 @@ window.fetchData = function() {
                 });
             }
             
+            // Track last login (will be saved to GitHub on next user action)
+            appData.settings.lastLogin = new Date().toISOString();
+            
             // Populate settings inputs
             $('#gasUrl').val(appData.settings.gasUrl || '');
             $('#syncStartDate').val(appData.settings.syncStartDate || '');
@@ -419,6 +422,63 @@ function refreshUI() {
     renderBudgetsPage();
     renderTransactionsPage();
     renderDashboard(); // Replaces calculateTotals() and updates charts/insights
+    renderSyncMetadata();
+}
+
+function renderSyncMetadata() {
+    const lastSync = appData.settings.lastSyncDate ? new Date(appData.settings.lastSyncDate).toLocaleString() : 'Never';
+    const lastLogin = appData.settings.lastLogin ? new Date(appData.settings.lastLogin).toLocaleString() : 'Never';
+    const syncCount = appData.settings.lastSyncCount || 0;
+    const currentCount = appData.transactions ? appData.transactions.length : 0;
+    
+    $('#metaLastSync').text(lastSync);
+    $('#metaLastLogin').text(lastLogin);
+    $('#metaLastSyncCount').text(syncCount);
+    $('#metaCurrentCount').text(currentCount);
+    
+    // Add mark as reviewed button if there are new records
+    if (currentCount > syncCount) {
+        if ($('#markReviewedBtn').length === 0) {
+            $('#metaCurrentCount').parent().after('<button id="markReviewedBtn" class="btn btn-sm btn-success ms-2 py-0 px-2" onclick="markAllAsReviewed()">Mark Reviewed</button>');
+        }
+    } else {
+        $('#markReviewedBtn').remove();
+    }
+}
+
+window.markAllAsReviewed = function() {
+    if (!appData.settings) appData.settings = {};
+    appData.settings.lastSyncCount = appData.transactions ? appData.transactions.length : 0;
+    appData.settings.lastSyncDate = new Date().toISOString();
+    saveData();
+    refreshUI();
+}
+
+window.viewNewTransactions = function() {
+    const syncCount = appData.settings.lastSyncCount || 0;
+    const currentCount = appData.transactions ? appData.transactions.length : 0;
+    
+    if (currentCount <= syncCount) {
+        alert("You have no new transactions since your last review.");
+        return;
+    }
+    
+    // Clear filters and sort by date descending so newest are at the top
+    $('#searchTx').val('');
+    $('#filterCategory').val('All');
+    $('#filterType').val('All');
+    $('#filterStartDate').val('');
+    $('#filterEndDate').val('');
+    currentSortCol = 'date';
+    currentSortDir = 'desc';
+    currentPage = 1;
+    
+    // Navigate to transactions tab
+    $('#nav-transactions').click();
+    
+    // We can't perfectly filter by 'new' if there is no creation date, but sorting by date descending
+    // and letting them know the top X are new is the best approach.
+    alert(`Showing all transactions. Your ${currentCount - syncCount} new transactions should be at or near the top.`);
 }
 
 // Settings: Categories
