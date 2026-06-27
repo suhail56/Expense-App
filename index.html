@@ -605,12 +605,12 @@
                     <div class="mb-3">
                         <label class="form-label">Username</label>
                         <input type="text" class="form-control" id="githubRepo" placeholder="suhail"
-                            autocomplete="username">
+                            autocomplete="username" maxlength="100" required>
                     </div>
                     <div class="mb-4">
                         <label class="form-label">Password</label>
                         <input type="password" class="form-control" id="githubToken" placeholder="ghp"
-                            autocomplete="current-password">
+                            autocomplete="current-password" maxlength="100" required>
                     </div>
                     <button type="submit" class="btn btn-primary w-100 py-2 fw-bold">Log In</button>
                 </form>
@@ -646,7 +646,7 @@
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Merchant / Description</label>
-                            <input type="text" class="form-control" id="txMerchant">
+                            <input type="text" class="form-control" id="txMerchant" maxlength="80" required>
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Category</label>

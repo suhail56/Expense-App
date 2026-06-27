@@ -11,6 +11,29 @@ let appData = {
     transactions: []
 };
 
+// Utilities
+function generateUUID() {
+    return (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : 'id-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+}
+
+function escapeHTML(str) {
+    if (typeof str !== 'string') return str;
+    return str.replace(/[&<>'"]/g, tag => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        "'": '&#39;',
+        '"': '&quot;'
+    }[tag]));
+}
+
+function validateTransaction(tx) {
+    if (!tx || !tx.categoryId) return false;
+    if (tx.type === 'expense' && !appData.expenseCategories.find(c => c.id === tx.categoryId)) return false;
+    if (tx.type === 'income' && !appData.incomeCategories.find(c => c.id === tx.categoryId)) return false;
+    return true;
+}
+
 // Global Sort State
 let currentSortCol = 'date'; // 'date' or 'amount'
 let currentSortDir = 'desc'; // 'desc' or 'asc'
@@ -142,22 +165,27 @@ $(document).ready(function() {
     // Save Transaction
     $('#transactionForm').submit(function(e) {
         e.preventDefault();
-        const txId = $('#txId').val();
         
+        const saveBtn = $('#saveTransactionBtn');
+        saveBtn.prop('disabled', true);
+        
+        const txId = $('#txId').val();
         const date = $('#txDate').val();
         const merchant = $('#txMerchant').val().trim();
-        const category = $('#txCategory').val();
+        const categoryId = $('#txCategory').val();
         const amountStr = $('#txAmount').val();
         const type = $('input[name="txType"]:checked').val();
         
-        if (!date || !merchant || !category || !amountStr) {
+        if (!date || !merchant || !categoryId || !amountStr) {
             Toast.fire({ icon: 'warning', title: 'Please fill in all transaction fields' });
+            saveBtn.prop('disabled', false);
             return;
         }
 
         const parsedAmount = parseFloat(amountStr);
         if (isNaN(parsedAmount) || parsedAmount <= 0) {
             Toast.fire({ icon: 'warning', title: 'Amount must be greater than zero' });
+            saveBtn.prop('disabled', false);
             return;
         }
 
@@ -168,13 +196,20 @@ $(document).ready(function() {
 
         const newTx = {
             ...existingTx,
-            id: txId || Date.now().toString(),
+            id: txId || generateUUID(),
             date: date,
             merchant: merchant,
             type: type,
-            category: category,
+            categoryId: categoryId,
             amount: parseFloat(amountStr).toFixed(2)
         };
+
+        // Strict Foreign Key Constraint Validation
+        if (!validateTransaction(newTx)) {
+            Toast.fire({ icon: 'error', title: 'Database Integrity Error: Category does not exist.' });
+            saveBtn.prop('disabled', false);
+            return;
+        }
 
         if (txId) {
             const idx = appData.transactions.findIndex(t => t.id === txId);
@@ -187,6 +222,7 @@ $(document).ready(function() {
         $('#transactionForm')[0].reset();
         $('#txId').val('');
         
+        saveBtn.prop('disabled', false);
         refreshUI();
         saveData();
         Toast.fire({ icon: 'success', title: txId ? 'Transaction updated' : 'Transaction added' });
@@ -256,27 +292,25 @@ $(document).ready(function() {
     // Auto-Categorization Rules Form
     $('#addRuleForm').submit(function(e) {
         e.preventDefault();
-        const category = $('#ruleCategory').val();
+        const categoryId = $('#ruleCategory').val();
         const keywordsInput = $('#ruleKeywords').val().trim();
         
-        if (!category || !keywordsInput) {
+        if (!categoryId || !keywordsInput) {
             Toast.fire({ icon: 'warning', title: 'Category and keywords are required' });
             return;
         }
         
         const keywords = keywordsInput.split(',').map(k => k.trim().toLowerCase()).filter(k => k);
         if (keywords.length > 0) {
-            if (!appData.categoryRules) appData.categoryRules = [];
             
-            const existingRule = appData.categoryRules.find(r => r.category === category);
-            if (existingRule) {
+            const existingKeywords = appData.categoryRules[categoryId] || [];
+            if (existingKeywords.length > 0) {
                 // Merge and remove duplicates
-                existingRule.keywords = [...new Set([...existingRule.keywords, ...keywords])];
+                appData.categoryRules[categoryId] = [...new Set([...existingKeywords, ...keywords])];
                 Toast.fire({ icon: 'success', title: 'Rule updated' });
             } else {
                 // Remove duplicates from new input
-                const uniqueKeywords = [...new Set(keywords)];
-                appData.categoryRules.push({ category, keywords: uniqueKeywords });
+                appData.categoryRules[categoryId] = [...new Set(keywords)];
                 Toast.fire({ icon: 'success', title: 'Rule added' });
             }
             
@@ -290,7 +324,7 @@ $(document).ready(function() {
 
     // Apply Rules to Past Transactions
     $('#applyRulesToPastBtn').click(function() {
-        if (!appData.categoryRules || appData.categoryRules.length === 0) {
+        if (!appData.categoryRules || Object.keys(appData.categoryRules).length === 0) {
             Toast.fire({ icon: 'warning', title: 'You have no rules to apply!' });
             return;
         }
@@ -299,10 +333,11 @@ $(document).ready(function() {
             let updatedCount = 0;
             appData.transactions.forEach(tx => {
                 const merchantLower = tx.merchant.toLowerCase();
-                for (const rule of appData.categoryRules) {
-                    if (rule.keywords.some(kw => merchantLower.includes(kw))) {
-                        if (tx.category !== rule.category) {
-                            tx.category = rule.category;
+                for (const catId in appData.categoryRules) {
+                    const keywords = appData.categoryRules[catId];
+                    if (keywords.some(kw => merchantLower.includes(kw))) {
+                        if (tx.categoryId !== catId) {
+                            tx.categoryId = catId;
                             updatedCount++;
                         }
                         break;
@@ -323,17 +358,17 @@ $(document).ready(function() {
     // Add Limit Form
     $('#addLimitForm').submit(function(e) {
         e.preventDefault();
-        const category = $('#limitCategory').val();
+        const categoryId = $('#limitCategory').val();
         const limitAmtStr = $('#limitAmount').val();
         const limitAmt = parseFloat(limitAmtStr);
         
-        if (!category || !limitAmtStr || isNaN(limitAmt) || limitAmt <= 0) {
+        if (!categoryId || !limitAmtStr || isNaN(limitAmt) || limitAmt <= 0) {
             Toast.fire({ icon: 'warning', title: 'Select a category and valid amount' });
             return;
         }
         
         if (!appData.categoryLimits) appData.categoryLimits = {};
-        appData.categoryLimits[category] = limitAmt;
+        appData.categoryLimits[categoryId] = limitAmt;
         $('#limitAmount').val('');
         refreshUI();
         saveData();
@@ -446,6 +481,16 @@ function showLoading(show) {
     loadingOverlay.style.display = show ? 'flex' : 'none';
 }
 
+function initializeDatabaseSchema(data) {
+    appData = data || {};
+    if (!appData.settings) appData.settings = { gasUrl: '', syncStartDate: '' };
+    if (!appData.categoryRules) appData.categoryRules = {};
+    if (!appData.categoryLimits) appData.categoryLimits = {};
+    if (!appData.expenseCategories) appData.expenseCategories = [];
+    if (!appData.incomeCategories) appData.incomeCategories = [];
+    if (!appData.transactions) appData.transactions = [];
+}
+
 window.fetchData = function() {
     showLoading(true);
     $.ajax({
@@ -454,15 +499,11 @@ window.fetchData = function() {
         headers: getHeaders(),
         success: function(response) {
             fileSha = response.sha;
-            // Decode base64 UTF-8
             const content = decodeURIComponent(escape(window.atob(response.content)));
             const parsedData = JSON.parse(content);
             
             // DATA MIGRATION LOGIC
-            appData = parsedData;
-            if (!appData.settings) appData.settings = { gasUrl: '', syncStartDate: '' };
-            if (!appData.categoryRules) appData.categoryRules = [];
-            if (!appData.categoryLimits) appData.categoryLimits = {};
+            initializeDatabaseSchema(parsedData);
             
             // Migrate old categories
             if (appData.categories && !appData.expenseCategories) {
@@ -471,13 +512,119 @@ window.fetchData = function() {
                 delete appData.categories;
             }
 
-            // Migrate old transactions to be 'expense' by default
+            // RELATIONAL MIGRATION: Convert string categories to ID objects
+            let needsMigrationSave = false;
+
+            // 1. Convert expenseCategories
+            if (appData.expenseCategories.length > 0 && typeof appData.expenseCategories[0] === 'string') {
+                appData.expenseCategories = appData.expenseCategories.map(name => ({
+                    id: 'cat-exp-' + Math.random().toString(36).substr(2, 9),
+                    name: name
+                }));
+                needsMigrationSave = true;
+            }
+
+            // 2. Convert incomeCategories
+            if (appData.incomeCategories.length > 0 && typeof appData.incomeCategories[0] === 'string') {
+                appData.incomeCategories = appData.incomeCategories.map(name => ({
+                    id: 'cat-inc-' + Math.random().toString(36).substr(2, 9),
+                    name: name
+                }));
+                needsMigrationSave = true;
+            }
+
+            // Helper to find ID by name during migration
+            const getMigrationId = (name, type) => {
+                const list = type === 'expense' ? appData.expenseCategories : appData.incomeCategories;
+                const cat = list.find(c => c.name === name);
+                return cat ? cat.id : null;
+            };
+
+            // Migrate old transactions to be 'expense' by default and use categoryId
             if (appData.transactions) {
                 appData.transactions.forEach(tx => {
-                    if (!tx.type) tx.type = 'expense';
+                    if (!tx.type) { tx.type = 'expense'; needsMigrationSave = true; }
+                    if (tx.category && !tx.categoryId) {
+                        const cid = getMigrationId(tx.category, tx.type);
+                        if (cid) {
+                            tx.categoryId = cid;
+                            needsMigrationSave = true;
+                        } else {
+                            // If it's a legacy category that was deleted from master list, recreate it or map to 'Others'
+                            const newId = 'cat-' + tx.type.substr(0,3) + '-' + generateUUID();
+                            if (tx.type === 'expense') appData.expenseCategories.push({id: newId, name: tx.category});
+                            else appData.incomeCategories.push({id: newId, name: tx.category});
+                            tx.categoryId = newId;
+                            needsMigrationSave = true;
+                        }
+                    }
+                    
+                    // Strict Data Cleanup: Remove legacy strings universally
+                    if (tx.category !== undefined) {
+                        delete tx.category;
+                        needsMigrationSave = true;
+                    }
                 });
             }
-            
+
+            // Migrate Rules
+            if (appData.categoryRules) {
+                const newRulesMap = {};
+                let rulesMigrated = false;
+                
+                if (Array.isArray(appData.categoryRules)) {
+                    appData.categoryRules.forEach(rule => {
+                        let cid = rule.categoryId;
+                        if (!cid && rule.category) {
+                            cid = getMigrationId(rule.category, 'expense') || getMigrationId(rule.category, 'income');
+                        }
+                        if (cid) {
+                            newRulesMap[cid] = rule.keywords;
+                        }
+                    });
+                    appData.categoryRules = newRulesMap;
+                    rulesMigrated = true;
+                    needsMigrationSave = true;
+                } else {
+                    for (const key in appData.categoryRules) {
+                        if (!key.startsWith('cat-')) {
+                            const cid = getMigrationId(key, 'expense') || getMigrationId(key, 'income');
+                            if (cid) {
+                                newRulesMap[cid] = appData.categoryRules[key];
+                                rulesMigrated = true;
+                            }
+                        } else {
+                            newRulesMap[key] = appData.categoryRules[key];
+                        }
+                    }
+                    if (rulesMigrated) {
+                        appData.categoryRules = newRulesMap;
+                        needsMigrationSave = true;
+                    }
+                }
+            }
+
+            // Migrate Limits
+            if (appData.categoryLimits) {
+                const newLimits = {};
+                let limitsMigrated = false;
+                for (const key in appData.categoryLimits) {
+                    // Check if key is not an ID (IDs start with 'cat-')
+                    if (!key.startsWith('cat-')) {
+                        const cid = getMigrationId(key, 'expense');
+                        if (cid) {
+                            newLimits[cid] = appData.categoryLimits[key];
+                            limitsMigrated = true;
+                        }
+                    } else {
+                        newLimits[key] = appData.categoryLimits[key];
+                    }
+                }
+                if (limitsMigrated) {
+                    appData.categoryLimits = newLimits;
+                    needsMigrationSave = true;
+                }
+            }
             // Track last login (will be saved to GitHub on next user action)
             appData.settings.lastLogin = new Date().toISOString();
             
@@ -490,6 +637,9 @@ window.fetchData = function() {
             $('#emailSubject').val(appData.settings.emailSubject || 'Transaction Confirmation on Mashreq Card');
             $('#emailRegex').val(appData.settings.emailRegex || 'purchase of (?:AED|USD)\\s+([\\d,.]+)\\s+at\\s+(.*?)\\s+on\\s+([\\d]{2}-[A-Z]{3}-[\\d]{4}\\s+[\\d]{2}:[\\d]{2}\\s+[A-Z]{2})');
 
+            if (needsMigrationSave) {
+                saveData(true); // pass true to indicate silent background save if we update it later
+            }
             refreshUI();
             startAutoPoll();
             showLoading(false);
@@ -536,9 +686,64 @@ function startAutoPoll() {
         });
     }, 180000);
 }
+// Category Relational Helpers
+window.getCategoryName = function(id) {
+    if (!id) return 'Unknown';
+    let cat = appData.expenseCategories.find(c => c.id === id);
+    if (cat) return cat.name;
+    cat = appData.incomeCategories.find(c => c.id === id);
+    if (cat) return cat.name;
+    return 'Unknown'; // Fallback if deleted
+};
+
+window.getCategoryId = function(name, type) {
+    const list = type === 'expense' ? appData.expenseCategories : appData.incomeCategories;
+    const cat = list.find(c => c.name === name);
+    return cat ? cat.id : null;
+};
+function mergeState(local, remote) {
+    const merged = JSON.parse(JSON.stringify(remote));
+    if (local.transactions && Array.isArray(local.transactions)) {
+        local.transactions.forEach(localTx => {
+            const remoteIdx = merged.transactions.findIndex(rTx => rTx.id === localTx.id);
+            if (remoteIdx === -1) merged.transactions.push(localTx);
+            else merged.transactions[remoteIdx] = localTx;
+        });
+    }
+
+    const mergeCategories = (type) => {
+        const localList = type === 'expense' ? local.expenseCategories : local.incomeCategories;
+        const mergedList = type === 'expense' ? merged.expenseCategories : merged.incomeCategories;
+        if (localList) {
+            localList.forEach(localCat => {
+                if (!mergedList.find(rCat => rCat.id === localCat.id)) mergedList.push(localCat);
+            });
+        }
+    };
+    mergeCategories('expense');
+    mergeCategories('income');
+
+    if (local.categoryRules) {
+        if(!merged.categoryRules) merged.categoryRules = {};
+        for (const catId in local.categoryRules) {
+            const localKeywords = local.categoryRules[catId];
+            if (!merged.categoryRules[catId]) merged.categoryRules[catId] = localKeywords;
+            else merged.categoryRules[catId] = [...new Set([...merged.categoryRules[catId], ...localKeywords])];
+        }
+    }
+    
+    if (local.categoryLimits) {
+        if(!merged.categoryLimits) merged.categoryLimits = {};
+        for (const catId in local.categoryLimits) {
+            merged.categoryLimits[catId] = local.categoryLimits[catId];
+        }
+    }
+
+    if (local.settings) merged.settings = { ...merged.settings, ...local.settings };
+    return merged;
+}
 
 function saveData() {
-    // Auto-correct Sync Count if transactions were deleted
     if (appData.settings && appData.settings.lastSyncCount !== undefined) {
         const currentCount = appData.transactions ? appData.transactions.length : 0;
         if (currentCount < appData.settings.lastSyncCount) {
@@ -546,26 +751,55 @@ function saveData() {
         }
     }
 
-    // Silent background save for optimistic UI
-    const contentStr = JSON.stringify(appData, null, 2);
-    const encodedContent = window.btoa(unescape(encodeURIComponent(contentStr)));
-
-    const data = {
-        message: "Update database",
-        content: encodedContent,
-        sha: fileSha
-    };
-
+    // Concurrency Engine: Fetch latest state before pushing
     $.ajax({
         url: getApiUrl(),
-        method: 'PUT',
+        method: 'GET',
         headers: getHeaders(),
-        data: JSON.stringify(data),
         success: function(response) {
-            fileSha = response.content.sha;
+            const remoteSha = response.sha;
+            
+            // If the SHA matches, it means nobody else has edited the file. We can just push!
+            // If the SHA differs, a race condition occurred! We must merge our local changes with the new remote changes.
+            let finalStateToUpload = appData;
+            
+            if (remoteSha !== fileSha) {
+                console.warn("CONCURRENCY COLLISION DETECTED! Running Smart Merge...");
+                const remoteContent = JSON.parse(decodeURIComponent(escape(window.atob(response.content))));
+                
+                // Smart Merge merges the two sets of data
+                finalStateToUpload = mergeState(appData, remoteContent);
+                
+                // Update our local state to mirror the newly merged truth
+                appData = finalStateToUpload;
+                refreshUI(); // Re-render to show any remote transactions that just arrived
+            }
+
+            const contentStr = JSON.stringify(finalStateToUpload, null, 2);
+            const encodedContent = window.btoa(unescape(encodeURIComponent(contentStr)));
+
+            const data = {
+                message: "Update database with Concurrency Control",
+                content: encodedContent,
+                sha: remoteSha
+            };
+
+            $.ajax({
+                url: getApiUrl(),
+                method: 'PUT',
+                headers: getHeaders(),
+                data: JSON.stringify(data),
+                success: function(putResponse) {
+                    fileSha = putResponse.content.sha;
+                },
+                error: function(err) {
+                    Toast.fire({ icon: 'error', title: 'Error uploading merged data!' });
+                    console.error(err);
+                }
+            });
         },
         error: function(err) {
-            Toast.fire({ icon: 'error', title: 'Error saving data in background!' });
+            Toast.fire({ icon: 'error', title: 'Error fetching latest data for concurrency check!' });
             console.error(err);
         }
     });
@@ -631,12 +865,13 @@ window.addCategory = function(type) {
     }
     
     const valLower = val.toLowerCase();
-    if (targetArr.some(c => c.toLowerCase() === valLower)) {
+    if (targetArr.some(c => c.name.toLowerCase() === valLower)) {
         Toast.fire({ icon: 'warning', title: 'Category already exists' });
         return;
     }
     
-    targetArr.push(val);
+    const newId = 'cat-' + type.substr(0,3) + '-' + generateUUID();
+    targetArr.push({ id: newId, name: val });
     $(inputId).val('');
     renderCategories();
     updateTransactionModalCategories();
@@ -645,19 +880,125 @@ window.addCategory = function(type) {
     Toast.fire({ icon: 'success', title: 'Category added' });
 }
 
-window.deleteCategory = function(type, cat) {
-    confirmAction('Delete Category?', `Delete category "${cat}"?`, 'Yes, Delete', () => {
-        if (type === 'expense') {
-            appData.expenseCategories = appData.expenseCategories.filter(c => c !== cat);
-        } else {
-            appData.incomeCategories = appData.incomeCategories.filter(c => c !== cat);
+window.deleteCategory = async function(type, id) {
+    const name = getCategoryName(id);
+    
+    // Check for linked objects (Foreign Key Constraints)
+    const linkedTxs = appData.transactions.filter(tx => tx.type === type && tx.categoryId === id);
+    const hasRule = (appData.categoryRules && appData.categoryRules[id] !== undefined);
+    const hasLimit = (appData.categoryLimits && appData.categoryLimits[id] !== undefined);
+    
+    if (linkedTxs.length > 0 || hasRule || hasLimit) {
+        // Build options for reassigning
+        const targetArr = type === 'expense' ? appData.expenseCategories : appData.incomeCategories;
+        const options = {};
+        targetArr.forEach(c => {
+            if (c.id !== id) {
+                options[c.id] = c.name;
+            }
+        });
+        
+        // If there are no other categories to reassign to
+        if (Object.keys(options).length === 0) {
+            Toast.fire({ icon: 'warning', title: 'Create another category first to reassign linked data.' });
+            return;
         }
-        renderCategories();
-        updateTransactionModalCategories();
-        updateFilterDropdown();
-        saveData();
-        Toast.fire({ icon: 'success', title: 'Category deleted' });
-    });
+
+        let usageDetails = [];
+        if (linkedTxs.length > 0) usageDetails.push(`${linkedTxs.length} transaction(s)`);
+        if (hasRule) usageDetails.push(`1 rule`);
+        if (hasLimit) usageDetails.push(`1 budget limit`);
+        const usageString = usageDetails.join(', ');
+
+        const { value: reassignId } = await Swal.fire({
+            title: 'Category in Use',
+            html: `You are deleting <b>${name}</b>, which is currently used by:<br><br><span class="text-info">${usageString}</span>.<br><br>Please select a new category to move them to:`,
+            input: 'select',
+            inputOptions: options,
+            inputPlaceholder: 'Select a category',
+            showCancelButton: true,
+            confirmButtonText: 'Reassign & Delete',
+            confirmButtonColor: '#ef4444',
+            background: 'rgba(15, 23, 42, 0.95)',
+            color: '#f8fafc',
+            customClass: {
+                input: 'text-dark bg-white'
+            },
+            inputValidator: (value) => {
+                return new Promise((resolve) => {
+                    if (value) { resolve(); }
+                    else { resolve('You need to select a category'); }
+                });
+            }
+        });
+
+        if (reassignId) {
+            // Reassign transactions
+            appData.transactions.forEach(tx => {
+                if (tx.type === type && tx.categoryId === id) {
+                    tx.categoryId = reassignId;
+                }
+            });
+            // Reassign rules
+            if (appData.categoryRules && appData.categoryRules[id]) {
+                const oldKeywords = appData.categoryRules[id];
+                const existingTargetKeywords = appData.categoryRules[reassignId] || [];
+                
+                if (existingTargetKeywords.length > 0) {
+                    // Merge keywords and remove duplicates
+                    appData.categoryRules[reassignId] = [...new Set([...existingTargetKeywords, ...oldKeywords])];
+                } else {
+                    // Just move to the new ID
+                    appData.categoryRules[reassignId] = oldKeywords;
+                }
+                delete appData.categoryRules[id];
+            }
+            // Reassign limits
+            if (appData.categoryLimits && appData.categoryLimits[id]) {
+                const limit = appData.categoryLimits[id];
+                appData.categoryLimits[reassignId] = (appData.categoryLimits[reassignId] || 0) + limit;
+                delete appData.categoryLimits[id];
+            }
+            
+            // Delete category
+            if (type === 'expense') {
+                appData.expenseCategories = appData.expenseCategories.filter(c => c.id !== id);
+            } else {
+                appData.incomeCategories = appData.incomeCategories.filter(c => c.id !== id);
+            }
+            
+            renderCategories();
+            updateTransactionModalCategories();
+            updateFilterDropdown();
+            refreshUI();
+            saveData();
+            Swal.fire({ title: 'Deleted!', text: `All linked data was reassigned to ${getCategoryName(reassignId)}.`, icon: 'success', background: 'rgba(15, 23, 42, 0.95)', color: '#f8fafc' });
+        }
+    } else {
+        // No linked transactions, simple delete
+        confirmAction('Delete Category?', `Delete category "${name}"?`, 'Yes, Delete', () => {
+            if (type === 'expense') {
+                appData.expenseCategories = appData.expenseCategories.filter(c => c.id !== id);
+            } else {
+                appData.incomeCategories = appData.incomeCategories.filter(c => c.id !== id);
+            }
+            
+            // Delete rules and limits attached to this category (Should be empty due to previous checks, but safe fallback)
+            if (appData.categoryRules) {
+                delete appData.categoryRules[id];
+            }
+            if (appData.categoryLimits) {
+                delete appData.categoryLimits[id];
+            }
+
+            renderCategories();
+            updateTransactionModalCategories();
+            updateFilterDropdown();
+            refreshUI();
+            saveData();
+            Toast.fire({ icon: 'success', title: 'Category deleted' });
+        });
+    }
 }
 
 function renderCategories() {
@@ -666,7 +1007,9 @@ function renderCategories() {
     appData.expenseCategories.forEach(cat => {
         expList.append(`
             <div class="category-tag">
-                ${cat} <i class="fa-solid fa-xmark ms-1" onclick="deleteCategory('expense', '${cat}')"></i>
+                <span class="me-2 text-truncate d-inline-block" style="max-width: 150px; vertical-align: bottom;">${escapeHTML(cat.name)}</span> 
+                <i class="fa-solid fa-pen text-info me-2" onclick="editCategory('expense', '${cat.id}')" title="Edit"></i>
+                <i class="fa-solid fa-xmark text-danger" onclick="deleteCategory('expense', '${cat.id}')" title="Delete"></i>
             </div>
         `);
     });
@@ -676,10 +1019,58 @@ function renderCategories() {
     appData.incomeCategories.forEach(cat => {
         incList.append(`
             <div class="category-tag">
-                ${cat} <i class="fa-solid fa-xmark ms-1" onclick="deleteCategory('income', '${cat}')"></i>
+                <span class="me-2 text-truncate d-inline-block" style="max-width: 150px; vertical-align: bottom;">${escapeHTML(cat.name)}</span> 
+                <i class="fa-solid fa-pen text-info me-2" onclick="editCategory('income', '${cat.id}')" title="Edit"></i>
+                <i class="fa-solid fa-xmark text-danger" onclick="deleteCategory('income', '${cat.id}')" title="Delete"></i>
             </div>
         `);
     });
+}
+
+window.editCategory = async function(type, id) {
+    const oldName = getCategoryName(id);
+    const { value: newCat } = await Swal.fire({
+        title: 'Rename Category',
+        input: 'text',
+        inputLabel: 'New Category Name',
+        inputValue: oldName,
+        showCancelButton: true,
+        confirmButtonText: 'Save',
+        inputValidator: (value) => {
+            if (!value || value.trim() === '') {
+                return 'Category name cannot be empty!';
+            }
+            const trimmed = value.trim();
+            const exists = type === 'expense' 
+                ? appData.expenseCategories.some(c => c.name.toLowerCase() === trimmed.toLowerCase() && c.id !== id)
+                : appData.incomeCategories.some(c => c.name.toLowerCase() === trimmed.toLowerCase() && c.id !== id);
+            if (exists) {
+                return 'A category with this name already exists!';
+            }
+        }
+    });
+
+    if (newCat && newCat.trim() !== oldName) {
+        const trimmed = newCat.trim();
+        
+        // 1. Update Category List Name
+        if (type === 'expense') {
+            const cat = appData.expenseCategories.find(c => c.id === id);
+            if (cat) cat.name = trimmed;
+        } else {
+            const cat = appData.incomeCategories.find(c => c.id === id);
+            if (cat) cat.name = trimmed;
+        }
+
+        // 4. Save and Refresh (No cascading transactions needed anymore!)
+        renderCategories();
+        updateTransactionModalCategories();
+        updateFilterDropdown();
+        refreshUI();
+        saveData();
+        
+        Toast.fire({ icon: 'success', title: `Renamed to "${trimmed}"` });
+    }
 }
 
 function updateTransactionModalCategories() {
@@ -689,7 +1080,7 @@ function updateTransactionModalCategories() {
     
     const cats = type === 'expense' ? appData.expenseCategories : appData.incomeCategories;
     cats.forEach(cat => {
-        select.append(`<option value="${cat}">${cat}</option>`);
+        select.append(`<option value="${cat.id}">${cat.name}</option>`);
     });
 }
 
@@ -700,13 +1091,13 @@ function updateFilterDropdown() {
     
     filterSelect.append('<optgroup label="Expense Categories">');
     appData.expenseCategories.forEach(cat => {
-        filterSelect.append(`<option value="${cat}">${cat}</option>`);
+        filterSelect.append(`<option value="${cat.id}">${cat.name}</option>`);
     });
     filterSelect.append('</optgroup>');
 
     filterSelect.append('<optgroup label="Income Categories">');
     appData.incomeCategories.forEach(cat => {
-        filterSelect.append(`<option value="${cat}">${cat}</option>`);
+        filterSelect.append(`<option value="${cat.id}">${cat.name}</option>`);
     });
     filterSelect.append('</optgroup>');
 
@@ -715,12 +1106,12 @@ function updateFilterDropdown() {
     ruleSelect.empty();
     ruleSelect.append('<optgroup label="Expense Categories">');
     appData.expenseCategories.forEach(cat => {
-        ruleSelect.append(`<option value="${cat}">${cat}</option>`);
+        ruleSelect.append(`<option value="${cat.id}">${cat.name}</option>`);
     });
     ruleSelect.append('</optgroup>');
     ruleSelect.append('<optgroup label="Income Categories">');
     appData.incomeCategories.forEach(cat => {
-        ruleSelect.append(`<option value="${cat}">${cat}</option>`);
+        ruleSelect.append(`<option value="${cat.id}">${cat.name}</option>`);
     });
     ruleSelect.append('</optgroup>');
 
@@ -729,7 +1120,7 @@ function updateFilterDropdown() {
     limitSelect.empty();
     limitSelect.append('<option value="" disabled selected>Select Category</option>');
     appData.expenseCategories.forEach(cat => {
-        limitSelect.append(`<option value="${cat}">${cat}</option>`);
+        limitSelect.append(`<option value="${cat.id}">${cat.name}</option>`);
     });
 }
 
@@ -738,39 +1129,40 @@ function renderRulesTable() {
     const tbody = $('#rulesTableBody');
     tbody.empty();
     
-    if (!appData.categoryRules || appData.categoryRules.length === 0) {
+    if (!appData.categoryRules || Object.keys(appData.categoryRules).length === 0) {
         tbody.append(`<div class="text-center py-3 text-muted w-100">No rules defined.</div>`);
         return;
     }
 
-    appData.categoryRules.forEach((rule, index) => {
+    Object.keys(appData.categoryRules).forEach((categoryId) => {
+        const keywords = appData.categoryRules[categoryId];
+        const catName = getCategoryName(categoryId);
         tbody.append(`
-            <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center p-3 rounded" style="background: rgba(0,0,0,0.15); border: 1px solid rgba(255,255,255,0.05);">
-                <div class="mb-2 mb-sm-0">
-                    <span class="category-badge mb-2 d-inline-block">${rule.category}</span>
-                    <div class="small text-white-50 lh-sm">${rule.keywords.join(', ')}</div>
+            <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center p-3 rounded mb-2" style="background: rgba(0,0,0,0.15); border: 1px solid rgba(255,255,255,0.05);">
+                <div class="mb-2 mb-sm-0 text-truncate">
+                    <span class="category-badge mb-2 d-inline-block">${escapeHTML(catName)}</span>
+                    <div class="small text-white-50 lh-sm text-truncate">${escapeHTML(keywords.join(', '))}</div>
                 </div>
-                <div class="text-end text-sm-start mt-2 mt-sm-0">
-                    <button class="btn-action edit me-2" onclick="editRule(${index})"><i class="fa-solid fa-pen-to-square"></i></button>
-                    <button class="btn-action delete" onclick="deleteRule(${index})"><i class="fa-solid fa-trash"></i></button>
+                <div class="text-end text-sm-start mt-2 mt-sm-0 flex-shrink-0">
+                    <button class="btn-action edit me-2" onclick="editRule('${categoryId}')"><i class="fa-solid fa-pen-to-square"></i></button>
+                    <button class="btn-action delete" onclick="deleteRule('${categoryId}')"><i class="fa-solid fa-trash"></i></button>
                 </div>
             </div>
         `);
     });
 }
 
-window.editRule = function(index) {
-    const rule = appData.categoryRules[index];
-    $('#ruleCategory').val(rule.category);
-    $('#ruleKeywords').val(rule.keywords.join(', '));
-    appData.categoryRules.splice(index, 1);
+window.editRule = function(categoryId) {
+    const keywords = appData.categoryRules[categoryId];
+    $('#ruleCategory').val(categoryId);
+    $('#ruleKeywords').val(keywords.join(', '));
+    delete appData.categoryRules[categoryId];
     renderRulesTable();
-    // Intentionally not calling saveData() here so they can cancel the edit by refreshing
 }
 
-window.deleteRule = function(index) {
+window.deleteRule = function(categoryId) {
     confirmAction('Delete Rule?', 'Are you sure you want to delete this auto-categorization rule?', 'Yes, Delete', () => {
-        appData.categoryRules.splice(index, 1);
+        delete appData.categoryRules[categoryId];
         renderRulesTable();
         saveData();
         Toast.fire({ icon: 'success', title: 'Rule deleted' });
@@ -787,38 +1179,38 @@ function renderLimitsTable() {
         return;
     }
 
-    Object.keys(appData.categoryLimits).forEach((cat) => {
+    Object.keys(appData.categoryLimits).forEach(catId => {
+        const catName = getCategoryName(catId);
         tbody.append(`
-            <div class="d-flex justify-content-between align-items-center p-3 rounded" style="background: rgba(0,0,0,0.15); border: 1px solid rgba(255,255,255,0.05);">
-                <div>
-                    <span class="category-badge d-inline-block mb-1">${cat}</span>
-                    <div class="fw-bold text-white small">AED ${parseFloat(appData.categoryLimits[cat]).toFixed(2)}</div>
+            <div class="d-flex justify-content-between align-items-center p-3 rounded mb-2" style="background: rgba(0,0,0,0.15); border: 1px solid rgba(255,255,255,0.05);">
+                <div class="text-truncate">
+                    <span class="category-badge d-inline-block mb-1">${escapeHTML(catName)}</span>
+                    <div class="fw-bold text-white small">AED ${parseFloat(appData.categoryLimits[catId]).toFixed(2)}</div>
                 </div>
-                <div>
-                    <button class="btn-action edit me-2" onclick="editLimit('${cat}')"><i class="fa-solid fa-pen-to-square"></i></button>
-                    <button class="btn-action delete" onclick="deleteLimit('${cat}')"><i class="fa-solid fa-trash"></i></button>
+                <div class="flex-shrink-0">
+                    <button class="btn-action edit me-2" onclick="editLimit('${catId}')"><i class="fa-solid fa-pen-to-square"></i></button>
+                    <button class="btn-action delete" onclick="deleteLimit('${catId}')"><i class="fa-solid fa-trash"></i></button>
                 </div>
             </div>
         `);
     });
 }
 
-window.editLimit = function(cat) {
-    const limit = appData.categoryLimits[cat];
-    delete appData.categoryLimits[cat];
-    refreshUI(); // Must refresh FIRST so the dropdown is rebuilt
-    
-    $('#limitCategory').val(cat);
+window.editLimit = function(catId) {
+    const limit = appData.categoryLimits[catId];
+    $('#limitCategory').val(catId);
     $('#limitAmount').val(limit);
-    // Intentionally not calling saveData() here so they can cancel the edit by refreshing
+    delete appData.categoryLimits[catId];
+    renderLimitsTable();
 }
 
-window.deleteLimit = function(cat) {
-    confirmAction('Remove Limit?', `Remove budget limit for ${cat}?`, 'Yes, Remove', () => {
-        delete appData.categoryLimits[cat];
-        refreshUI();
+window.deleteLimit = function(catId) {
+    const name = getCategoryName(catId);
+    confirmAction('Delete Limit?', `Are you sure you want to delete the limit for ${name}?`, 'Yes, Delete', () => {
+        delete appData.categoryLimits[catId];
+        renderLimitsTable();
         saveData();
-        Toast.fire({ icon: 'success', title: 'Limit removed' });
+        Toast.fire({ icon: 'success', title: 'Limit deleted' });
     });
 }
 
@@ -840,12 +1232,16 @@ function renderRecentTransactions() {
         const formattedDate = dateObj.toLocaleDateString();
         const amtColor = tx.type === 'income' ? 'text-income' : '';
         const amtPrefix = tx.type === 'income' ? '+' : '-';
+        const catName = getCategoryName(tx.categoryId);
         
         tbody.append(`
             <tr>
-                <td>${formattedDate}</td>
-                <td class="fw-bold">${tx.merchant} <br><span class="category-badge mt-1 d-inline-block">${tx.category}</span></td>
-                <td class="fw-bold ${amtColor}">${amtPrefix} AED ${tx.amount}</td>
+                <td class="text-nowrap">${formattedDate}</td>
+                <td class="fw-bold text-truncate" style="max-width: 150px;">
+                    ${escapeHTML(tx.merchant)} <br>
+                    <span class="category-badge mt-1 d-inline-block text-truncate" style="max-width: 130px;">${escapeHTML(catName)}</span>
+                </td>
+                <td class="fw-bold text-nowrap ${amtColor}">${amtPrefix} AED ${tx.amount}</td>
             </tr>
         `);
     });
@@ -864,7 +1260,8 @@ window.exportTransactionsToCSV = function() {
         const date = tx.date;
         const merchant = `"${(tx.merchant || '').replace(/"/g, '""')}"`;
         const type = tx.type;
-        const category = `"${(tx.category || '').replace(/"/g, '""')}"`;
+        const catName = getCategoryName(tx.categoryId);
+        const category = `"${(catName || '').replace(/"/g, '""')}"`;
         const amount = tx.amount;
         
         csvContent += `${date},${merchant},${type},${category},${amount}\n`;
@@ -901,7 +1298,7 @@ window.renderTransactionsPage = function() {
     let filteredTotal = 0;
     let filtered = appData.transactions.filter(tx => {
         const matchesSearch = tx.merchant.toLowerCase().includes(searchQuery);
-        const matchesCat = (filterCat === 'All' || !filterCat) ? true : tx.category === filterCat;
+        const matchesCat = (filterCat === 'All' || !filterCat) ? true : tx.categoryId === filterCat;
         const matchesType = (filterType === 'All' || !filterType) ? true : tx.type === filterType;
         
         let matchesDate = true;
@@ -983,18 +1380,19 @@ window.renderTransactionsPage = function() {
         const amtColor = tx.type === 'income' ? 'text-income' : '';
         const amtPrefix = tx.type === 'income' ? '+' : '-';
         const typeBadgeClass = tx.type === 'income' ? 'bg-success' : 'bg-danger';
+        const catName = getCategoryName(tx.categoryId);
         
         const isNew = appData.transactions.indexOf(tx) >= syncCount;
         const newBadge = isNew ? `<span class="badge bg-info text-dark ms-2" style="font-size: 0.65em; vertical-align: middle;">NEW</span>` : '';
 
         tbody.append(`
             <tr ${isNew ? 'style="background: rgba(13, 202, 240, 0.05);"' : ''}>
-                <td>${formattedDate}${newBadge}</td>
-                <td class="fw-bold">${tx.merchant}</td>
+                <td class="text-nowrap">${formattedDate}${newBadge}</td>
+                <td class="fw-bold text-truncate" style="max-width: 180px;" title="${escapeHTML(tx.merchant)}">${escapeHTML(tx.merchant)}</td>
                 <td><span class="badge ${typeBadgeClass} text-uppercase">${tx.type}</span></td>
-                <td><span class="category-badge">${tx.category}</span></td>
-                <td class="fw-bold ${amtColor}">${amtPrefix} AED ${tx.amount}</td>
-                <td>
+                <td><span class="category-badge text-truncate d-inline-block" style="max-width: 120px;" title="${escapeHTML(catName)}">${escapeHTML(catName)}</span></td>
+                <td class="fw-bold text-nowrap ${amtColor}">${amtPrefix} AED ${tx.amount}</td>
+                <td class="text-nowrap">
                     <button class="btn-action" onclick="editTransaction('${tx.id}')"><i class="fa-solid fa-pen"></i></button>
                     <button class="btn-action delete" onclick="deleteTransaction('${tx.id}')"><i class="fa-solid fa-trash"></i></button>
                 </td>
@@ -1155,15 +1553,15 @@ function renderDashboard() {
     // Render Category Summary Table
     let catUsage = {};
     if (appData.expenseCategories) {
-        appData.expenseCategories.forEach(cat => catUsage[cat] = 0);
+        appData.expenseCategories.forEach(cat => catUsage[cat.id] = 0);
     }
     
     filteredTx.forEach(tx => {
         if (tx.type === 'expense') {
-            if (catUsage[tx.category] !== undefined) {
-                catUsage[tx.category] += parseFloat(tx.amount);
+            if (catUsage[tx.categoryId] !== undefined) {
+                catUsage[tx.categoryId] += parseFloat(tx.amount);
             } else {
-                catUsage[tx.category] = parseFloat(tx.amount);
+                catUsage[tx.categoryId] = parseFloat(tx.amount);
             }
         }
     });
@@ -1179,11 +1577,12 @@ function renderDashboard() {
     let totalLimit = 0;
     let totalSpent = 0;
 
-    Object.keys(catUsage).forEach(cat => {
-        const spent = catUsage[cat];
+    Object.keys(catUsage).forEach(catId => {
+        const spent = catUsage[catId];
+        const catName = getCategoryName(catId);
         let limit = 0;
-        if (appData.categoryLimits && appData.categoryLimits[cat]) {
-            limit = parseFloat(appData.categoryLimits[cat]);
+        if (appData.categoryLimits && appData.categoryLimits[catId]) {
+            limit = parseFloat(appData.categoryLimits[catId]);
         }
         
         totalLimit += limit;
@@ -1212,7 +1611,7 @@ function renderDashboard() {
 
         tbody.append(`
             <tr>
-                <td><span class="fw-bold"><i class="fa-solid fa-tag me-2 text-primary opacity-75"></i>${cat}</span></td>
+                <td><span class="fw-bold"><i class="fa-solid fa-tag me-2 text-primary opacity-75"></i>${catName}</span></td>
                 <td class="text-end text-white-50">${limitDisplay}</td>
                 <td class="text-end fw-bold text-white">AED ${spent.toFixed(2)}</td>
                 <td class="text-end">${remainingDisplay}</td>
@@ -1269,12 +1668,12 @@ function renderExpensePieChart() {
             const y = dateObj.getFullYear().toString();
             
             if (m === currentDashMonth && y === currentDashYear) {
-                catTotals[tx.category] = (catTotals[tx.category] || 0) + parseFloat(tx.amount);
+                catTotals[tx.categoryId] = (catTotals[tx.categoryId] || 0) + parseFloat(tx.amount);
             }
         }
     });
 
-    const labels = Object.keys(catTotals);
+    const labels = Object.keys(catTotals).map(id => getCategoryName(id));
     const data = Object.values(catTotals);
     
     if (expensePieChartInstance) {
@@ -1578,7 +1977,7 @@ window.editTransaction = function(id) {
         }
         updateTransactionModalCategories();
         
-        $('#txCategory').val(tx.category);
+        $('#txCategory').val(tx.categoryId);
         $('#transactionModalTitle').text('Edit Transaction');
         $('#addTransactionModal').modal('show');
     }
@@ -1624,8 +2023,8 @@ window.renderBudgetsPage = function() {
         if (tx.type === 'expense') {
             const dateObj = new Date(tx.date);
             if (dateObj.getMonth() === currentMonth && dateObj.getFullYear() === currentYear) {
-                if (usage[tx.category] !== undefined) {
-                    usage[tx.category] += parseFloat(tx.amount);
+                if (usage[tx.categoryId] !== undefined) {
+                    usage[tx.categoryId] += parseFloat(tx.amount);
                 }
             }
         }
@@ -1658,20 +2057,21 @@ window.renderBudgetsPage = function() {
         const dashOffset = circumference - (cappedPct / 100) * circumference;
 
         // Find Most At Risk Category
-        let mostAtRisk = { cat: 'None', pct: 0 };
+        let mostAtRisk = { catId: 'None', pct: 0 };
         Object.keys(appData.categoryLimits).forEach(c => {
             const l = parseFloat(appData.categoryLimits[c] || 0);
             const s = usage[c] || 0;
             if(l > 0) {
                 const p = (s/l)*100;
-                if(p > mostAtRisk.pct) { mostAtRisk = { cat: c, pct: p }; }
+                if(p > mostAtRisk.pct) { mostAtRisk = { catId: c, pct: p }; }
             }
         });
 
         let insightHtml = '';
         if (mostAtRisk.pct > 0) {
-            let msg = `You are spending fastest in <strong>${mostAtRisk.cat}</strong>.`;
-            if (mostAtRisk.pct >= 100) msg = `Warning: You have exceeded your <strong>${mostAtRisk.cat}</strong> budget!`;
+            const catName = getCategoryName(mostAtRisk.catId);
+            let msg = `You are spending fastest in <strong>${catName}</strong>.`;
+            if (mostAtRisk.pct >= 100) msg = `Warning: You have exceeded your <strong>${catName}</strong> budget!`;
             insightHtml = `
             <div class="insight-banner mt-4 d-flex align-items-center">
                 <i class="fa-solid fa-lightbulb text-warning me-3 fs-4"></i>
@@ -1742,7 +2142,7 @@ window.renderBudgetsPage = function() {
 
     // Render Premium Cards
     catArray.forEach(item => {
-        const cat = item.cat;
+        const catName = getCategoryName(item.cat);
         const limit = item.limit;
         const spent = item.spent;
         
@@ -1771,7 +2171,7 @@ window.renderBudgetsPage = function() {
                             <div class="rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px; background: rgba(255,255,255,0.1);">
                                 <i class="fa-solid fa-tags text-white"></i>
                             </div>
-                            <h5 class="fw-bold mb-0 text-white">${cat}</h5>
+                            <h5 class="fw-bold mb-0 text-white">${catName}</h5>
                         </div>
                         <span class="badge ${badgeColor} rounded-pill shadow-sm px-3 py-2 fw-bold" style="font-size: 0.8rem;">
                             ${displayPercentage}%
