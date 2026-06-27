@@ -580,7 +580,8 @@
     "syncStartDate": "2026-06-01"
   },
   "expenseCategories": [
-    "Other"
+    "Other",
+    "Food"
   ],
   "incomeCategories": [
     "Salary",
