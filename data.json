@@ -591,17 +591,7 @@
     "Salary",
     "Other"
   ],
-  "categoryRules": [
-    {
-      "category": "Food",
-      "keywords": [
-        "lulu",
-        "talabat",
-        "noon minutes",
-        "noon food"
-      ]
-    }
-  ],
+  "categoryRules": [],
   "categoryLimits": {
     "Dining": 1000,
     "Other": 1000
