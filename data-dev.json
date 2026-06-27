@@ -619,7 +619,10 @@
   ],
   "settings": {
     "gasUrl": "https://script.google.com/macros/s/AKfycbweKCSnhIufBxre0f-psbbhODSaljNCyXoXRtRrrFNselEuCWnnp0BJG9QH__vWvmVo/exec",
-    "syncStartDate": "2026-06-01"
+    "syncStartDate": "2026-06-01",
+    "lastLogin": "2026-06-27T12:49:50.686Z",
+    "lastSyncCount": 69,
+    "lastSyncDate": "2026-06-27T12:50:03.220Z"
   },
   "expenseCategories": [
     "Food",
