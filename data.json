@@ -650,5 +650,7 @@
       ]
     }
   ],
-  "categoryLimits": {}
+  "categoryLimits": {
+    "Food": 1000
+  }
 }
