@@ -580,9 +580,9 @@
   "settings": {
     "gasUrl": "https://script.google.com/macros/s/AKfycbweKCSnhIufBxre0f-psbbhODSaljNCyXoXRtRrrFNselEuCWnnp0BJG9QH__vWvmVo/exec",
     "syncStartDate": "2026-06-01",
-    "lastLogin": "2026-06-27T13:27:00.779Z",
-    "lastSyncCount": 0,
-    "lastSyncDate": "2026-06-27T13:14:57.161Z"
+    "lastLogin": "2026-06-27T13:32:56.552Z",
+    "lastSyncCount": 64,
+    "lastSyncDate": "2026-06-27T13:33:29.533Z"
   },
   "expenseCategories": [
     "Food",
