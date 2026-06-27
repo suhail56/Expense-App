@@ -85,16 +85,29 @@ $(document).ready(function() {
         ghRepo = $('#githubRepo').val().trim();
         ghToken = $('#githubToken').val().trim();
         
-        if(ghRepo && ghToken) {
-            localStorage.setItem('ghRepo', ghRepo);
-            localStorage.setItem('ghToken', ghToken);
-            authOverlay.style.display = 'none';
-            appContent.style.display = 'flex';
-            $('#displayRepo').val(ghRepo);
-            initRouter();
-            initDevMode();
-            fetchData();
+        if (!ghRepo || !ghToken) {
+            Toast.fire({ icon: 'warning', title: 'Repository and Token are required' });
+            return;
         }
+
+        if (!ghRepo.includes('/')) {
+            Toast.fire({ icon: 'warning', title: 'Invalid Repository format (must be username/repo)' });
+            return;
+        }
+
+        if (!ghToken.startsWith('ghp_') && !ghToken.startsWith('github_pat_')) {
+            Toast.fire({ icon: 'warning', title: 'Invalid GitHub Token format' });
+            return;
+        }
+        
+        localStorage.setItem('ghRepo', ghRepo);
+        localStorage.setItem('ghToken', ghToken);
+        authOverlay.style.display = 'none';
+        appContent.style.display = 'flex';
+        $('#displayRepo').val(ghRepo);
+        initRouter();
+        initDevMode();
+        fetchData();
     });
 
     // Logout
@@ -109,19 +122,36 @@ $(document).ready(function() {
         e.preventDefault();
         const txId = $('#txId').val();
         
+        const date = $('#txDate').val();
+        const merchant = $('#txMerchant').val().trim();
+        const category = $('#txCategory').val();
+        const amountStr = $('#txAmount').val();
+        const type = $('input[name="txType"]:checked').val();
+        
+        if (!date || !merchant || !category || !amountStr) {
+            Toast.fire({ icon: 'warning', title: 'Please fill in all transaction fields' });
+            return;
+        }
+
+        const parsedAmount = parseFloat(amountStr);
+        if (isNaN(parsedAmount) || parsedAmount <= 0) {
+            Toast.fire({ icon: 'warning', title: 'Amount must be greater than zero' });
+            return;
+        }
+
         let existingTx = {};
         if (txId) {
             existingTx = appData.transactions.find(t => t.id === txId) || {};
         }
 
         const newTx = {
-            ...existingTx, // Preserve existing properties like gmailId
+            ...existingTx,
             id: txId || Date.now().toString(),
-            date: $('#txDate').val(),
-            merchant: $('#txMerchant').val(),
-            type: $('input[name="txType"]:checked').val(),
-            category: $('#txCategory').val(),
-            amount: parseFloat($('#txAmount').val()).toFixed(2)
+            date: date,
+            merchant: merchant,
+            type: type,
+            category: category,
+            amount: parseFloat(amountStr).toFixed(2)
         };
 
         if (txId) {
@@ -137,6 +167,7 @@ $(document).ready(function() {
         
         refreshUI();
         saveData();
+        Toast.fire({ icon: 'success', title: txId ? 'Transaction updated' : 'Transaction added' });
     });
 
     // Handle Type Change to Update Categories in Modal
@@ -206,16 +237,32 @@ $(document).ready(function() {
         const category = $('#ruleCategory').val();
         const keywordsInput = $('#ruleKeywords').val().trim();
         
-        if (!category || !keywordsInput) return;
+        if (!category || !keywordsInput) {
+            Toast.fire({ icon: 'warning', title: 'Category and keywords are required' });
+            return;
+        }
         
         const keywords = keywordsInput.split(',').map(k => k.trim().toLowerCase()).filter(k => k);
         if (keywords.length > 0) {
             if (!appData.categoryRules) appData.categoryRules = [];
-            appData.categoryRules.push({ category, keywords });
+            
+            const existingRule = appData.categoryRules.find(r => r.category === category);
+            if (existingRule) {
+                // Merge and remove duplicates
+                existingRule.keywords = [...new Set([...existingRule.keywords, ...keywords])];
+                Toast.fire({ icon: 'success', title: 'Rule updated' });
+            } else {
+                // Remove duplicates from new input
+                const uniqueKeywords = [...new Set(keywords)];
+                appData.categoryRules.push({ category, keywords: uniqueKeywords });
+                Toast.fire({ icon: 'success', title: 'Rule added' });
+            }
             
             $('#ruleKeywords').val('');
             renderRulesTable();
             saveData();
+        } else {
+            Toast.fire({ icon: 'warning', title: 'Please enter valid keywords' });
         }
     });
 
@@ -255,22 +302,34 @@ $(document).ready(function() {
     $('#addLimitForm').submit(function(e) {
         e.preventDefault();
         const category = $('#limitCategory').val();
-        const limitAmt = parseFloat($('#limitAmount').val());
+        const limitAmtStr = $('#limitAmount').val();
+        const limitAmt = parseFloat(limitAmtStr);
         
-        if (category && limitAmt > 0) {
-            if (!appData.categoryLimits) appData.categoryLimits = {};
-            appData.categoryLimits[category] = limitAmt;
-            $('#limitAmount').val('');
-            refreshUI();
-            saveData();
+        if (!category || !limitAmtStr || isNaN(limitAmt) || limitAmt <= 0) {
+            Toast.fire({ icon: 'warning', title: 'Select a category and valid amount' });
+            return;
         }
+        
+        if (!appData.categoryLimits) appData.categoryLimits = {};
+        appData.categoryLimits[category] = limitAmt;
+        $('#limitAmount').val('');
+        refreshUI();
+        saveData();
+        Toast.fire({ icon: 'success', title: 'Limit saved' });
     });
 
     // Sync Settings Form
     $('#syncSettingsForm').submit(function(e) {
         e.preventDefault();
+        const gasUrl = $('#gasUrl').val().trim();
+        
+        if (!gasUrl) {
+            Toast.fire({ icon: 'warning', title: 'Google Apps Script URL is required' });
+            return;
+        }
+        
         if (!appData.settings) appData.settings = {};
-        appData.settings.gasUrl = $('#gasUrl').val().trim();
+        appData.settings.gasUrl = gasUrl;
         appData.settings.syncStartDate = $('#syncStartDate').val();
         
         appData.settings.emailSender = $('#emailSender').val().trim();
@@ -537,14 +596,24 @@ window.addCategory = function(type) {
     const val = $(inputId).val().trim();
     const targetArr = type === 'expense' ? appData.expenseCategories : appData.incomeCategories;
     
-    if (val && !targetArr.includes(val)) {
-        targetArr.push(val);
-        $(inputId).val('');
-        renderCategories();
-        updateTransactionModalCategories();
-        updateFilterDropdown();
-        saveData();
+    if (!val) {
+        Toast.fire({ icon: 'warning', title: 'Category name cannot be empty' });
+        return;
     }
+    
+    const valLower = val.toLowerCase();
+    if (targetArr.some(c => c.toLowerCase() === valLower)) {
+        Toast.fire({ icon: 'warning', title: 'Category already exists' });
+        return;
+    }
+    
+    targetArr.push(val);
+    $(inputId).val('');
+    renderCategories();
+    updateTransactionModalCategories();
+    updateFilterDropdown();
+    saveData();
+    Toast.fire({ icon: 'success', title: 'Category added' });
 }
 
 window.deleteCategory = function(type, cat) {
@@ -641,20 +710,22 @@ function renderRulesTable() {
     tbody.empty();
     
     if (!appData.categoryRules || appData.categoryRules.length === 0) {
-        tbody.append(`<tr><td colspan="3" class="text-center py-3 text-muted">No rules defined.</td></tr>`);
+        tbody.append(`<div class="text-center py-3 text-muted w-100">No rules defined.</div>`);
         return;
     }
 
     appData.categoryRules.forEach((rule, index) => {
         tbody.append(`
-            <tr>
-                <td><span class="category-badge">${rule.category}</span></td>
-                <td><small>${rule.keywords.join(', ')}</small></td>
-                <td class="text-end">
+            <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center p-3 rounded" style="background: rgba(0,0,0,0.15); border: 1px solid rgba(255,255,255,0.05);">
+                <div class="mb-2 mb-sm-0">
+                    <span class="category-badge mb-2 d-inline-block">${rule.category}</span>
+                    <div class="small text-white-50 lh-sm">${rule.keywords.join(', ')}</div>
+                </div>
+                <div class="text-end text-sm-start mt-2 mt-sm-0">
                     <button class="btn-action edit me-2" onclick="editRule(${index})"><i class="fa-solid fa-pen-to-square"></i></button>
                     <button class="btn-action delete" onclick="deleteRule(${index})"><i class="fa-solid fa-trash"></i></button>
-                </td>
-            </tr>
+                </div>
+            </div>
         `);
     });
 }
@@ -683,20 +754,22 @@ function renderLimitsTable() {
     tbody.empty();
     
     if (!appData.categoryLimits || Object.keys(appData.categoryLimits).length === 0) {
-        tbody.append(`<tr><td colspan="3" class="text-center py-3 text-muted">No limits defined.</td></tr>`);
+        tbody.append(`<div class="text-center py-3 text-muted w-100">No limits defined.</div>`);
         return;
     }
 
     Object.keys(appData.categoryLimits).forEach((cat) => {
         tbody.append(`
-            <tr>
-                <td><span class="category-badge">${cat}</span></td>
-                <td class="fw-bold">AED ${parseFloat(appData.categoryLimits[cat]).toFixed(2)}</td>
-                <td class="text-end">
+            <div class="d-flex justify-content-between align-items-center p-3 rounded" style="background: rgba(0,0,0,0.15); border: 1px solid rgba(255,255,255,0.05);">
+                <div>
+                    <span class="category-badge d-inline-block mb-1">${cat}</span>
+                    <div class="fw-bold text-white small">AED ${parseFloat(appData.categoryLimits[cat]).toFixed(2)}</div>
+                </div>
+                <div>
                     <button class="btn-action edit me-2" onclick="editLimit('${cat}')"><i class="fa-solid fa-pen-to-square"></i></button>
                     <button class="btn-action delete" onclick="deleteLimit('${cat}')"><i class="fa-solid fa-trash"></i></button>
-                </td>
-            </tr>
+                </div>
+            </div>
         `);
     });
 }

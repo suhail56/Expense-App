@@ -369,13 +369,13 @@
                                     <form id="addLimitForm" class="mb-4">
                                         <div class="row g-2">
                                             <div class="col-md-5">
-                                                <select class="form-select" id="limitCategory" required>
+                                                <select class="form-select" id="limitCategory">
                                                     <!-- Loaded via JS -->
                                                 </select>
                                             </div>
                                             <div class="col-md-4">
                                                 <input type="number" step="1" min="1" class="form-control"
-                                                    id="limitAmount" placeholder="Limit (AED)" required>
+                                                    id="limitAmount" placeholder="Limit (AED)">
                                             </div>
                                             <div class="col-md-3">
                                                 <button type="submit"
@@ -384,19 +384,8 @@
                                         </div>
                                     </form>
 
-                                    <div class="table-responsive">
-                                        <table class="table table-sm custom-table">
-                                            <thead>
-                                                <tr>
-                                                    <th>Category</th>
-                                                    <th>Limit (AED)</th>
-                                                    <th></th>
-                                                </tr>
-                                            </thead>
-                                            <tbody id="limitsTableBody">
-                                                <!-- Loaded via JS -->
-                                            </tbody>
-                                        </table>
+                                    <div id="limitsTableBody" class="d-flex flex-column gap-2">
+                                        <!-- Loaded via JS -->
                                     </div>
                                 </div>
                             </div>
@@ -489,13 +478,13 @@
                                     <form id="addRuleForm" class="mb-4">
                                         <div class="row g-2">
                                             <div class="col-md-4">
-                                                <select class="form-select" id="ruleCategory" required>
+                                                <select class="form-select" id="ruleCategory">
                                                     <!-- Loaded via JS -->
                                                 </select>
                                             </div>
                                             <div class="col-md-6">
                                                 <input type="text" class="form-control" id="ruleKeywords"
-                                                    placeholder="talabat, noon, kfc" required>
+                                                    placeholder="talabat, noon, kfc">
                                             </div>
                                             <div class="col-md-2">
                                                 <button type="submit" class="btn btn-info w-100 text-white">Add</button>
@@ -504,19 +493,8 @@
                                         <small class="text-muted">Separate multiple keywords with a comma.</small>
                                     </form>
 
-                                    <div class="table-responsive mb-3">
-                                        <table class="table table-sm custom-table">
-                                            <thead>
-                                                <tr>
-                                                    <th>Keywords</th>
-                                                    <th>Category</th>
-                                                    <th></th>
-                                                </tr>
-                                            </thead>
-                                            <tbody id="rulesTableBody">
-                                                <!-- Loaded via JS -->
-                                            </tbody>
-                                        </table>
+                                    <div id="rulesTableBody" class="d-flex flex-column gap-2 mb-3">
+                                        <!-- Loaded via JS -->
                                     </div>
 
                                     <button class="btn btn-outline-primary w-100 btn-sm" id="applyRulesToPastBtn">
@@ -544,12 +522,11 @@
                 <form id="authForm">
                     <div class="mb-3">
                         <label class="form-label">GitHub Repository</label>
-                        <input type="text" class="form-control" id="githubRepo" placeholder="suhail56/Expense-Data"
-                            required>
+                        <input type="text" class="form-control" id="githubRepo" placeholder="suhail56/Expense-Data">
                     </div>
                     <div class="mb-4">
                         <label class="form-label">Personal Access Token (PAT)</label>
-                        <input type="password" class="form-control" id="githubToken" placeholder="ghp_..." required>
+                        <input type="password" class="form-control" id="githubToken" placeholder="ghp_...">
                     </div>
                     <button type="submit" class="btn btn-primary w-100 py-2 fw-bold">Connect Database</button>
                 </form>
@@ -581,21 +558,21 @@
 
                         <div class="mb-3">
                             <label class="form-label">Date</label>
-                            <input type="datetime-local" class="form-control" id="txDate" required>
+                            <input type="datetime-local" class="form-control" id="txDate">
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Merchant / Description</label>
-                            <input type="text" class="form-control" id="txMerchant" required>
+                            <input type="text" class="form-control" id="txMerchant">
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Category</label>
-                            <select class="form-select" id="txCategory" required>
+                            <select class="form-select" id="txCategory">
                                 <!-- Options will be loaded via JS -->
                             </select>
                         </div>
                         <div class="mb-4">
                             <label class="form-label">Amount (AED)</label>
-                            <input type="number" step="0.01" class="form-control" id="txAmount" required>
+                            <input type="number" step="0.01" class="form-control" id="txAmount">
                         </div>
                         <button type="submit" class="btn btn-primary w-100 py-2 fw-bold" id="saveTransactionBtn">Save
                             Transaction</button>

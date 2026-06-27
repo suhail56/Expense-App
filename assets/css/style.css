@@ -453,6 +453,9 @@ input:-webkit-autofill:active{
 }
 
 /* SweetAlert2 Glassmorphism Overrides */
+.swal2-container {
+    z-index: 9999 !important;
+}
 .swal2-popup {
     background: rgba(15, 23, 42, 0.85) !important;
     backdrop-filter: blur(12px) !important;
