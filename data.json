@@ -591,7 +591,23 @@
     "Salary",
     "Other"
   ],
-  "categoryRules": [],
+  "categoryRules": [
+    {
+      "category": "Food",
+      "keywords": [
+        "lulu",
+        "talabat",
+        "noon minutes",
+        "noon food",
+        "keeta",
+        "food",
+        "cafeteria",
+        "restaurant",
+        "mcdonalds",
+        "kfc"
+      ]
+    }
+  ],
   "categoryLimits": {
     "Dining": 1000,
     "Other": 1000
