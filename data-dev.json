@@ -635,7 +635,6 @@
   ],
   "categoryLimits": {
     "Housing & Utilities": 1000,
-    "Food": 1000,
     "Transportation": 300
   }
 }
