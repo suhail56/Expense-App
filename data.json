@@ -44,6 +44,14 @@
       "category": "Other",
       "amount": "25.31",
       "gmailId": "19f042caece91cc9"
+    },
+    {
+      "id": "1782547779706",
+      "date": "2026-06-27T12:09",
+      "merchant": "salary",
+      "type": "income",
+      "category": "Salary",
+      "amount": "6600.00"
     }
   ],
   "settings": {
