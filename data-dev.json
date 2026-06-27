@@ -574,7 +574,8 @@
   },
   "expenseCategories": [
     "Food",
-    "Transportation"
+    "Transportation",
+    "Housing & Utilities"
   ],
   "incomeCategories": [
     "Salary",
