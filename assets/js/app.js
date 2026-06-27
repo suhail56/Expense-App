@@ -91,13 +91,20 @@ function confirmAction(title, text, confirmButtonText, actionCallback) {
 // Initialize
 $(document).ready(function() {
     
-    // Initialize Premium DatePicker
+    // Initialize Premium DatePicker for Transactions
     flatpickr('#txDate', { 
         enableTime: true, 
         dateFormat: "Y-m-d\\TH:i", 
         altInput: true,
         altFormat: "F j, Y h:i K",
         time_24hr: false 
+    });
+
+    // Initialize Premium DatePicker for Filters
+    flatpickr('#filterStartDate, #filterEndDate', {
+        dateFormat: "Y-m-d",
+        altInput: true,
+        altFormat: "M j, Y"
     });
 
     // Auth Check
@@ -290,8 +297,15 @@ $(document).ready(function() {
         $('#searchTx').val('');
         $('#filterCategory').val('All');
         $('#filterType').val('All');
-        $('#filterStartDate').val('');
-        $('#filterEndDate').val('');
+        
+        const startPicker = document.getElementById('filterStartDate')._flatpickr;
+        if (startPicker) startPicker.clear();
+        else $('#filterStartDate').val('');
+
+        const endPicker = document.getElementById('filterEndDate')._flatpickr;
+        if (endPicker) endPicker.clear();
+        else $('#filterEndDate').val('');
+
         currentSortCol = 'date';
         currentSortDir = 'desc';
         currentPage = 1;
