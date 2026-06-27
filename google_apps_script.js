@@ -175,6 +175,7 @@ function parseMashreqEmail(body) {
         id: Date.now().toString() + Math.floor(Math.random() * 1000),
         date: localISOTime,
         merchant: merchant,
+        type: 'expense',
         category: 'Other', 
         amount: amount.toFixed(2)
       };

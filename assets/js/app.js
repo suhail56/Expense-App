@@ -4,7 +4,8 @@ let appData = {
         gasUrl: '',
         syncStartDate: ''
     },
-    categories: [],
+    expenseCategories: [],
+    incomeCategories: [],
     transactions: []
 };
 let fileSha = null;
@@ -25,9 +26,9 @@ $(document).ready(function() {
     // Auth Check
     if (ghRepo && ghToken) {
         authOverlay.style.display = 'none';
-        appContent.style.display = 'flex'; // Changed to flex for SPA layout
+        appContent.style.display = 'flex';
         $('#displayRepo').val(ghRepo);
-        initRouter(); // Start Router
+        initRouter();
         fetchData();
     } else {
         authOverlay.style.display = 'flex';
@@ -57,18 +58,6 @@ $(document).ready(function() {
         location.reload();
     });
 
-    // Add Category
-    $('#addCategoryBtn').click(function() {
-        const newCat = $('#newCategoryName').val().trim();
-        if (newCat && !appData.categories.includes(newCat)) {
-            appData.categories.push(newCat);
-            $('#newCategoryName').val('');
-            renderCategories();
-            updateCategoryDropdowns();
-            saveData();
-        }
-    });
-
     // Save Transaction
     $('#transactionForm').submit(function(e) {
         e.preventDefault();
@@ -77,16 +66,15 @@ $(document).ready(function() {
             id: txId || Date.now().toString(),
             date: $('#txDate').val(),
             merchant: $('#txMerchant').val(),
+            type: $('input[name="txType"]:checked').val(),
             category: $('#txCategory').val(),
             amount: parseFloat($('#txAmount').val()).toFixed(2)
         };
 
         if (txId) {
-            // Update
             const idx = appData.transactions.findIndex(t => t.id === txId);
             if(idx > -1) appData.transactions[idx] = newTx;
         } else {
-            // Add
             appData.transactions.push(newTx);
         }
 
@@ -96,6 +84,11 @@ $(document).ready(function() {
         
         refreshUI();
         saveData();
+    });
+
+    // Handle Type Change to Update Categories in Modal
+    $('input[name="txType"]').change(function() {
+        updateTransactionModalCategories();
     });
 
     // Event Listeners for Transactions Page Search & Filter
@@ -146,14 +139,14 @@ $(document).ready(function() {
                 $('#triggerSyncBtn').prop('disabled', false).html('<i class="fa-solid fa-bolt me-2"></i> Sync Now');
                 if (res.status === 'success') {
                     alert(res.message);
-                    fetchData(); // Refetch latest data from GitHub
+                    fetchData();
                 } else {
                     alert('Sync failed: ' + res.message);
                 }
             },
             error: function(err) {
                 $('#triggerSyncBtn').prop('disabled', false).html('<i class="fa-solid fa-bolt me-2"></i> Sync Now');
-                alert('Error contacting Google Apps Script. Make sure it is deployed as a Web App.');
+                alert('Error contacting Google Apps Script.');
                 console.error(err);
             }
         });
@@ -186,8 +179,25 @@ window.fetchData = function() {
             fileSha = response.sha;
             // Decode base64 UTF-8
             const content = decodeURIComponent(escape(window.atob(response.content)));
-            appData = JSON.parse(content);
+            const parsedData = JSON.parse(content);
+            
+            // DATA MIGRATION LOGIC
+            appData = parsedData;
             if (!appData.settings) appData.settings = { gasUrl: '', syncStartDate: '' };
+            
+            // Migrate old categories
+            if (appData.categories && !appData.expenseCategories) {
+                appData.expenseCategories = appData.categories;
+                appData.incomeCategories = ['Salary', 'Refunds', 'Dividends', 'Other'];
+                delete appData.categories;
+            }
+
+            // Migrate old transactions to be 'expense' by default
+            if (appData.transactions) {
+                appData.transactions.forEach(tx => {
+                    if (!tx.type) tx.type = 'expense';
+                });
+            }
             
             // Populate settings inputs
             $('#gasUrl').val(appData.settings.gasUrl || '');
@@ -214,7 +224,7 @@ function saveData() {
     const encodedContent = window.btoa(unescape(encodeURIComponent(contentStr)));
 
     const data = {
-        message: "Update expense data",
+        message: "Update database",
         content: encodedContent,
         sha: fileSha
     };
@@ -239,49 +249,93 @@ function saveData() {
 // UI Rendering
 function refreshUI() {
     renderCategories();
-    updateCategoryDropdowns();
+    updateTransactionModalCategories();
+    updateFilterDropdown();
     renderRecentTransactions();
     renderTransactionsPage();
     calculateTotals();
     updateCharts(appData.transactions);
 }
 
+// Settings: Categories
+window.addCategory = function(type) {
+    const inputId = type === 'expense' ? '#newExpenseCat' : '#newIncomeCat';
+    const val = $(inputId).val().trim();
+    const targetArr = type === 'expense' ? appData.expenseCategories : appData.incomeCategories;
+    
+    if (val && !targetArr.includes(val)) {
+        targetArr.push(val);
+        $(inputId).val('');
+        renderCategories();
+        updateTransactionModalCategories();
+        updateFilterDropdown();
+        saveData();
+    }
+}
+
+window.deleteCategory = function(type, cat) {
+    if(confirm(`Delete category "${cat}"?`)) {
+        if (type === 'expense') {
+            appData.expenseCategories = appData.expenseCategories.filter(c => c !== cat);
+        } else {
+            appData.incomeCategories = appData.incomeCategories.filter(c => c !== cat);
+        }
+        renderCategories();
+        updateTransactionModalCategories();
+        updateFilterDropdown();
+        saveData();
+    }
+}
+
 function renderCategories() {
-    const list = $('#categoriesList');
-    list.empty();
-    appData.categories.forEach(cat => {
-        list.append(`
+    const expList = $('#expenseCategoriesList');
+    expList.empty();
+    appData.expenseCategories.forEach(cat => {
+        expList.append(`
             <div class="category-tag">
-                ${cat} 
-                <i class="fa-solid fa-xmark ms-1" onclick="deleteCategory('${cat}')"></i>
+                ${cat} <i class="fa-solid fa-xmark ms-1" onclick="deleteCategory('expense', '${cat}')"></i>
+            </div>
+        `);
+    });
+
+    const incList = $('#incomeCategoriesList');
+    incList.empty();
+    appData.incomeCategories.forEach(cat => {
+        incList.append(`
+            <div class="category-tag">
+                ${cat} <i class="fa-solid fa-xmark ms-1" onclick="deleteCategory('income', '${cat}')"></i>
             </div>
         `);
     });
 }
 
-function updateCategoryDropdowns() {
-    // Modal Select
-    const txSelect = $('#txCategory');
-    txSelect.empty();
+function updateTransactionModalCategories() {
+    const type = $('input[name="txType"]:checked').val();
+    const select = $('#txCategory');
+    select.empty();
     
-    // Filter Select on Transactions Page
-    const filterSelect = $('#filterCategory');
-    filterSelect.empty();
-    filterSelect.append('<option value="All">All Categories</option>');
-
-    appData.categories.forEach(cat => {
-        txSelect.append(`<option value="${cat}">${cat}</option>`);
-        filterSelect.append(`<option value="${cat}">${cat}</option>`);
+    const cats = type === 'expense' ? appData.expenseCategories : appData.incomeCategories;
+    cats.forEach(cat => {
+        select.append(`<option value="${cat}">${cat}</option>`);
     });
 }
 
-window.deleteCategory = function(cat) {
-    if(confirm(`Delete category "${cat}"?`)) {
-        appData.categories = appData.categories.filter(c => c !== cat);
-        renderCategories();
-        updateCategoryDropdowns();
-        saveData();
-    }
+function updateFilterDropdown() {
+    const filterSelect = $('#filterCategory');
+    filterSelect.empty();
+    filterSelect.append('<option value="All">All Categories</option>');
+    
+    filterSelect.append('<optgroup label="Income Categories">');
+    appData.incomeCategories.forEach(cat => {
+        filterSelect.append(`<option value="${cat}">${cat}</option>`);
+    });
+    filterSelect.append('</optgroup>');
+
+    filterSelect.append('<optgroup label="Expense Categories">');
+    appData.expenseCategories.forEach(cat => {
+        filterSelect.append(`<option value="${cat}">${cat}</option>`);
+    });
+    filterSelect.append('</optgroup>');
 }
 
 // Dashboard: Top 5 Recent
@@ -300,18 +354,20 @@ function renderRecentTransactions() {
     top5.forEach(tx => {
         const dateObj = new Date(tx.date);
         const formattedDate = dateObj.toLocaleDateString();
+        const amtColor = tx.type === 'income' ? 'text-income' : '';
+        const amtPrefix = tx.type === 'income' ? '+' : '-';
         
         tbody.append(`
             <tr>
                 <td>${formattedDate}</td>
                 <td class="fw-bold">${tx.merchant} <br><span class="category-badge mt-1 d-inline-block">${tx.category}</span></td>
-                <td class="fw-bold">AED ${tx.amount}</td>
+                <td class="fw-bold ${amtColor}">${amtPrefix} AED ${tx.amount}</td>
             </tr>
         `);
     });
 }
 
-// Transactions Page: Full List with Search & Filter
+// Transactions Page: Full List
 window.renderTransactionsPage = function() {
     const tbody = $('#transactionsTableBody');
     tbody.empty();
@@ -335,13 +391,15 @@ window.renderTransactionsPage = function() {
     filtered.forEach(tx => {
         const dateObj = new Date(tx.date);
         const formattedDate = dateObj.toLocaleDateString() + ' ' + dateObj.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-        
+        const amtColor = tx.type === 'income' ? 'text-income' : '';
+        const amtPrefix = tx.type === 'income' ? '+' : '-';
+
         tbody.append(`
             <tr>
                 <td>${formattedDate}</td>
                 <td class="fw-bold">${tx.merchant}</td>
                 <td><span class="category-badge">${tx.category}</span></td>
-                <td class="fw-bold">AED ${tx.amount}</td>
+                <td class="fw-bold ${amtColor}">${amtPrefix} AED ${tx.amount}</td>
                 <td>
                     <button class="btn-action" onclick="editTransaction('${tx.id}')"><i class="fa-solid fa-pen"></i></button>
                     <button class="btn-action delete" onclick="deleteTransaction('${tx.id}')"><i class="fa-solid fa-trash"></i></button>
@@ -352,8 +410,9 @@ window.renderTransactionsPage = function() {
 }
 
 function calculateTotals() {
-    let allTime = 0;
-    let monthly = 0;
+    let monthlyIncome = 0;
+    let monthlyExpense = 0;
+    let totalBalance = 0;
     
     const now = new Date();
     const currentMonth = now.getMonth();
@@ -361,16 +420,23 @@ function calculateTotals() {
 
     appData.transactions.forEach(tx => {
         const amt = parseFloat(tx.amount);
-        allTime += amt;
+        
+        if (tx.type === 'income') {
+            totalBalance += amt;
+        } else {
+            totalBalance -= amt;
+        }
         
         const txDate = new Date(tx.date);
         if (txDate.getMonth() === currentMonth && txDate.getFullYear() === currentYear) {
-            monthly += amt;
+            if (tx.type === 'income') monthlyIncome += amt;
+            else monthlyExpense += amt;
         }
     });
 
-    $('#allTimeTotal').text(`AED ${allTime.toFixed(2)}`);
-    $('#monthlyTotal').text(`AED ${monthly.toFixed(2)}`);
+    $('#totalBalance').text(`AED ${totalBalance.toFixed(2)}`);
+    $('#monthlyIncome').text(`AED ${monthlyIncome.toFixed(2)}`);
+    $('#monthlyExpense').text(`AED ${monthlyExpense.toFixed(2)}`);
 }
 
 window.editTransaction = function(id) {
@@ -379,8 +445,17 @@ window.editTransaction = function(id) {
         $('#txId').val(tx.id);
         $('#txDate').val(tx.date);
         $('#txMerchant').val(tx.merchant);
-        $('#txCategory').val(tx.category);
         $('#txAmount').val(tx.amount);
+        
+        // Select type toggle and trigger change to load correct categories
+        if (tx.type === 'income') {
+            $('#typeIncome').prop('checked', true);
+        } else {
+            $('#typeExpense').prop('checked', true);
+        }
+        updateTransactionModalCategories();
+        
+        $('#txCategory').val(tx.category);
         $('#transactionModalTitle').text('Edit Transaction');
         $('#addTransactionModal').modal('show');
     }
@@ -398,5 +473,7 @@ window.deleteTransaction = function(id) {
 $('#addTransactionModal').on('hidden.bs.modal', function () {
     $('#transactionForm')[0].reset();
     $('#txId').val('');
+    $('#typeExpense').prop('checked', true);
+    updateTransactionModalCategories();
     $('#transactionModalTitle').text('Add Transaction');
 });
