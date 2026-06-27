@@ -2,7 +2,7 @@
   "transactions": [],
   "settings": {
     "gasUrl": "https://script.google.com/macros/s/AKfycbweKCSnhIufBxre0f-psbbhODSaljNCyXoXRtRrrFNselEuCWnnp0BJG9QH__vWvmVo/exec",
-    "syncStartDate": "2026-06-26"
+    "syncStartDate": "2026-06-01"
   },
   "expenseCategories": [
     "Groceries",
