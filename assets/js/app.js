@@ -1566,7 +1566,30 @@ function getFilteredDashboardTransactions() {
     });
 }
 
+function updateDashboardGreeting() {
+    const hour = new Date().getHours();
+    let greeting = 'Good Evening';
+    if (hour < 12) greeting = 'Good Morning';
+    else if (hour < 18) greeting = 'Good Afternoon';
+
+    let username = '';
+    if (ghRepo) {
+        username = ghRepo.split('/')[0];
+        // Capitalize first letter safely
+        if (username.length > 0) {
+            username = username.charAt(0).toUpperCase() + username.slice(1);
+        }
+    }
+
+    if (username) {
+        $('#dashboardGreeting').text(`${greeting}, ${username}!`);
+    } else {
+        $('#dashboardGreeting').text(`${greeting}!`);
+    }
+}
+
 function renderDashboard() {
+    updateDashboardGreeting();
     const filteredTx = getFilteredDashboardTransactions();
     
     let income = 0;
