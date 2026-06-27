@@ -566,6 +566,14 @@
       "category": "Food",
       "amount": "25.55",
       "gmailId": "19e83ddf6cb85bcd"
+    },
+    {
+      "id": "1782555984055",
+      "date": "2026-06-01T14:26",
+      "merchant": "salary",
+      "type": "income",
+      "category": "Salary",
+      "amount": "6600.00"
     }
   ],
   "settings": {
