@@ -44,5 +44,9 @@
       "category": "Other",
       "amount": "25.31"
     }
-  ]
+  ],
+  "settings": {
+    "gasUrl": "https://script.google.com/macros/s/AKfycbweKCSnhIufBxre0f-psbbhODSaljNCyXoXRtRrrFNselEuCWnnp0BJG9QH__vWvmVo/exec",
+    "syncStartDate": "2026-06-01"
+  }
 }
