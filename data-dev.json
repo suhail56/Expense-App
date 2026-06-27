@@ -582,6 +582,14 @@
       "type": "expense",
       "category": "Others",
       "amount": "100.00"
+    },
+    {
+      "id": "1782558287763",
+      "date": "2026-05-27T15:04",
+      "merchant": "food",
+      "type": "expense",
+      "category": "Food",
+      "amount": "20.00"
     }
   ],
   "settings": {
