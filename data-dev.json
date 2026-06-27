@@ -590,6 +590,14 @@
       "type": "expense",
       "category": "Food",
       "amount": "20.00"
+    },
+    {
+      "id": "1782558300730",
+      "date": "2026-05-13T15:04",
+      "merchant": "salary",
+      "type": "income",
+      "category": "Salary",
+      "amount": "200.00"
     }
   ],
   "settings": {
