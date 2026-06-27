@@ -195,6 +195,56 @@ body {
     z-index: 3;
 }
 
+/* Mobile-friendly Transactions Table */
+@media (max-width: 768px) {
+    #view-transactions .custom-table thead {
+        display: none;
+    }
+    #view-transactions .custom-table tbody tr {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        grid-template-rows: auto auto auto auto;
+        padding: 1rem;
+        gap: 0.5rem;
+        background: rgba(15, 23, 42, 0.4);
+        border-radius: 12px;
+        margin-bottom: 1rem;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    #view-transactions .custom-table tbody td {
+        padding: 0;
+        border: none;
+        background: transparent !important;
+    }
+    /* Date */
+    #view-transactions .custom-table tbody td:nth-child(1) { grid-column: 1 / 3; grid-row: 1; font-size: 0.8rem; color: var(--text-secondary); border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 0.5rem; margin-bottom: 0.25rem; }
+    /* Merchant */
+    #view-transactions .custom-table tbody td:nth-child(2) { grid-column: 1 / 2; grid-row: 2; font-size: 1.1rem; }
+    /* Type */
+    #view-transactions .custom-table tbody td:nth-child(3) { display: block; grid-column: 1 / 2; grid-row: 3; align-self: start; }
+    /* Category */
+    #view-transactions .custom-table tbody td:nth-child(4) { grid-column: 1 / 2; grid-row: 4; align-self: start; }
+    /* Amount */
+    #view-transactions .custom-table tbody td:nth-child(5) { grid-column: 2 / 3; grid-row: 2; font-size: 1.1rem; text-align: right; }
+    /* Actions */
+    #view-transactions .custom-table tbody td:nth-child(6) { grid-column: 2 / 3; grid-row: 3 / 5; justify-self: end; align-self: center; }
+    
+    /* Footer */
+    #view-transactions .custom-table tfoot tr {
+        display: flex;
+        justify-content: space-between;
+        padding: 1rem;
+        border-radius: 12px;
+    }
+    #view-transactions .custom-table tfoot td {
+        border: none !important;
+        padding: 0 !important;
+        background: transparent !important;
+    }
+    #view-transactions .custom-table tfoot td:first-child { display: none; } /* Hide 'Total:' text to save space if needed, or keep it */
+    #view-transactions .custom-table tfoot td:first-child { display: block; } /* Actually keep it */
+}
+
 /* Pagination Dark Theme */
 .pagination {
     --bs-pagination-bg: rgba(255,255,255,0.05);
