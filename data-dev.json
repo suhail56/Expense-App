@@ -599,6 +599,16 @@
         "mcdonalds",
         "kfc"
       ]
+    },
+    {
+      "category": "Transportation",
+      "keywords": [
+        "enoc",
+        "eppco",
+        "adnoc",
+        "emarat",
+        "auto"
+      ]
     }
   ],
   "categoryLimits": {
