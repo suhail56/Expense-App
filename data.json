@@ -603,6 +603,7 @@
     }
   ],
   "categoryLimits": {
-    "Dining": 1000
+    "Dining": 1000,
+    "Other": 1000
   }
 }
