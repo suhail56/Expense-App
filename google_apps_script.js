@@ -1,104 +1,159 @@
 // ==========================================
-// MASHREQ BANK EXPENSE PARSER
+// MASHREQ BANK EXPENSE PARSER - WEB API
 // For Google Apps Script
 // ==========================================
 
-// --- CONFIGURATION ---
-const GITHUB_REPO = 'username/repo'; // Replace with your repository
-const GITHUB_TOKEN = 'ghp_your_token_here'; // Replace with your PAT
-const CATEGORY_DEFAULT = 'Other'; 
-// ---------------------
+// Handle POST requests from the Web Dashboard
+function doPost(e) {
+  try {
+    const ghRepo = e.parameter.ghRepo;
+    const ghToken = e.parameter.ghToken;
+    let startDate = e.parameter.startDate; // Format expected: YYYY-MM-DD
+    
+    if (!ghRepo || !ghToken) {
+      return ContentService.createTextOutput(JSON.stringify({
+        status: 'error',
+        message: 'Missing GitHub credentials in request.'
+      })).setMimeType(ContentService.MimeType.JSON);
+    }
+    
+    // 1. Fetch current data.json from GitHub
+    const apiUrl = `https://api.github.com/repos/${ghRepo}/contents/data.json`;
+    const options = {
+      method: "get",
+      headers: {
+        "Authorization": `token ${ghToken}`,
+        "Accept": "application/vnd.github.v3+json"
+      },
+      muteHttpExceptions: true
+    };
+    
+    const response = UrlFetchApp.fetch(apiUrl, options);
+    if (response.getResponseCode() !== 200) {
+      return ContentService.createTextOutput(JSON.stringify({
+        status: 'error',
+        message: 'Error fetching data.json from GitHub.'
+      })).setMimeType(ContentService.MimeType.JSON);
+    }
+    
+    const fileData = JSON.parse(response.getContentText());
+    const sha = fileData.sha;
+    
+    // Decode base64 UTF-8
+    const decodedContent = Utilities.newBlob(Utilities.base64Decode(fileData.content)).getDataAsString();
+    let appData = JSON.parse(decodedContent);
+    
+    // Create a Set of existing gmail IDs to prevent duplicates
+    const existingIds = new Set();
+    if (appData.transactions) {
+      appData.transactions.forEach(tx => {
+        if (tx.gmailId) existingIds.add(tx.gmailId);
+      });
+    }
 
-function processBankEmails() {
-  const searchQuery = 'from:MashreqAlerts@mashreq.com subject:"Transaction Confirmation on Mashreq Card" is:unread';
-  const threads = GmailApp.search(searchQuery, 0, 10);
-  
-  if (threads.length === 0) {
-    Logger.log("No new transactions found.");
-    return;
-  }
+    // 2. Build Gmail Search Query
+    let searchQuery = 'from:MashreqAlerts@mashreq.com subject:"Transaction Confirmation on Mashreq Card"';
+    if (startDate) {
+      // If start date is provided, format it properly (must be YYYY/MM/DD)
+      const dateParts = startDate.split('-');
+      if (dateParts.length === 3) {
+        searchQuery += ` after:${dateParts[0]}/${dateParts[1]}/${dateParts[2]}`;
+      } else {
+        searchQuery += ` is:unread`; // Fallback
+      }
+    } else {
+      searchQuery += ` is:unread`;
+    }
 
-  // 1. Fetch current data.json from GitHub
-  const apiUrl = `https://api.github.com/repos/${GITHUB_REPO}/contents/data.json`;
-  const options = {
-    method: "get",
-    headers: {
-      "Authorization": `token ${GITHUB_TOKEN}`,
-      "Accept": "application/vnd.github.v3+json"
-    },
-    muteHttpExceptions: true
-  };
-  
-  const response = UrlFetchApp.fetch(apiUrl, options);
-  if (response.getResponseCode() !== 200) {
-    Logger.log("Error fetching data.json: " + response.getContentText());
-    return;
-  }
-  
-  const fileData = JSON.parse(response.getContentText());
-  const sha = fileData.sha;
-  
-  // Decode base64 UTF-8
-  const decodedContent = Utilities.newBlob(Utilities.base64Decode(fileData.content)).getDataAsString();
-  let appData = JSON.parse(decodedContent);
-  
-  let newTransactionsAdded = false;
+    // 3. Process Emails
+    const threads = GmailApp.search(searchQuery, 0, 50); // Get up to 50 threads at a time
+    let newTxCount = 0;
 
-  // 2. Parse Emails
-  for (let i = 0; i < threads.length; i++) {
-    const messages = threads[i].getMessages();
-    for (let j = 0; j < messages.length; j++) {
-      const msg = messages[j];
-      if (msg.isUnread()) {
+    for (let i = 0; i < threads.length; i++) {
+      const messages = threads[i].getMessages();
+      for (let j = 0; j < messages.length; j++) {
+        const msg = messages[j];
+        const msgId = msg.getId();
+        
+        // Skip if we already parsed this exact email
+        if (existingIds.has(msgId)) {
+          continue; 
+        }
+
         const body = msg.getPlainBody();
         const tx = parseMashreqEmail(body);
         
         if (tx) {
+          tx.gmailId = msgId; // Store the ID to prevent duplicates later
           appData.transactions.push(tx);
-          newTransactionsAdded = true;
-          Logger.log(`Parsed Transaction: ${tx.amount} AED at ${tx.merchant}`);
+          newTxCount++;
         }
         
-        // Mark as read so we don't process it again
-        msg.markRead();
+        // Always mark as read if it was unread
+        if (msg.isUnread()) {
+          msg.markRead();
+        }
       }
     }
-  }
 
-  // 3. Update GitHub data.json if new transactions were added
-  if (newTransactionsAdded) {
-    const updatedContentStr = JSON.stringify(appData, null, 2);
-    const encodedContent = Utilities.base64Encode(Utilities.newBlob(updatedContentStr).getBytes());
-    
-    const payload = {
-      message: "Automated entry from Gmail Bank alert",
-      content: encodedContent,
-      sha: sha
-    };
-    
-    const updateOptions = {
-      method: "put",
-      headers: {
-        "Authorization": `token ${GITHUB_TOKEN}`,
-        "Accept": "application/vnd.github.v3+json",
-        "Content-Type": "application/json"
-      },
-      payload: JSON.stringify(payload),
-      muteHttpExceptions: true
-    };
-    
-    const updateResponse = UrlFetchApp.fetch(apiUrl, updateOptions);
-    if (updateResponse.getResponseCode() === 200 || updateResponse.getResponseCode() === 201) {
-      Logger.log("Successfully updated GitHub data.json");
-    } else {
-      Logger.log("Failed to update GitHub: " + updateResponse.getContentText());
+    // 4. Update GitHub data.json if new transactions were added
+    if (newTxCount > 0) {
+      const updatedContentStr = JSON.stringify(appData, null, 2);
+      const encodedContent = Utilities.base64Encode(Utilities.newBlob(updatedContentStr).getBytes());
+      
+      const payload = {
+        message: `Automated sync: Added ${newTxCount} transactions`,
+        content: encodedContent,
+        sha: sha
+      };
+      
+      const updateOptions = {
+        method: "put",
+        headers: {
+          "Authorization": `token ${ghToken}`,
+          "Accept": "application/vnd.github.v3+json",
+          "Content-Type": "application/json"
+        },
+        payload: JSON.stringify(payload),
+        muteHttpExceptions: true
+      };
+      
+      const updateResponse = UrlFetchApp.fetch(apiUrl, updateOptions);
+      if (updateResponse.getResponseCode() !== 200 && updateResponse.getResponseCode() !== 201) {
+        return ContentService.createTextOutput(JSON.stringify({
+          status: 'error',
+          message: 'Failed to save updated database to GitHub.'
+        })).setMimeType(ContentService.MimeType.JSON);
+      }
     }
+
+    // Success Response
+    return ContentService.createTextOutput(JSON.stringify({
+      status: 'success',
+      message: newTxCount > 0 ? `Successfully synced ${newTxCount} new transactions!` : `Sync completed. No new transactions found.`
+    })).setMimeType(ContentService.MimeType.JSON);
+
+  } catch (error) {
+    return ContentService.createTextOutput(JSON.stringify({
+      status: 'error',
+      message: error.toString()
+    })).setMimeType(ContentService.MimeType.JSON);
   }
+}
+
+// Handle GET requests so the script URL doesn't just error out if visited in browser
+function doGet(e) {
+  return ContentService.createTextOutput("Mashreq Expense Sync API is active. Please use POST to sync.");
+}
+
+// Keep the old function for backward compatibility with time-driven triggers
+// However, the POST webhook method is now highly recommended.
+function processBankEmails() {
+  Logger.log("This function is deprecated. Use the Web App Webhook POST method instead.");
 }
 
 function parseMashreqEmail(body) {
   try {
-    // Expected text: "Your Mashreq noon Card ending with 7430 was used for a purchase of AED 19.80 at TAP*Keeta Dubai AE on 27-JUN-2026 09:21 AM."
     const amountRegex = /purchase of AED ([\d,.]+)/i;
     const merchantRegex = /at (.*?) on \d{2}-[A-Z]{3}-\d{4}/i;
     const dateRegex = /on (\d{2}-[A-Z]{3}-\d{4} \d{2}:\d{2} (?:AM|PM))/i;
@@ -112,25 +167,20 @@ function parseMashreqEmail(body) {
       let merchant = merchantMatch[1].trim();
       let dateStr = dateMatch[1].trim(); 
       
-      // Convert '27-JUN-2026 09:21 AM' to standard ISO or valid JS date format
-      // Note: new Date('27-JUN-2026 09:21 AM') usually works in JS, but we can reformat if needed.
-      // Easiest is to format to standard format that html datetime-local expects or just a parsable string.
-      // HTML datetime-local expects YYYY-MM-DDThh:mm
       const parsedDate = new Date(dateStr);
-      // Constructing YYYY-MM-DDThh:mm
-      const tzOffset = (new Date()).getTimezoneOffset() * 60000; // offset in milliseconds
+      const tzOffset = (new Date()).getTimezoneOffset() * 60000; 
       const localISOTime = (new Date(parsedDate - tzOffset)).toISOString().slice(0, 16);
 
       return {
         id: Date.now().toString() + Math.floor(Math.random() * 1000),
         date: localISOTime,
         merchant: merchant,
-        category: CATEGORY_DEFAULT, // Can't auto-categorize easily without ML, so we use default
+        category: 'Other', 
         amount: amount.toFixed(2)
       };
     }
   } catch(e) {
-    Logger.log("Failed to parse email body: " + e);
+    // silently fail for bad formats
   }
   return null;
 }

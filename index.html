@@ -178,8 +178,10 @@
                 <!-- SETTINGS VIEW -->
                 <div id="view-settings" class="app-view">
                     <div class="row">
+                        <!-- Left Column -->
                         <div class="col-lg-6 mb-4">
-                            <div class="card glass-card h-100">
+                            <!-- Categories Card -->
+                            <div class="card glass-card h-100 mb-4">
                                 <div class="card-body">
                                     <h5 class="fw-bold mb-4"><i class="fa-solid fa-tags me-2 text-primary"></i>Manage Categories</h5>
                                     <div class="d-flex mb-4">
@@ -192,17 +194,53 @@
                                 </div>
                             </div>
                         </div>
+                        
+                        <!-- Right Column -->
                         <div class="col-lg-6 mb-4">
-                            <div class="card glass-card h-100">
+                            <!-- Database Connection Card -->
+                            <div class="card glass-card mb-4">
                                 <div class="card-body">
                                     <h5 class="fw-bold mb-4"><i class="fa-solid fa-database me-2 text-success"></i>Database Connection</h5>
-                                    <p class="text-muted small">Your data is securely synced with your GitHub repository.</p>
                                     <div class="mb-3">
-                                        <label class="form-label text-secondary small">Connected Repository</label>
+                                        <label class="form-label text-secondary small">Connected GitHub Repository</label>
                                         <input type="text" class="form-control" id="displayRepo" readonly disabled>
                                     </div>
                                     <button class="btn btn-outline-primary w-100" onclick="fetchData()">
-                                        <i class="fa-solid fa-arrows-rotate me-2"></i> Force Sync Data
+                                        <i class="fa-solid fa-arrows-rotate me-2"></i> Force Sync Database
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <!-- Gmail Sync Card -->
+                            <div class="card glass-card mb-4">
+                                <div class="card-body">
+                                    <h5 class="fw-bold mb-4"><i class="fa-brands fa-google me-2 text-warning"></i>Gmail Auto-Sync</h5>
+                                    <form id="syncSettingsForm">
+                                        <div class="mb-3">
+                                            <label class="form-label text-secondary small">Google Apps Script Web App URL</label>
+                                            <input type="url" class="form-control" id="gasUrl" placeholder="https://script.google.com/macros/s/.../exec">
+                                        </div>
+                                        <div class="mb-4">
+                                            <label class="form-label text-secondary small">Sync Start Date</label>
+                                            <input type="date" class="form-control" id="syncStartDate">
+                                        </div>
+                                        <div class="d-flex gap-2">
+                                            <button type="submit" class="btn btn-primary flex-grow-1">Save Settings</button>
+                                            <button type="button" class="btn btn-success" id="triggerSyncBtn">
+                                                <i class="fa-solid fa-bolt me-2"></i> Sync Now
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+
+                            <!-- Danger Zone -->
+                            <div class="card glass-card border-danger">
+                                <div class="card-body">
+                                    <h5 class="fw-bold mb-3 text-danger"><i class="fa-solid fa-triangle-exclamation me-2"></i>Danger Zone</h5>
+                                    <p class="text-muted small mb-4">Resetting the database will delete all transactions. Categories and settings will remain.</p>
+                                    <button class="btn btn-danger w-100 fw-bold" id="resetDatabaseBtn">
+                                        <i class="fa-solid fa-trash-can me-2"></i> Delete All Records & Reset
                                     </button>
                                 </div>
                             </div>

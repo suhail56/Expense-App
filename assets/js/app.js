@@ -1,5 +1,9 @@
 // State
 let appData = {
+    settings: {
+        gasUrl: '',
+        syncStartDate: ''
+    },
     categories: [],
     transactions: []
 };
@@ -97,6 +101,63 @@ $(document).ready(function() {
     // Event Listeners for Transactions Page Search & Filter
     $('#searchTx').on('input', renderTransactionsPage);
     $('#filterCategory').on('change', renderTransactionsPage);
+
+    // Sync Settings Form
+    $('#syncSettingsForm').submit(function(e) {
+        e.preventDefault();
+        if (!appData.settings) appData.settings = {};
+        appData.settings.gasUrl = $('#gasUrl').val().trim();
+        appData.settings.syncStartDate = $('#syncStartDate').val();
+        saveData();
+        alert('Sync settings saved!');
+    });
+
+    // Reset Database
+    $('#resetDatabaseBtn').click(function() {
+        if(confirm('WARNING: This will permanently delete ALL transactions. Are you absolutely sure?')) {
+            appData.transactions = [];
+            refreshUI();
+            saveData();
+            alert('Database has been reset.');
+        }
+    });
+
+    // Trigger Manual Sync
+    $('#triggerSyncBtn').click(function() {
+        if (!appData.settings || !appData.settings.gasUrl) {
+            alert('Please save your Google Apps Script URL first.');
+            return;
+        }
+        const gasUrl = appData.settings.gasUrl;
+        const startDate = appData.settings.syncStartDate || '';
+
+        $('#triggerSyncBtn').prop('disabled', true).html('<i class="fa-solid fa-spinner fa-spin me-2"></i>Syncing...');
+        
+        $.ajax({
+            url: gasUrl,
+            method: 'POST',
+            dataType: 'json',
+            data: {
+                ghRepo: ghRepo,
+                ghToken: ghToken,
+                startDate: startDate
+            },
+            success: function(res) {
+                $('#triggerSyncBtn').prop('disabled', false).html('<i class="fa-solid fa-bolt me-2"></i> Sync Now');
+                if (res.status === 'success') {
+                    alert(res.message);
+                    fetchData(); // Refetch latest data from GitHub
+                } else {
+                    alert('Sync failed: ' + res.message);
+                }
+            },
+            error: function(err) {
+                $('#triggerSyncBtn').prop('disabled', false).html('<i class="fa-solid fa-bolt me-2"></i> Sync Now');
+                alert('Error contacting Google Apps Script. Make sure it is deployed as a Web App.');
+                console.error(err);
+            }
+        });
+    });
 });
 
 // GitHub API Methods
@@ -126,6 +187,12 @@ window.fetchData = function() {
             // Decode base64 UTF-8
             const content = decodeURIComponent(escape(window.atob(response.content)));
             appData = JSON.parse(content);
+            if (!appData.settings) appData.settings = { gasUrl: '', syncStartDate: '' };
+            
+            // Populate settings inputs
+            $('#gasUrl').val(appData.settings.gasUrl || '');
+            $('#syncStartDate').val(appData.settings.syncStartDate || '');
+
             refreshUI();
             showLoading(false);
         },
