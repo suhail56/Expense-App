@@ -574,6 +574,14 @@
       "type": "income",
       "category": "Salary",
       "amount": "6600.00"
+    },
+    {
+      "id": "1782556480389",
+      "date": "2026-06-27T14:34",
+      "merchant": "Google One 650-2530000 US",
+      "type": "expense",
+      "category": "Food",
+      "amount": "1.00"
     }
   ],
   "settings": {
