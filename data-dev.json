@@ -598,6 +598,15 @@
       "type": "income",
       "category": "Salary",
       "amount": "200.00"
+    },
+    {
+      "id": "1782559129569429",
+      "date": "2026-06-27T15:18",
+      "merchant": "TAP*Keeta Dubai AE",
+      "type": "expense",
+      "category": "Food",
+      "amount": "27.50",
+      "gmailId": "19f08cd9f11684c8"
     }
   ],
   "settings": {
