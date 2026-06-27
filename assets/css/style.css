@@ -208,7 +208,4 @@ input:-webkit-autofill:active{
     .app-container {
         padding-bottom: 2rem;
     }
-    canvas#monthlyChart, canvas#categoryChart {
-        min-height: 250px; /* Ensure charts aren't too small on mobile */
-    }
 }
