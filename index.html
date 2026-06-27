@@ -92,9 +92,9 @@
                     <div class="card glass-card mb-4"
                         style="background: linear-gradient(145deg, rgba(30, 41, 59, 0.8) 0%, rgba(15, 23, 42, 0.9) 100%);">
                         <div class="card-body d-flex flex-wrap justify-content-between align-items-center gap-3">
-                            <div class="d-flex align-items-center gap-3">
-                                <h5 class="fw-bold mb-0 text-white"><i
-                                        class="fa-solid fa-chart-line me-2 text-primary"></i>Overview</h5>
+                            <div class="d-flex flex-column">
+                                <h5 class="fw-bold mb-0 text-white"><i class="fa-solid fa-chart-line me-2 text-primary"></i>Dashboard Overview</h5>
+                                <p class="text-white-50 small mb-0 mt-1">A high-level summary of your financial health.</p>
                             </div>
                             <div class="d-flex gap-2">
                                 <button class="btn btn-sm btn-outline-success fw-bold dashSyncBtn">
@@ -296,9 +296,9 @@
                     <div class="card glass-card mb-4"
                         style="background: linear-gradient(145deg, rgba(30, 41, 59, 0.8) 0%, rgba(15, 23, 42, 0.9) 100%);">
                         <div class="card-body d-flex flex-wrap justify-content-between align-items-center gap-3">
-                            <div class="d-flex align-items-center gap-3">
-                                <h5 class="fw-bold mb-0 text-white"><i
-                                        class="fa-solid fa-list-ul me-2 text-primary"></i>Transactions</h5>
+                            <div class="d-flex flex-column">
+                                <h5 class="fw-bold mb-0 text-white"><i class="fa-solid fa-list-ul me-2 text-primary"></i>Transactions</h5>
+                                <p class="text-white-50 small mb-0 mt-1">View, filter, and manage your entire ledger.</p>
                             </div>
                             <div class="d-flex gap-2">
                                 <button class="btn btn-sm btn-outline-info fw-bold" onclick="exportTransactionsToCSV()">
@@ -395,9 +395,9 @@
                     <div class="card glass-card mb-4"
                         style="background: linear-gradient(145deg, rgba(30, 41, 59, 0.8) 0%, rgba(15, 23, 42, 0.9) 100%);">
                         <div class="card-body d-flex flex-wrap justify-content-between align-items-center gap-3">
-                            <div class="d-flex align-items-center gap-3">
-                                <h5 class="fw-bold mb-0 text-white"><i
-                                        class="fa-solid fa-chart-pie me-2 text-primary"></i>Monthly Budgets</h5>
+                            <div class="d-flex flex-column">
+                                <h5 class="fw-bold mb-0 text-white"><i class="fa-solid fa-chart-pie me-2 text-primary"></i>Monthly Budgets</h5>
+                                <p class="text-white-50 small mb-0 mt-1">Track category limits and monitor your spending risks.</p>
                             </div>
                             <div class="d-flex gap-2">
                                 <button class="btn btn-sm btn-outline-success fw-bold dashSyncBtn">
@@ -433,11 +433,23 @@
 
                 <!-- GOALS VIEW -->
                 <div id="view-goals" class="app-view">
-                    <div class="d-flex justify-content-between align-items-center mb-4">
-                        <h4 class="fw-bold mb-0 text-white"><i class="fa-solid fa-bullseye me-2 text-primary"></i>Savings Goals</h4>
-                        <button class="btn btn-primary fw-bold btn-sm" onclick="showAddGoalModal()">
-                            <i class="fa-solid fa-plus me-1"></i> New Goal
-                        </button>
+                    <!-- Command Bar -->
+                    <div class="card glass-card mb-4"
+                        style="background: linear-gradient(145deg, rgba(30, 41, 59, 0.8) 0%, rgba(15, 23, 42, 0.9) 100%);">
+                        <div class="card-body d-flex flex-wrap justify-content-between align-items-center gap-3">
+                            <div class="d-flex flex-column">
+                                <h5 class="fw-bold mb-0 text-white"><i class="fa-solid fa-bullseye me-2 text-primary"></i>Savings Goals</h5>
+                                <p class="text-white-50 small mb-0 mt-1">Set targets, deposit funds, and track your progress.</p>
+                            </div>
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-sm btn-outline-success fw-bold dashSyncBtn">
+                                    <i class="fa-solid fa-bolt me-1"></i> Sync Now
+                                </button>
+                                <button class="btn btn-sm btn-primary fw-bold" onclick="showAddGoalModal()">
+                                    <i class="fa-solid fa-plus me-1"></i> New Goal
+                                </button>
+                            </div>
+                        </div>
                     </div>
                     
                     <div class="row" id="goalsContainer">
@@ -451,9 +463,9 @@
                     <div class="card glass-card mb-4"
                         style="background: linear-gradient(145deg, rgba(30, 41, 59, 0.8) 0%, rgba(15, 23, 42, 0.9) 100%);">
                         <div class="card-body d-flex flex-wrap justify-content-between align-items-center gap-3">
-                            <div class="d-flex align-items-center gap-3">
-                                <h5 class="fw-bold mb-0 text-white"><i
-                                        class="fa-solid fa-gear me-2 text-primary"></i>Settings</h5>
+                            <div class="d-flex flex-column">
+                                <h5 class="fw-bold mb-0 text-white"><i class="fa-solid fa-gear me-2 text-primary"></i>Settings & Sync</h5>
+                                <p class="text-white-50 small mb-0 mt-1">Manage rules, categories, and database configuration.</p>
                             </div>
                             <div class="d-flex gap-2">
                                 <button class="btn btn-sm btn-outline-success fw-bold dashSyncBtn">
