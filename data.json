@@ -582,7 +582,8 @@
   "expenseCategories": [
     "Other",
     "Food",
-    "Transportation"
+    "Transportation",
+    "Housing & Utilities"
   ],
   "incomeCategories": [
     "Salary",
