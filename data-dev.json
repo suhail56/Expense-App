@@ -580,9 +580,12 @@
   "settings": {
     "gasUrl": "https://script.google.com/macros/s/AKfycbweKCSnhIufBxre0f-psbbhODSaljNCyXoXRtRrrFNselEuCWnnp0BJG9QH__vWvmVo/exec",
     "syncStartDate": "2026-06-01",
-    "lastLogin": "2026-06-27T13:32:56.552Z",
+    "lastLogin": "2026-06-27T13:39:35.824Z",
     "lastSyncCount": 64,
-    "lastSyncDate": "2026-06-27T13:33:29.533Z"
+    "lastSyncDate": "2026-06-27T13:33:29.533Z",
+    "emailSender": "MashreqAlerts@mashreq.com",
+    "emailSubject": "Transaction Confirmation on Mashreq Card",
+    "emailRegex": "purchase of (?:AED|USD)\\s+([\\d,.]+)\\s+at\\s+(.*?)\\s+on\\s+([\\d]{2}-[A-Z]{3}-[\\d]{4}\\s+[\\d]{2}:[\\d]{2}\\s+[A-Z]{2})"
   },
   "expenseCategories": [
     "Food",
