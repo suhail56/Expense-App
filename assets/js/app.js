@@ -475,10 +475,6 @@ window.viewNewTransactions = function() {
     
     // Navigate to transactions tab
     $('#nav-transactions').click();
-    
-    // We can't perfectly filter by 'new' if there is no creation date, but sorting by date descending
-    // and letting them know the top X are new is the best approach.
-    alert(`Showing all transactions. Your ${currentCount - syncCount} new transactions should be at or near the top.`);
 }
 
 // Settings: Categories
