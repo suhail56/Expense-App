@@ -283,6 +283,7 @@ $(document).ready(function() {
                 $('#dashSyncBtn').prop('disabled', false).html('<i class="fa-solid fa-bolt me-1"></i> Sync Now');
                 if (res.status === 'success') {
                     alert(res.message);
+                    localStorage.setItem('lastSyncNowTime', new Date().toISOString());
                     fetchData();
                 } else {
                     alert('Sync failed: ' + res.message);
@@ -384,6 +385,14 @@ window.fetchData = function() {
 }
 
 function saveData() {
+    // Auto-correct Sync Count if transactions were deleted
+    if (appData.settings && appData.settings.lastSyncCount !== undefined) {
+        const currentCount = appData.transactions ? appData.transactions.length : 0;
+        if (currentCount < appData.settings.lastSyncCount) {
+            appData.settings.lastSyncCount = currentCount;
+        }
+    }
+
     showLoading(true);
     const contentStr = JSON.stringify(appData, null, 2);
     const encodedContent = window.btoa(unescape(encodeURIComponent(contentStr)));
@@ -426,12 +435,15 @@ function refreshUI() {
 }
 
 function renderSyncMetadata() {
-    const lastSync = appData.settings.lastSyncDate ? new Date(appData.settings.lastSyncDate).toLocaleString() : 'Never';
+    const lastSyncNow = localStorage.getItem('lastSyncNowTime');
+    const lastSyncStr = lastSyncNow ? new Date(lastSyncNow).toLocaleString() : 'Never';
+    const lastReviewedStr = appData.settings.lastSyncDate ? new Date(appData.settings.lastSyncDate).toLocaleString() : 'Never';
     const lastLogin = appData.settings.lastLogin ? new Date(appData.settings.lastLogin).toLocaleString() : 'Never';
     const syncCount = appData.settings.lastSyncCount || 0;
     const currentCount = appData.transactions ? appData.transactions.length : 0;
     
-    $('#metaLastSync').text(lastSync);
+    $('#metaLastSyncNow').text(lastSyncStr);
+    $('#metaLastReviewed').text(lastReviewedStr);
     $('#metaLastLogin').text(lastLogin);
     $('#metaLastSyncCount').text(syncCount);
     $('#metaCurrentCount').text(currentCount);
@@ -454,28 +466,7 @@ window.markAllAsReviewed = function() {
     refreshUI();
 }
 
-window.viewNewTransactions = function() {
-    const syncCount = appData.settings.lastSyncCount || 0;
-    const currentCount = appData.transactions ? appData.transactions.length : 0;
-    
-    if (currentCount <= syncCount) {
-        alert("You have no new transactions since your last review.");
-        return;
-    }
-    
-    // Clear filters and sort by date descending so newest are at the top
-    $('#searchTx').val('');
-    $('#filterCategory').val('All');
-    $('#filterType').val('All');
-    $('#filterStartDate').val('');
-    $('#filterEndDate').val('');
-    currentSortCol = 'date';
-    currentSortDir = 'desc';
-    currentPage = 1;
-    
-    // Navigate to transactions tab
-    $('#nav-transactions').click();
-}
+
 
 // Settings: Categories
 window.addCategory = function(type) {
@@ -782,16 +773,21 @@ window.renderTransactionsPage = function() {
     // Update Info Text
     infoEl.text(`Showing ${startIndex + 1} to ${endIndex} of ${totalItems} entries`);
 
+    const syncCount = (appData.settings && appData.settings.lastSyncCount) !== undefined ? appData.settings.lastSyncCount : 0;
+
     paginatedItems.forEach(tx => {
         const dateObj = new Date(tx.date);
         const formattedDate = dateObj.toLocaleDateString() + ' ' + dateObj.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
         const amtColor = tx.type === 'income' ? 'text-income' : '';
         const amtPrefix = tx.type === 'income' ? '+' : '-';
         const typeBadgeClass = tx.type === 'income' ? 'bg-success' : 'bg-danger';
+        
+        const isNew = appData.transactions.indexOf(tx) >= syncCount;
+        const newBadge = isNew ? `<span class="badge bg-info text-dark ms-2" style="font-size: 0.65em; vertical-align: middle;">NEW</span>` : '';
 
         tbody.append(`
-            <tr>
-                <td>${formattedDate}</td>
+            <tr ${isNew ? 'style="background: rgba(13, 202, 240, 0.05);"' : ''}>
+                <td>${formattedDate}${newBadge}</td>
                 <td class="fw-bold">${tx.merchant}</td>
                 <td><span class="badge ${typeBadgeClass} text-uppercase">${tx.type}</span></td>
                 <td><span class="category-badge">${tx.category}</span></td>
