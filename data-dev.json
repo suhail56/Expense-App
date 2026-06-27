@@ -575,6 +575,14 @@
       "category": "Food",
       "amount": "25.55",
       "gmailId": "19e83ddf6cb85bcd"
+    },
+    {
+      "id": "1782566079240",
+      "date": "2026-06-27T17:14",
+      "merchant": "Etihad Rail ABU DHABI AE",
+      "type": "expense",
+      "category": "Food",
+      "amount": "11.00"
     }
   ],
   "settings": {
