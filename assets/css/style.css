@@ -22,6 +22,11 @@ body {
     background-attachment: fixed;
 }
 
+/* Global Text Visibility Fixes */
+.text-muted, .text-secondary {
+    color: rgba(255, 255, 255, 0.6) !important;
+}
+
 /* Glassmorphism Classes */
 .glass-card {
     background: var(--glass-bg);
@@ -136,26 +141,56 @@ body {
     cursor: pointer;
 }
 
-/* Tables */
+/* Premium Table Styling */
 .custom-table {
     color: var(--text-primary);
     margin-bottom: 0;
+    --bs-table-bg: transparent;
+    --bs-table-color: var(--text-primary);
+    --bs-table-hover-color: white;
 }
 .custom-table thead th {
-    border-bottom: 1px solid var(--glass-border);
+    border-bottom: 2px solid rgba(255,255,255,0.1);
     color: var(--text-secondary);
-    font-weight: 500;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    letter-spacing: 0.5px;
+    padding: 1rem;
 }
 .custom-table tbody td {
     border-bottom: 1px solid rgba(255,255,255,0.05);
     vertical-align: middle;
+    padding: 1rem;
+}
+.custom-table tbody tr {
+    transition: background-color 0.2s ease;
 }
 .custom-table tbody tr:hover td {
     background-color: rgba(255,255,255,0.05);
     color: white;
 }
-.table-hover>tbody>tr:hover>* {
+.custom-table tfoot td {
+    background-color: rgba(15, 23, 42, 0.4) !important;
+    border-top: 2px solid rgba(255,255,255,0.1) !important;
+    padding: 1rem;
+    font-size: 1.1rem;
     color: white;
+}
+
+/* Pagination Dark Theme */
+.pagination {
+    --bs-pagination-bg: rgba(255,255,255,0.05);
+    --bs-pagination-border-color: rgba(255,255,255,0.1);
+    --bs-pagination-color: var(--text-secondary);
+    --bs-pagination-hover-bg: rgba(255,255,255,0.1);
+    --bs-pagination-hover-color: white;
+    --bs-pagination-focus-bg: rgba(255,255,255,0.1);
+    --bs-pagination-active-bg: var(--accent-blue);
+    --bs-pagination-active-border-color: var(--accent-blue);
+    --bs-pagination-disabled-bg: transparent;
+    --bs-pagination-disabled-border-color: rgba(255,255,255,0.05);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
 
 /* Form Elements */

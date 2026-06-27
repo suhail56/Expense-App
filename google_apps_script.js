@@ -9,6 +9,7 @@ function doPost(e) {
     const ghRepo = e.parameter.ghRepo;
     const ghToken = e.parameter.ghToken;
     let startDate = e.parameter.startDate; // Format expected: YYYY-MM-DD
+    let dbFileName = e.parameter.dbFileName || 'data.json';
     
     if (!ghRepo || !ghToken) {
       return ContentService.createTextOutput(JSON.stringify({
@@ -17,8 +18,8 @@ function doPost(e) {
       })).setMimeType(ContentService.MimeType.JSON);
     }
     
-    // 1. Fetch current data.json from GitHub
-    const apiUrl = `https://api.github.com/repos/${ghRepo}/contents/data.json`;
+    // 1. Fetch current data from GitHub
+    const apiUrl = `https://api.github.com/repos/${ghRepo}/contents/${dbFileName}`;
     const options = {
       method: "get",
       headers: {
@@ -81,7 +82,7 @@ function doPost(e) {
         }
 
         const body = msg.getPlainBody();
-        const tx = parseMashreqEmail(body);
+        const tx = parseMashreqEmail(body, appData.categoryRules || []);
         
         if (tx) {
           tx.gmailId = msgId; // Store the ID to prevent duplicates later
@@ -152,7 +153,7 @@ function processBankEmails() {
   Logger.log("This function is deprecated. Use the Web App Webhook POST method instead.");
 }
 
-function parseMashreqEmail(body) {
+function parseMashreqEmail(body, rules) {
   try {
     const amountRegex = /purchase of AED ([\d,.]+)/i;
     const merchantRegex = /at (.*?) on \d{2}-[A-Z]{3}-\d{4}/i;
@@ -171,12 +172,24 @@ function parseMashreqEmail(body) {
       const tzOffset = (new Date()).getTimezoneOffset() * 60000; 
       const localISOTime = (new Date(parsedDate - tzOffset)).toISOString().slice(0, 16);
 
+      // Auto-categorization
+      let category = 'Other';
+      const merchantLower = merchant.toLowerCase();
+      if (rules && rules.length > 0) {
+        for (const rule of rules) {
+          if (rule.keywords.some(kw => merchantLower.includes(kw))) {
+            category = rule.category;
+            break;
+          }
+        }
+      }
+
       return {
         id: Date.now().toString() + Math.floor(Math.random() * 1000),
         date: localISOTime,
         merchant: merchant,
         type: 'expense',
-        category: 'Other', 
+        category: category, 
         amount: amount.toFixed(2)
       };
     }

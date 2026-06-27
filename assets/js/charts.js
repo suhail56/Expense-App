@@ -102,40 +102,58 @@ function initCharts() {
     });
 }
 
-function updateCharts(transactions) {
+function updateCharts(filteredTx, timeframe) {
     if (!monthlyChart || !categoryChart) return;
 
-    const monthIncome = {};
-    const monthExpense = {};
+    const dataMapIncome = {};
+    const dataMapExpense = {};
     const categoryData = {}; // Only for expenses
 
-    transactions.forEach(tx => {
+    // Grouping Strategy
+    const isDaily = (timeframe === 'this_month' || timeframe === 'last_month');
+
+    filteredTx.forEach(tx => {
         const date = new Date(tx.date);
-        const monthYear = date.toLocaleString('default', { month: 'short', year: 'numeric' });
+        let key = '';
+        
+        if (isDaily) {
+            key = date.getDate().toString(); // e.g. "1", "15"
+        } else {
+            key = date.toLocaleString('default', { month: 'short', year: 'numeric' }); // e.g. "Jan 2026"
+        }
+
         const amount = parseFloat(tx.amount);
 
-        // Initialize month if not exists
-        if (!monthIncome[monthYear]) monthIncome[monthYear] = 0;
-        if (!monthExpense[monthYear]) monthExpense[monthYear] = 0;
+        if (!dataMapIncome[key]) dataMapIncome[key] = 0;
+        if (!dataMapExpense[key]) dataMapExpense[key] = 0;
 
         if (tx.type === 'income') {
-            monthIncome[monthYear] += amount;
+            dataMapIncome[key] += amount;
         } else {
-            monthExpense[monthYear] += amount;
-            // Add to pie chart
+            dataMapExpense[key] += amount;
             categoryData[tx.category] = (categoryData[tx.category] || 0) + amount;
         }
     });
 
-    // 1. Update Monthly Bar Chart
-    // Get all unique months, sort them chronologically
-    const allMonthsSet = new Set([...Object.keys(monthIncome), ...Object.keys(monthExpense)]);
-    const months = Array.from(allMonthsSet).sort((a, b) => new Date(a) - new Date(b));
-    const last6Months = months.slice(-6);
+    // 1. Update Bar Chart
+    let labels = [];
+    if (isDaily) {
+        // Find max days in the month to show 1 to max
+        // To be safe, just use 1 to 31 or max day found
+        let maxDay = 31;
+        if (filteredTx.length > 0) {
+            const firstDate = new Date(filteredTx[0].date);
+            maxDay = new Date(firstDate.getFullYear(), firstDate.getMonth() + 1, 0).getDate();
+        }
+        for (let i = 1; i <= maxDay; i++) labels.push(i.toString());
+    } else {
+        const allKeysSet = new Set([...Object.keys(dataMapIncome), ...Object.keys(dataMapExpense)]);
+        labels = Array.from(allKeysSet).sort((a, b) => new Date(a) - new Date(b));
+    }
 
-    monthlyChart.data.labels = last6Months;
-    monthlyChart.data.datasets[0].data = last6Months.map(m => monthIncome[m]); // Income
-    monthlyChart.data.datasets[1].data = last6Months.map(m => monthExpense[m]); // Expense
+    monthlyChart.data.labels = labels;
+    monthlyChart.data.datasets[0].data = labels.map(l => dataMapIncome[l] || 0);
+    monthlyChart.data.datasets[1].data = labels.map(l => dataMapExpense[l] || 0);
     monthlyChart.update();
 
     // 2. Update Expense Category Pie Chart
