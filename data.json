@@ -571,6 +571,33 @@
       "type": "income",
       "category": "Salary",
       "amount": "6600.00"
+    },
+    {
+      "id": "1782552408898189",
+      "date": "2026-06-27T10:17",
+      "merchant": "GOOGLE*TEMPORARY HOLD MOUNTAIN VIEW US",
+      "type": "expense",
+      "category": "Other",
+      "amount": "4.00",
+      "gmailId": "19f07ba22352a865"
+    },
+    {
+      "id": "1782552408900673",
+      "date": "2026-06-27T10:17",
+      "merchant": "Google One 650-2530000 US",
+      "type": "expense",
+      "category": "Other",
+      "amount": "18.99",
+      "gmailId": "19f07ba580ef7fcc"
+    },
+    {
+      "id": "1782552409090108",
+      "date": "2026-06-24T08:31",
+      "merchant": "Etihad Rail ABU DHABI AE",
+      "type": "expense",
+      "category": "Other",
+      "amount": "195.00",
+      "gmailId": "19ef7e5c35c9ff5e"
     }
   ],
   "settings": {
