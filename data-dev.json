@@ -574,6 +574,47 @@
       "type": "income",
       "category": "Salary",
       "amount": "6600.00"
+    },
+    {
+      "id": "1782557960642",
+      "date": "2025-05-27T14:59",
+      "merchant": "Etihad Rail ABU DHABI AE",
+      "type": "expense",
+      "category": "Others",
+      "amount": "100.00"
+    },
+    {
+      "id": "1782558287763",
+      "date": "2026-05-27T15:04",
+      "merchant": "food",
+      "type": "expense",
+      "category": "Food",
+      "amount": "20.00"
+    },
+    {
+      "id": "1782558300730",
+      "date": "2026-05-13T15:04",
+      "merchant": "salary",
+      "type": "income",
+      "category": "Salary",
+      "amount": "200.00"
+    },
+    {
+      "id": "1782559129569429",
+      "date": "2026-06-27T15:18",
+      "merchant": "TAP*Keeta Dubai AE",
+      "type": "expense",
+      "category": "Food",
+      "amount": "27.50",
+      "gmailId": "19f08cd9f11684c8"
+    },
+    {
+      "id": "1782559602118",
+      "date": "2025-05-07T15:26",
+      "merchant": "salary",
+      "type": "income",
+      "category": "Salary",
+      "amount": "1000.00"
     }
   ],
   "settings": {
