@@ -574,6 +574,15 @@
       "category": "Others",
       "amount": "195.00",
       "gmailId": "19ef7e5c35c9ff5e"
+    },
+    {
+      "id": "1782564765884419",
+      "date": "2026-06-27T15:18",
+      "merchant": "TAP*Keeta Dubai AE",
+      "type": "expense",
+      "category": "Food",
+      "amount": "27.50",
+      "gmailId": "19f08cd9f11684c8"
     }
   ],
   "settings": {
