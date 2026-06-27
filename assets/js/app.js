@@ -18,9 +18,12 @@ const loadingOverlay = document.getElementById('loadingOverlay');
 $(document).ready(function() {
     initCharts();
     
+    // Auth Check
     if (ghRepo && ghToken) {
         authOverlay.style.display = 'none';
-        appContent.style.display = 'block';
+        appContent.style.display = 'flex'; // Changed to flex for SPA layout
+        $('#displayRepo').val(ghRepo);
+        initRouter(); // Start Router
         fetchData();
     } else {
         authOverlay.style.display = 'flex';
@@ -36,7 +39,9 @@ $(document).ready(function() {
             localStorage.setItem('ghRepo', ghRepo);
             localStorage.setItem('ghToken', ghToken);
             authOverlay.style.display = 'none';
-            appContent.style.display = 'block';
+            appContent.style.display = 'flex';
+            $('#displayRepo').val(ghRepo);
+            initRouter();
             fetchData();
         }
     });
@@ -55,7 +60,7 @@ $(document).ready(function() {
             appData.categories.push(newCat);
             $('#newCategoryName').val('');
             renderCategories();
-            updateCategoryDropdown();
+            updateCategoryDropdowns();
             saveData();
         }
     });
@@ -88,6 +93,10 @@ $(document).ready(function() {
         refreshUI();
         saveData();
     });
+
+    // Event Listeners for Transactions Page Search & Filter
+    $('#searchTx').on('input', renderTransactionsPage);
+    $('#filterCategory').on('change', renderTransactionsPage);
 });
 
 // GitHub API Methods
@@ -106,7 +115,7 @@ function showLoading(show) {
     loadingOverlay.style.display = show ? 'flex' : 'none';
 }
 
-function fetchData() {
+window.fetchData = function() {
     showLoading(true);
     $.ajax({
         url: getApiUrl(),
@@ -163,8 +172,9 @@ function saveData() {
 // UI Rendering
 function refreshUI() {
     renderCategories();
-    updateCategoryDropdown();
-    renderTransactions();
+    updateCategoryDropdowns();
+    renderRecentTransactions();
+    renderTransactionsPage();
     calculateTotals();
     updateCharts(appData.transactions);
 }
@@ -182,11 +192,19 @@ function renderCategories() {
     });
 }
 
-function updateCategoryDropdown() {
-    const select = $('#txCategory');
-    select.empty();
+function updateCategoryDropdowns() {
+    // Modal Select
+    const txSelect = $('#txCategory');
+    txSelect.empty();
+    
+    // Filter Select on Transactions Page
+    const filterSelect = $('#filterCategory');
+    filterSelect.empty();
+    filterSelect.append('<option value="All">All Categories</option>');
+
     appData.categories.forEach(cat => {
-        select.append(`<option value="${cat}">${cat}</option>`);
+        txSelect.append(`<option value="${cat}">${cat}</option>`);
+        filterSelect.append(`<option value="${cat}">${cat}</option>`);
     });
 }
 
@@ -194,24 +212,60 @@ window.deleteCategory = function(cat) {
     if(confirm(`Delete category "${cat}"?`)) {
         appData.categories = appData.categories.filter(c => c !== cat);
         renderCategories();
-        updateCategoryDropdown();
+        updateCategoryDropdowns();
         saveData();
     }
 }
 
-function renderTransactions() {
-    const tbody = $('#transactionsTableBody');
+// Dashboard: Top 5 Recent
+function renderRecentTransactions() {
+    const tbody = $('#recentTransactionsBody');
     tbody.empty();
     
-    // Sort transactions by date descending
     const sorted = [...appData.transactions].sort((a, b) => new Date(b.date) - new Date(a.date));
+    const top5 = sorted.slice(0, 5);
 
-    if (sorted.length === 0) {
-        tbody.append(`<tr><td colspan="5" class="text-center py-4 text-muted">No transactions yet.</td></tr>`);
+    if (top5.length === 0) {
+        tbody.append(`<tr><td colspan="3" class="text-center py-4 text-muted">No transactions yet.</td></tr>`);
         return;
     }
 
-    sorted.forEach(tx => {
+    top5.forEach(tx => {
+        const dateObj = new Date(tx.date);
+        const formattedDate = dateObj.toLocaleDateString();
+        
+        tbody.append(`
+            <tr>
+                <td>${formattedDate}</td>
+                <td class="fw-bold">${tx.merchant} <br><span class="category-badge mt-1 d-inline-block">${tx.category}</span></td>
+                <td class="fw-bold">AED ${tx.amount}</td>
+            </tr>
+        `);
+    });
+}
+
+// Transactions Page: Full List with Search & Filter
+window.renderTransactionsPage = function() {
+    const tbody = $('#transactionsTableBody');
+    tbody.empty();
+    
+    const searchQuery = $('#searchTx').val().toLowerCase();
+    const filterCat = $('#filterCategory').val();
+
+    let filtered = appData.transactions.filter(tx => {
+        const matchesSearch = tx.merchant.toLowerCase().includes(searchQuery);
+        const matchesCat = (filterCat === 'All' || !filterCat) ? true : tx.category === filterCat;
+        return matchesSearch && matchesCat;
+    });
+
+    filtered.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+    if (filtered.length === 0) {
+        tbody.append(`<tr><td colspan="5" class="text-center py-4 text-muted">No transactions found.</td></tr>`);
+        return;
+    }
+
+    filtered.forEach(tx => {
         const dateObj = new Date(tx.date);
         const formattedDate = dateObj.toLocaleDateString() + ' ' + dateObj.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
         
