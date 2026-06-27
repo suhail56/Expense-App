@@ -595,12 +595,5 @@
     "Dividends",
     "Other"
   ],
-  "categoryRules": [
-    {
-      "category": "Groceries",
-      "keywords": [
-        "talabat"
-      ]
-    }
-  ]
+  "categoryRules": []
 }
