@@ -117,6 +117,27 @@ $(document).ready(function() {
         location.reload();
     });
 
+    // Auto-Logout for Inactivity (15 minutes)
+    let inactivityTimer;
+    const INACTIVITY_LIMIT_MS = 15 * 60 * 1000;
+
+    function resetInactivityTimer() {
+        clearTimeout(inactivityTimer);
+        if (localStorage.getItem('ghToken')) {
+            inactivityTimer = setTimeout(() => {
+                localStorage.removeItem('ghRepo');
+                localStorage.removeItem('ghToken');
+                location.reload(); // Reloads to the secure login screen
+            }, INACTIVITY_LIMIT_MS);
+        }
+    }
+
+    ['mousemove', 'keypress', 'touchstart', 'scroll', 'click'].forEach(evt => {
+        document.addEventListener(evt, resetInactivityTimer, { passive: true });
+    });
+    
+    resetInactivityTimer();
+
     // Save Transaction
     $('#transactionForm').submit(function(e) {
         e.preventDefault();
@@ -474,10 +495,17 @@ window.fetchData = function() {
         },
         error: function(err) {
             showLoading(false);
+            
+            // Force logout and hide app content since connection failed
+            localStorage.removeItem('ghRepo');
+            localStorage.removeItem('ghToken');
+            document.getElementById('authOverlay').style.display = 'flex';
+            document.getElementById('appContent').style.display = 'none';
+
             if(err.status === 404) {
                 Swal.fire({ title: 'Database Not Found', text: `${getDatabaseFileName()} not found in repository. Please ensure it exists.`, icon: 'error', background: 'rgba(15, 23, 42, 0.85)', color: '#f8fafc' });
             } else {
-                Swal.fire({ title: 'Connection Error', text: 'Error fetching data. Check your Repo and Token.', icon: 'error', background: 'rgba(15, 23, 42, 0.85)', color: '#f8fafc' });
+                Swal.fire({ title: 'Connection Error', text: 'Invalid Repository or Token. Access Denied.', icon: 'error', background: 'rgba(15, 23, 42, 0.85)', color: '#f8fafc' });
                 console.error(err);
             }
         }
