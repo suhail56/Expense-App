@@ -215,7 +215,7 @@ $(document).ready(function() {
         renderDashboard();
     });
 
-    $('#dashSyncBtn').click(function() {
+    $('.dashSyncBtn').click(function() {
         $('#triggerSyncBtn').click(); // Reuse existing sync logic
     });
     
@@ -381,7 +381,7 @@ $(document).ready(function() {
         const startDate = appData.settings.syncStartDate || '';
 
         $('#triggerSyncBtn').prop('disabled', true).html('<i class="fa-solid fa-spinner fa-spin me-2"></i>Syncing...');
-        $('#dashSyncBtn').prop('disabled', true).html('<i class="fa-solid fa-spinner fa-spin me-2"></i>Syncing...');
+        $('.dashSyncBtn').prop('disabled', true).html('<i class="fa-solid fa-spinner fa-spin me-2"></i>Syncing...');
         
         $.ajax({
             url: gasUrl,
@@ -395,7 +395,7 @@ $(document).ready(function() {
             },
             success: function(res) {
                 $('#triggerSyncBtn').prop('disabled', false).html('<i class="fa-solid fa-bolt me-2"></i> Sync Now');
-                $('#dashSyncBtn').prop('disabled', false).html('<i class="fa-solid fa-bolt me-1"></i> Sync Now');
+                $('.dashSyncBtn').prop('disabled', false).html('<i class="fa-solid fa-bolt me-1"></i> Sync Now');
                 if (res.status === 'success') {
                     Swal.fire({ title: 'Sync Complete', text: res.message, icon: 'success', background: 'rgba(15, 23, 42, 0.85)', color: '#f8fafc' });
                     localStorage.setItem('lastSyncNowTime', new Date().toISOString());
@@ -406,7 +406,7 @@ $(document).ready(function() {
             },
             error: function(err) {
                 $('#triggerSyncBtn').prop('disabled', false).html('<i class="fa-solid fa-bolt me-2"></i> Sync Now');
-                $('#dashSyncBtn').prop('disabled', false).html('<i class="fa-solid fa-bolt me-1"></i> Sync Now');
+                $('.dashSyncBtn').prop('disabled', false).html('<i class="fa-solid fa-bolt me-1"></i> Sync Now');
                 Swal.fire({ title: 'Error', text: 'Error contacting Google Apps Script.', icon: 'error', background: 'rgba(15, 23, 42, 0.85)', color: '#f8fafc' });
                 console.error(err);
             }

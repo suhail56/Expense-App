@@ -9,17 +9,6 @@ function initRouter() {
     
     // Handle initial load
     handleRouteChange();
-
-    // Mobile Sidebar Toggles
-    $('#openSidebar').click(function() {
-        $('#sidebar').addClass('open');
-    });
-    
-    $('#closeSidebar, .nav-link').click(function() {
-        if(window.innerWidth <= 768) {
-            $('#sidebar').removeClass('open');
-        }
-    });
 }
 
 function handleRouteChange() {
