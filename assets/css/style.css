@@ -11,6 +11,7 @@
 
 html {
     font-size: 14px;
+    overflow-x: hidden;
 }
 
 body {
@@ -19,6 +20,7 @@ body {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     min-height: 100vh;
     margin: 0;
+    overflow-x: hidden;
     background-attachment: fixed;
     transition: background-color 0.5s ease;
 }
@@ -150,10 +152,10 @@ body.theme-login {
     padding-top: calc(2rem + env(safe-area-inset-top, 24px)) !important;
     padding-bottom: 1rem !important;
     /* Stretch full width of main-content */
-    margin-left: -1.5rem;
-    margin-right: -1.5rem;
-    padding-left: 1.5rem !important;
-    padding-right: 1.5rem !important;
+    margin-left: -1rem;
+    margin-right: -1rem;
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
     border-radius: 0 0 20px 20px !important;
     /* Premium glassmorphism effect when scrolling */
     backdrop-filter: blur(24px);
@@ -687,7 +689,8 @@ input:-webkit-autofill:active{
     }
     
     .main-content {
-        padding: 1rem 1rem 90px 1rem;
+        padding: 0 1rem 90px 1rem;
+        overflow-x: hidden;
     }
     
     .auth-card {
