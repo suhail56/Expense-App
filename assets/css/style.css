@@ -713,6 +713,12 @@ input:-webkit-autofill:active{
     .main-content {
         padding: 0 1rem 90px 1rem;
         overflow-x: hidden;
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+    }
+    
+    .main-content::-webkit-scrollbar {
+        display: none;
     }
     
     .auth-card {
