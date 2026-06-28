@@ -1528,8 +1528,9 @@ window.renderTransactionsPage = function() {
                 <td><span class="category-badge text-truncate d-inline-block" style="max-width: 120px;" title="${escapeHTML(catName)}">${escapeHTML(catName)}</span></td>
                 <td class="fw-bold text-nowrap ${amtColor}">${amtPrefix} AED ${tx.amount}</td>
                 <td class="text-nowrap">
-                    <button class="btn-action" onclick="editTransaction('${tx.id}')"><i class="fa-solid fa-pen"></i></button>
-                    <button class="btn-action delete" onclick="deleteTransaction('${tx.id}')"><i class="fa-solid fa-trash"></i></button>
+                    ${isNew ? `<button class="btn-action text-success" onclick="markTransactionAsReviewed('${tx.id}')" title="Mark as Reviewed"><i class="fa-solid fa-check-double"></i></button>` : ''}
+                    <button class="btn-action" onclick="editTransaction('${tx.id}')" title="Edit"><i class="fa-solid fa-pen"></i></button>
+                    <button class="btn-action delete" onclick="deleteTransaction('${tx.id}')" title="Delete"><i class="fa-solid fa-trash"></i></button>
                 </td>
             </tr>
         `);
@@ -2151,6 +2152,16 @@ window.editTransaction = function(id) {
         $('#addTransactionModal').modal('show');
     }
 }
+
+window.markTransactionAsReviewed = function(id) {
+    const tx = appData.transactions.find(t => t.id === id);
+    if (tx) {
+        tx.isReviewed = true;
+        refreshUI();
+        saveData();
+        Toast.fire({ icon: 'success', title: 'Marked as reviewed' });
+    }
+};
 
 window.deleteTransaction = function(id) {
     confirmAction('Delete Transaction?', 'Are you sure you want to delete this transaction?', 'Yes, Delete', () => {
