@@ -398,9 +398,10 @@ $(document).ready(function() {
             return;
         }
         
-        confirmAction('Apply Rules?', 'This will scan all existing transactions and update their categories based on your current rules.', 'Yes, Apply Rules', () => {
+        confirmAction('Apply Rules?', 'This will scan all UNREVIEWED existing transactions and update their categories based on your current rules. Manually edited transactions will not be modified.', 'Yes, Apply Rules', () => {
             let updatedCount = 0;
             appData.transactions.forEach(tx => {
+                if (tx.isReviewed === true) return; // Skip already reviewed/manually edited transactions
                 const merchantLower = tx.merchant.toLowerCase();
                 for (const catId in appData.categoryRules) {
                     const keywords = appData.categoryRules[catId];
