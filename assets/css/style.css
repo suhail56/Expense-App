@@ -517,6 +517,37 @@ input:-webkit-autofill:active{
     color: #ef4444;
 }
 
+/* Premium Settings Nav Tabs */
+.premium-settings-nav .glass-pill {
+    color: var(--text-secondary);
+    background: transparent;
+    border-radius: 12px;
+    padding: 1rem 1.2rem;
+    font-weight: 600;
+    text-align: left;
+    transition: all 0.3s ease;
+    border: 1px solid transparent !important;
+    height: auto;
+    display: block;
+}
+.premium-settings-nav .glass-pill:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: white;
+}
+.premium-settings-nav .glass-pill.active {
+    background: rgba(255, 255, 255, 0.1) !important;
+    color: white !important;
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+.hide-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+.hide-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
 /* Animations */
 @keyframes fadeIn {
     from { opacity: 0; transform: translateY(10px); }

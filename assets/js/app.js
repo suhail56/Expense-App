@@ -562,7 +562,7 @@ function initializeDatabaseSchema(data) {
     if (!appData.goals) appData.goals = [];
 }
 
-window.fetchData = function() {
+window.fetchData = function(showSuccessAlert = false) {
     showLoading(true);
     $.ajax({
         url: getApiUrl(),
@@ -622,7 +622,7 @@ window.fetchData = function() {
                             needsMigrationSave = true;
                         } else {
                             // If it's a legacy category that was deleted from master list, recreate it or map to 'Others'
-                            const newId = 'cat-' + tx.type.substr(0,3) + '-' + generateUUID();
+                            const newId = 'cat-' + tx.type.substr(0,3) + generateUUID();
                             if (tx.type === 'expense') appData.expenseCategories.push({id: newId, name: tx.category});
                             else appData.incomeCategories.push({id: newId, name: tx.category});
                             tx.categoryId = newId;
@@ -733,6 +733,9 @@ window.fetchData = function() {
             refreshUI();
             startAutoPoll();
             showLoading(false);
+            if (showSuccessAlert) {
+                Toast.fire({ icon: 'success', title: 'Database Synced Successfully!' });
+            }
         },
         error: function(err) {
             showLoading(false);

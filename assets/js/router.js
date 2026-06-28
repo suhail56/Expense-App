@@ -21,7 +21,7 @@ function handleRouteChange() {
 
     // Hide all views, remove active states
     $('.app-view').removeClass('active');
-    $('.nav-link').removeClass('active');
+    $('.nav-link[data-view]').removeClass('active');
 
     // Show selected view
     $(`#view-${hash}`).addClass('active');
