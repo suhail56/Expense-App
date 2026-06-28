@@ -132,7 +132,32 @@ body.theme-login {
     flex-grow: 1;
     min-height: 0; /* Fixes flexbox bug where content forces layout expansion */
     overflow-y: auto;
-    padding: calc(1.5rem + env(safe-area-inset-top)) 1.5rem calc(6rem + env(safe-area-inset-bottom)) 1.5rem;
+    padding: 0 1.5rem calc(6rem + env(safe-area-inset-bottom)) 1.5rem;
+}
+
+/* Mobile Sticky Header */
+.mobile-header {
+    position: sticky;
+    top: 0;
+    z-index: 1040;
+    /* Push header down past the notch/status bar + extra padding */
+    padding-top: calc(2rem + env(safe-area-inset-top, 24px)) !important;
+    padding-bottom: 1rem !important;
+    /* Stretch full width of main-content */
+    margin-left: -1.5rem;
+    margin-right: -1.5rem;
+    padding-left: 1.5rem !important;
+    padding-right: 1.5rem !important;
+    border-radius: 0 0 20px 20px !important;
+    /* Premium glassmorphism effect when scrolling */
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    background: rgba(15, 23, 42, 0.85);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+body.light-mode .mobile-header {
+    background: rgba(255, 255, 255, 0.85);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
 }
 
 /* Premium Navigation (Desktop Default) */
