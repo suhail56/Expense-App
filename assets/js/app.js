@@ -1539,7 +1539,11 @@ window.renderTransactionsPage = function() {
 
     paginatedItems.forEach(tx => {
         const dateObj = new Date(tx.date);
-        const formattedDate = dateObj.toLocaleDateString() + ' ' + dateObj.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        const d = dateObj.getDate().toString().padStart(2, '0');
+        const m = (dateObj.getMonth() + 1).toString().padStart(2, '0');
+        const y = dateObj.getFullYear();
+        const timeStr = dateObj.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        const formattedDate = `${d}-${m}-${y} ${timeStr}`;
         const amtColor = tx.type === 'income' ? 'text-income' : '';
         const amtPrefix = tx.type === 'income' ? '+' : '-';
         const typeBadgeClass = tx.type === 'income' ? 'bg-success' : 'bg-danger';
