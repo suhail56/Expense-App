@@ -135,6 +135,12 @@ body.theme-login {
     padding: 0 1.5rem calc(6rem + env(safe-area-inset-bottom)) 1.5rem;
 }
 
+@media (min-width: 768px) {
+    .main-content {
+        padding-top: 1.5rem;
+    }
+}
+
 /* Mobile Sticky Header */
 .mobile-header {
     position: sticky;
