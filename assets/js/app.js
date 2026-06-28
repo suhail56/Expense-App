@@ -756,6 +756,7 @@ window.fetchData = function(showSuccessAlert = false) {
             // Process Automated Sync Date Update (with 1-day overlap)
             if (window.pendingSyncDateUpdate) {
                 appData.settings.syncStartDate = window.pendingSyncDateUpdate;
+                appData.settings.lastSyncNowDate = new Date().toISOString();
                 $('#syncStartDate').val(window.pendingSyncDateUpdate);
                 if (fpSync) fpSync.setDate(window.pendingSyncDateUpdate);
                 needsMigrationSave = true;
@@ -957,7 +958,7 @@ function refreshUI() {
 }
 
 function renderSyncMetadata() {
-    const lastSyncNow = localStorage.getItem('lastSyncNowTime');
+    const lastSyncNow = (appData.settings && appData.settings.lastSyncNowDate) ? appData.settings.lastSyncNowDate : localStorage.getItem('lastSyncNowTime');
     const lastSyncStr = lastSyncNow ? new Date(lastSyncNow).toLocaleString() : 'Never';
     const lastReviewedStr = appData.settings.lastSyncDate ? new Date(appData.settings.lastSyncDate).toLocaleString() : 'Never';
     const lastLogin = appData.settings.lastLogin ? new Date(appData.settings.lastLogin).toLocaleString() : 'Never';
