@@ -1691,7 +1691,7 @@ function renderDashboard() {
     tbody.empty();
 
     if (Object.keys(catUsage).length === 0) {
-        tbody.html('<tr><td colspan="4" class="text-center text-white-50">No categories found.</td></tr>');
+        tbody.html('<tr><td colspan="5" class="text-center py-5" style="background: transparent !important; position: static !important; border-bottom: none;"><div class="text-white-50"><i class="fa-solid fa-folder-open fa-3x mb-3 opacity-25"></i><h6 class="fw-bold">No Categories Active</h6><p class="small mb-0">You have no expenses recorded for this month.</p></div></td></tr>');
         return;
     }
 
@@ -1816,12 +1816,12 @@ function renderExpensePieChart() {
     expensePieChartInstance = new Chart(ctx, {
         type: 'doughnut',
         data: {
-            labels: labels.length > 0 ? labels : ['No Data'],
+            labels: labels.length > 0 ? labels : ['No Expenses Yet'],
             datasets: [{
                 data: data.length > 0 ? data : [1],
-                backgroundColor: data.length > 0 ? colors.slice(0, data.length) : ['rgba(255,255,255,0.1)'],
-                borderWidth: 1,
-                borderColor: 'rgba(15, 23, 42, 1)'
+                backgroundColor: data.length > 0 ? colors.slice(0, data.length) : ['rgba(128,128,128,0.2)'],
+                borderWidth: data.length > 0 ? 1 : 0,
+                borderColor: 'var(--glass-border)'
             }]
         },
         options: {
@@ -1844,8 +1844,8 @@ function renderExpensePieChart() {
                                 ds.data.forEach(d => sum += d);
                                 const pct = sum > 0 ? (value * 100 / sum).toFixed(0) + '%' : '';
                                 
-                                const text = (ds.data.length === 1 && label === 'No Data') 
-                                    ? 'No Data' 
+                                const text = (ds.data.length === 1 && label === 'No Expenses Yet') 
+                                    ? 'No Expenses Recorded' 
                                     : `${label}: AED ${value.toFixed(2)} (${pct})`;
 
                                 return {
@@ -2075,7 +2075,9 @@ function renderYearlyChart() {
                     },
                     ticks: {
                         color: 'rgba(255, 255, 255, 0.7)'
-                    }
+                    },
+                    suggestedMax: 100,
+                    suggestedMin: 0
                 }
             }
         }
