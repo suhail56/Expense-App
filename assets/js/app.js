@@ -102,7 +102,19 @@ $(document).ready(function() {
     });
 
     // Initialize Premium DatePicker for Filters
-    flatpickr('#filterStartDate, #filterEndDate, #syncStartDate', {
+    flatpickr('#filterStartDate, #filterEndDate', {
+        dateFormat: "Y-m-d",
+        altInput: true,
+        altFormat: "M j, Y",
+        onChange: function() {
+            if (typeof renderTransactionsPage === 'function') {
+                currentPage = 1;
+                renderTransactionsPage();
+            }
+        }
+    });
+
+    flatpickr('#syncStartDate', {
         dateFormat: "Y-m-d",
         altInput: true,
         altFormat: "M j, Y"
@@ -1476,17 +1488,15 @@ window.renderTransactionsPage = function() {
         let matchesDate = true;
         if (filterStartDate || filterEndDate) {
             const txDate = new Date(tx.date);
-            txDate.setHours(0,0,0,0);
-            
-            if (filterStartDate) {
-                const start = new Date(filterStartDate);
-                start.setHours(0,0,0,0);
-                if (txDate < start) matchesDate = false;
-            }
-            if (filterEndDate) {
-                const end = new Date(filterEndDate);
-                end.setHours(0,0,0,0);
-                if (txDate > end) matchesDate = false;
+            if (!isNaN(txDate.getTime())) {
+                const localDateStr = txDate.getFullYear() + '-' + 
+                                     String(txDate.getMonth() + 1).padStart(2, '0') + '-' + 
+                                     String(txDate.getDate()).padStart(2, '0');
+                
+                if (filterStartDate && localDateStr < filterStartDate) matchesDate = false;
+                if (filterEndDate && localDateStr > filterEndDate) matchesDate = false;
+            } else {
+                matchesDate = false; // Invalid dates don't match date filters
             }
         }
         
