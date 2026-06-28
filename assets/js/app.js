@@ -884,6 +884,12 @@ function saveData() {
                     fileSha = putResponse.content.sha;
                 },
                 error: function(err) {
+                    if (err.status === 422) {
+                        // GitHub rejects commits where the file content hasn't changed.
+                        // This is perfectly fine, it means we're already perfectly in sync!
+                        console.warn('Sync ignored: Cloud database is already perfectly identical to local data.');
+                        return;
+                    }
                     Toast.fire({ icon: 'error', title: 'Error uploading merged data!' });
                     console.error(err);
                 }
