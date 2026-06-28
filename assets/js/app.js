@@ -958,25 +958,32 @@ function refreshUI() {
 }
 
 function renderSyncMetadata() {
+    const formatDate = (isoString) => {
+        if (!isoString) return 'Never';
+        const dateObj = new Date(isoString);
+        const d = String(dateObj.getDate()).padStart(2, '0');
+        const m = String(dateObj.getMonth() + 1).padStart(2, '0');
+        const y = dateObj.getFullYear();
+        const timeStr = dateObj.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        return `${d}-${m}-${y} ${timeStr}`;
+    };
+
     const lastSyncNow = (appData.settings && appData.settings.lastSyncNowDate) ? appData.settings.lastSyncNowDate : localStorage.getItem('lastSyncNowTime');
-    const lastSyncStr = lastSyncNow ? new Date(lastSyncNow).toLocaleString() : 'Never';
-    const lastReviewedStr = appData.settings.lastSyncDate ? new Date(appData.settings.lastSyncDate).toLocaleString() : 'Never';
-    const lastLogin = appData.settings.lastLogin ? new Date(appData.settings.lastLogin).toLocaleString() : 'Never';
+    const lastSyncStr = lastSyncNow ? formatDate(lastSyncNow) : 'Never';
+    const lastReviewedStr = appData.settings.lastSyncDate ? formatDate(appData.settings.lastSyncDate) : 'Never';
+    const lastLogin = appData.settings.lastLogin ? formatDate(appData.settings.lastLogin) : 'Never';
     
-    const currentCount = appData.transactions ? appData.transactions.length : 0;
     const unreviewedCount = appData.transactions ? appData.transactions.filter(t => t.isReviewed !== true).length : 0;
-    const reviewedCount = currentCount - unreviewedCount;
     
     $('#metaLastSyncNow').text(lastSyncStr);
     $('#metaLastReviewed').text(lastReviewedStr);
     $('#metaLastLogin').text(lastLogin);
-    $('#metaLastSyncCount').text(reviewedCount);
-    $('#metaCurrentCount').text(currentCount);
+    $('#metaPendingCount').text(unreviewedCount);
     
     // Add mark as reviewed button if there are new records
     if (unreviewedCount > 0) {
         if ($('#markReviewedBtn').length === 0) {
-            $('#metaCurrentCount').parent().after('<button id="markReviewedBtn" class="btn btn-sm btn-success ms-2 py-0 px-2" onclick="markAllAsReviewed()">Mark Reviewed</button>');
+            $('#metaPendingCount').parent().after('<button id="markReviewedBtn" class="btn btn-sm btn-success ms-2 py-0 px-2" onclick="markAllAsReviewed()">Mark All Reviewed</button>');
         }
     } else {
         $('#markReviewedBtn').remove();
