@@ -40,7 +40,7 @@ let currentSortCol = 'date'; // 'date' or 'amount'
 let currentSortDir = 'desc'; // 'desc' or 'asc'
 
 // Dashboard State
-let currentDashYear = ''; 
+let currentDashYear = '';
 let currentDashMonth = ''; // '' means "All Year"
 let yearlyChartInstance = null;
 let expensePieChartInstance = null;
@@ -90,15 +90,15 @@ function confirmAction(title, text, confirmButtonText, actionCallback) {
 }
 
 // Initialize
-$(document).ready(function() {
-    
+$(document).ready(function () {
+
     // Initialize Premium DatePicker for Transactions
-    flatpickr('#txDate', { 
-        enableTime: true, 
-        dateFormat: "Y-m-d\\TH:i", 
+    flatpickr('#txDate', {
+        enableTime: true,
+        dateFormat: "Y-m-d\\TH:i",
         altInput: true,
         altFormat: "F j, Y h:i K",
-        time_24hr: false 
+        time_24hr: false
     });
 
     // Initialize Premium DatePicker for Filters
@@ -106,7 +106,7 @@ $(document).ready(function() {
         dateFormat: "Y-m-d",
         altInput: true,
         altFormat: "M j, Y",
-        onChange: function() {
+        onChange: function () {
             if (typeof renderTransactionsPage === 'function') {
                 currentPage = 1;
                 renderTransactionsPage();
@@ -123,7 +123,7 @@ $(document).ready(function() {
     // Auth Check
     if (ghRepo && ghToken) {
         authOverlay.style.display = 'none';
-        
+
         if (typeof isBiometricsEnabled === 'function' && isBiometricsEnabled()) {
             document.body.className = 'theme-login';
             $('#lockScreenOverlay').css('display', 'flex');
@@ -139,11 +139,11 @@ $(document).ready(function() {
         authOverlay.style.display = 'flex';
     }
 
-    window.handleBiometricUnlock = async function() {
+    window.handleBiometricUnlock = async function () {
         if (typeof authenticateBiometrics === 'function') {
             const success = await authenticateBiometrics();
             if (success) {
-                $('#lockScreenOverlay').fadeOut(300, function() {
+                $('#lockScreenOverlay').fadeOut(300, function () {
                     appContent.style.display = 'flex';
                     $('#displayRepo').val(ghRepo);
                     initRouter();
@@ -157,11 +157,11 @@ $(document).ready(function() {
     };
 
     // Auth Form Submit
-    $('#authForm').submit(function(e) {
+    $('#authForm').submit(function (e) {
         e.preventDefault();
         ghRepo = $('#githubRepo').val().trim();
         ghToken = $('#githubToken').val().trim();
-        
+
         if (!ghRepo || !ghToken) {
             Toast.fire({ icon: 'warning', title: 'Repository and Token are required' });
             return;
@@ -176,7 +176,7 @@ $(document).ready(function() {
             Toast.fire({ icon: 'warning', title: 'Invalid GitHub Token format' });
             return;
         }
-        
+
         localStorage.setItem('ghRepo', ghRepo);
         localStorage.setItem('ghToken', ghToken);
         authOverlay.style.display = 'none';
@@ -188,13 +188,13 @@ $(document).ready(function() {
     });
 
     // Logout
-    $('#logoutBtn').click(function() {
+    $('#logoutBtn').click(function () {
         localStorage.removeItem('ghRepo');
         localStorage.removeItem('ghToken');
         document.body.className = 'theme-login';
         document.getElementById('appContent').style.display = 'none';
         document.getElementById('authOverlay').style.display = 'flex';
-        $('#githubToken').val('');location.reload();
+        $('#githubToken').val(''); location.reload();
     });
 
     // Auto-Logout for Inactivity (15 minutes)
@@ -215,23 +215,23 @@ $(document).ready(function() {
     ['mousemove', 'keypress', 'touchstart', 'scroll', 'click'].forEach(evt => {
         document.addEventListener(evt, resetInactivityTimer, { passive: true });
     });
-    
+
     resetInactivityTimer();
 
     // Save Transaction
-    $('#transactionForm').submit(function(e) {
+    $('#transactionForm').submit(function (e) {
         e.preventDefault();
-        
+
         const saveBtn = $('#saveTransactionBtn');
         saveBtn.prop('disabled', true);
-        
+
         const txId = $('#txId').val();
         const date = $('#txDate').val();
         const merchant = $('#txMerchant').val().trim();
         const categoryId = $('#txCategory').val();
         const amountStr = $('#txAmount').val();
         const type = $('input[name="txType"]:checked').val();
-        
+
         if (!date || !merchant || !categoryId || !amountStr) {
             Toast.fire({ icon: 'warning', title: 'Please fill in all transaction fields' });
             saveBtn.prop('disabled', false);
@@ -270,7 +270,7 @@ $(document).ready(function() {
 
         if (txId) {
             const idx = appData.transactions.findIndex(t => t.id === txId);
-            if(idx > -1) appData.transactions[idx] = newTx;
+            if (idx > -1) appData.transactions[idx] = newTx;
         } else {
             appData.transactions.push(newTx);
         }
@@ -278,7 +278,7 @@ $(document).ready(function() {
         $('#addTransactionModal').modal('hide');
         $('#transactionForm')[0].reset();
         $('#txId').val('');
-        
+
         saveBtn.prop('disabled', false);
         refreshUI();
         saveData();
@@ -286,42 +286,42 @@ $(document).ready(function() {
     });
 
     // Handle Type Change to Update Categories in Modal
-    $('input[name="txType"]').change(function() {
+    $('input[name="txType"]').change(function () {
         updateTransactionModalCategories();
     });
 
     // Event Listeners for Transactions Page Search & Filter
-    $('#searchTx').on('input', function() { currentPage = 1; renderTransactionsPage(); });
-    $('#filterCategory').on('change', function() { currentPage = 1; renderTransactionsPage(); });
-    $('#filterType').on('change', function() { currentPage = 1; renderTransactionsPage(); });
-    $('#filterStartDate').on('change', function() { currentPage = 1; renderTransactionsPage(); });
-    $('#filterUnreviewedOnly').on('change', function() { currentPage = 1; renderTransactionsPage(); });
-    $('#rowsPerPageSelect').on('change', function() { 
+    $('#searchTx').on('input', function () { currentPage = 1; renderTransactionsPage(); });
+    $('#filterCategory').on('change', function () { currentPage = 1; renderTransactionsPage(); });
+    $('#filterType').on('change', function () { currentPage = 1; renderTransactionsPage(); });
+    $('#filterStartDate').on('change', function () { currentPage = 1; renderTransactionsPage(); });
+    $('#filterUnreviewedOnly').on('change', function () { currentPage = 1; renderTransactionsPage(); });
+    $('#rowsPerPageSelect').on('change', function () {
         const val = $(this).val();
         rowsPerPage = val === 'All' ? 9999999 : parseInt(val, 10);
-        currentPage = 1; 
-        renderTransactionsPage(); 
+        currentPage = 1;
+        renderTransactionsPage();
     });
-    
+
     // Dashboard Filters Event Listeners
-    $('#dashYearFilter').change(function() {
+    $('#dashYearFilter').change(function () {
         currentDashYear = $(this).val();
         currentDashMonth = ''; // Reset to all year when year changes
         updateDashMonthFilter();
         renderDashboard();
     });
 
-    $('#dashMonthFilter').change(function() {
+    $('#dashMonthFilter').change(function () {
         currentDashMonth = $(this).val();
         renderDashboard();
     });
 
-    $('.dashSyncBtn').click(function() {
+    $('.dashSyncBtn').click(function () {
         $('#triggerSyncBtn').click(); // Reuse existing sync logic
     });
-    
+
     // Header sorting listeners
-    $('#sortDateBtn').click(function() {
+    $('#sortDateBtn').click(function () {
         if (currentSortCol === 'date') {
             currentSortDir = currentSortDir === 'desc' ? 'asc' : 'desc';
         } else {
@@ -331,7 +331,7 @@ $(document).ready(function() {
         renderTransactionsPage();
     });
 
-    $('#sortAmountBtn').click(function() {
+    $('#sortAmountBtn').click(function () {
         if (currentSortCol === 'amount') {
             currentSortDir = currentSortDir === 'desc' ? 'asc' : 'desc';
         } else {
@@ -340,13 +340,13 @@ $(document).ready(function() {
         }
         renderTransactionsPage();
     });
-    
-    $('#clearFiltersBtn').click(function() {
+
+    $('#clearFiltersBtn').click(function () {
         $('#searchTx').val('');
         $('#filterCategory').val('All');
         $('#filterType').val('All');
         $('#filterUnreviewedOnly').prop('checked', false);
-        
+
         const startPicker = document.getElementById('filterStartDate')._flatpickr;
         if (startPicker) startPicker.clear();
         else $('#filterStartDate').val('');
@@ -362,7 +362,7 @@ $(document).ready(function() {
     });
 
     // Biometrics Toggle Listener
-    $('#toggleBiometricsBtn').change(async function() {
+    $('#toggleBiometricsBtn').change(async function () {
         const isChecked = $(this).is(':checked');
         if (isChecked) {
             const success = await window.registerBiometrics();
@@ -370,26 +370,26 @@ $(document).ready(function() {
         } else {
             window.disableBiometrics();
         }
-        
+
         const enabled = typeof isBiometricsEnabled === 'function' && isBiometricsEnabled();
         $('#biometricStatusText').text(enabled ? 'Active - FaceID/TouchID Required' : 'Currently Disabled');
         $('#biometricStatusText').toggleClass('text-success', enabled).toggleClass('text-white-50', !enabled);
     });
 
     // Auto-Categorization Rules Form
-    $('#addRuleForm').submit(function(e) {
+    $('#addRuleForm').submit(function (e) {
         e.preventDefault();
         const categoryId = $('#ruleCategory').val();
         const keywordsInput = $('#ruleKeywords').val().trim();
-        
+
         if (!categoryId || !keywordsInput) {
             Toast.fire({ icon: 'warning', title: 'Category and keywords are required' });
             return;
         }
-        
+
         const keywords = keywordsInput.split(',').map(k => k.trim().toLowerCase()).filter(k => k);
         if (keywords.length > 0) {
-            
+
             const existingKeywords = appData.categoryRules[categoryId] || [];
             if (existingKeywords.length > 0) {
                 // Merge and remove duplicates
@@ -400,7 +400,7 @@ $(document).ready(function() {
                 appData.categoryRules[categoryId] = [...new Set(keywords)];
                 Toast.fire({ icon: 'success', title: 'Rule added' });
             }
-            
+
             $('#ruleKeywords').val('');
             renderRulesTable();
             saveData();
@@ -410,12 +410,12 @@ $(document).ready(function() {
     });
 
     // Apply Rules to Past Transactions
-    $('#applyRulesToPastBtn').click(function() {
+    $('#applyRulesToPastBtn').click(function () {
         if (!appData.categoryRules || Object.keys(appData.categoryRules).length === 0) {
             Toast.fire({ icon: 'warning', title: 'You have no rules to apply!' });
             return;
         }
-        
+
         confirmAction('Apply Rules?', 'This will scan all UNREVIEWED existing transactions and update their categories based on your current rules. Manually edited transactions will not be modified.', 'Yes, Apply Rules', () => {
             let updatedCount = 0;
             appData.transactions.forEach(tx => {
@@ -432,7 +432,7 @@ $(document).ready(function() {
                     }
                 }
             });
-            
+
             if (updatedCount > 0) {
                 refreshUI();
                 saveData();
@@ -444,17 +444,17 @@ $(document).ready(function() {
     });
 
     // Add Limit Form
-    $('#addLimitForm').submit(function(e) {
+    $('#addLimitForm').submit(function (e) {
         e.preventDefault();
         const categoryId = $('#limitCategory').val();
         const limitAmtStr = $('#limitAmount').val();
         const limitAmt = parseFloat(limitAmtStr);
-        
+
         if (!categoryId || !limitAmtStr || isNaN(limitAmt) || limitAmt <= 0) {
             Toast.fire({ icon: 'warning', title: 'Select a category and valid amount' });
             return;
         }
-        
+
         if (!appData.categoryLimits) appData.categoryLimits = {};
         appData.categoryLimits[categoryId] = limitAmt;
         $('#limitAmount').val('');
@@ -464,29 +464,29 @@ $(document).ready(function() {
     });
 
     // Sync Settings Form
-    $('#syncSettingsForm').submit(function(e) {
+    $('#syncSettingsForm').submit(function (e) {
         e.preventDefault();
         const gasUrl = $('#gasUrl').val().trim();
-        
+
         if (!gasUrl) {
             Toast.fire({ icon: 'warning', title: 'Google Apps Script URL is required' });
             return;
         }
-        
+
         if (!appData.settings) appData.settings = {};
         appData.settings.gasUrl = gasUrl;
         appData.settings.syncStartDate = $('#syncStartDate').val();
-        
+
         appData.settings.emailSender = $('#emailSender').val().trim();
         appData.settings.emailSubject = $('#emailSubject').val().trim();
         appData.settings.emailRegex = $('#emailRegex').val().trim();
-        
+
         saveData();
         Toast.fire({ icon: 'success', title: 'Sync settings saved!' });
     });
 
     // Reset Database
-    $('#resetDatabaseBtn').click(function() {
+    $('#resetDatabaseBtn').click(function () {
         confirmAction('DANGER', 'This will permanently delete ALL transactions. Are you absolutely sure?', 'Yes, Delete All', () => {
             appData.transactions = [];
             refreshUI();
@@ -496,7 +496,7 @@ $(document).ready(function() {
     });
 
     // Trigger Manual Sync
-    $('#triggerSyncBtn').click(function() {
+    $('#triggerSyncBtn').click(function () {
         if (!appData.settings || !appData.settings.gasUrl) {
             Swal.fire({ title: 'Configuration Missing', text: 'Please save your Google Apps Script URL first.', icon: 'warning', background: 'rgba(15, 23, 42, 0.85)', color: '#f8fafc' });
             return;
@@ -506,7 +506,7 @@ $(document).ready(function() {
 
         $('#triggerSyncBtn').prop('disabled', true).html('<i class="fa-solid fa-spinner fa-spin me-2"></i>Syncing...');
         $('.dashSyncBtn').prop('disabled', true).html('<i class="fa-solid fa-spinner fa-spin me-2"></i>Syncing...');
-        
+
         $.ajax({
             url: gasUrl,
             method: 'POST',
@@ -517,25 +517,25 @@ $(document).ready(function() {
                 startDate: startDate,
                 dbFileName: getDatabaseFileName()
             },
-            success: function(res) {
+            success: function (res) {
                 $('#triggerSyncBtn').prop('disabled', false).html('<i class="fa-solid fa-bolt me-2"></i> Sync Now');
                 $('.dashSyncBtn').prop('disabled', false).html('<i class="fa-solid fa-bolt me-1"></i> Sync Now');
                 if (res.status === 'success') {
                     Swal.fire({ title: 'Sync Complete', text: res.message, icon: 'success', background: 'rgba(15, 23, 42, 0.85)', color: '#f8fafc' });
                     localStorage.setItem('lastSyncNowTime', new Date().toISOString());
-                    
+
                     // To prevent missing transactions, we roll the date back exactly 1 day from right now.
                     // This creates a safe 1-day overlap. The smart-merge engine will ignore any duplicates!
                     const d = new Date();
                     d.setDate(d.getDate() - 1);
                     window.pendingSyncDateUpdate = d.toISOString().split('T')[0];
-                    
+
                     fetchData();
                 } else {
                     Swal.fire({ title: 'Sync Failed', text: res.message, icon: 'error', background: 'rgba(15, 23, 42, 0.85)', color: '#f8fafc' });
                 }
             },
-            error: function(err) {
+            error: function (err) {
                 $('#triggerSyncBtn').prop('disabled', false).html('<i class="fa-solid fa-bolt me-2"></i> Sync Now');
                 $('.dashSyncBtn').prop('disabled', false).html('<i class="fa-solid fa-bolt me-1"></i> Sync Now');
                 Swal.fire({ title: 'Error', text: 'Error contacting Google Apps Script.', icon: 'error', background: 'rgba(15, 23, 42, 0.85)', color: '#f8fafc' });
@@ -545,7 +545,7 @@ $(document).ready(function() {
     });
 });
 
-window.autoCategorizeNewTransactions = function() {
+window.autoCategorizeNewTransactions = function () {
     if (!appData.categoryRules || Object.keys(appData.categoryRules).length === 0) return false;
     let updatedCount = 0;
     appData.transactions.forEach(tx => {
@@ -609,20 +609,20 @@ function initializeDatabaseSchema(data) {
     if (!appData.goals) appData.goals = [];
 }
 
-window.fetchData = function(showSuccessAlert = false) {
+window.fetchData = function (showSuccessAlert = false) {
     showLoading(true);
     $.ajax({
         url: getApiUrl(),
         method: 'GET',
         headers: getHeaders(),
-        success: function(response) {
+        success: function (response) {
             fileSha = response.sha;
             const content = decodeURIComponent(escape(window.atob(response.content)));
             const parsedData = JSON.parse(content);
-            
+
             // DATA MIGRATION LOGIC
             initializeDatabaseSchema(parsedData);
-            
+
             // Migrate old categories
             if (appData.categories && !appData.expenseCategories) {
                 appData.expenseCategories = appData.categories;
@@ -669,14 +669,14 @@ window.fetchData = function(showSuccessAlert = false) {
                             needsMigrationSave = true;
                         } else {
                             // If it's a legacy category that was deleted from master list, recreate it or map to 'Others'
-                            const newId = 'cat-' + tx.type.substr(0,3) + generateUUID();
-                            if (tx.type === 'expense') appData.expenseCategories.push({id: newId, name: tx.category});
-                            else appData.incomeCategories.push({id: newId, name: tx.category});
+                            const newId = 'cat-' + tx.type.substr(0, 3) + generateUUID();
+                            if (tx.type === 'expense') appData.expenseCategories.push({ id: newId, name: tx.category });
+                            else appData.incomeCategories.push({ id: newId, name: tx.category });
                             tx.categoryId = newId;
                             needsMigrationSave = true;
                         }
                     }
-                    
+
                     // Strict Data Cleanup: Remove legacy strings universally
                     if (tx.category !== undefined) {
                         delete tx.category;
@@ -689,7 +689,7 @@ window.fetchData = function(showSuccessAlert = false) {
             if (appData.categoryRules) {
                 const newRulesMap = {};
                 let rulesMigrated = false;
-                
+
                 if (Array.isArray(appData.categoryRules)) {
                     appData.categoryRules.forEach(rule => {
                         let cid = rule.categoryId;
@@ -745,13 +745,13 @@ window.fetchData = function(showSuccessAlert = false) {
             }
             // Track last login (will be saved to GitHub on next user action)
             appData.settings.lastLogin = new Date().toISOString();
-            
+
             // Populate settings inputs
             $('#gasUrl').val(appData.settings.gasUrl || '');
             $('#syncStartDate').val(appData.settings.syncStartDate || '');
             let fpSync = document.querySelector('#syncStartDate')._flatpickr;
             if (fpSync) fpSync.setDate(appData.settings.syncStartDate || '');
-            
+
             if (typeof isBiometricsSupported === 'function' && isBiometricsSupported()) {
                 $('#biometricSecurityCard').show();
                 const enabled = isBiometricsEnabled();
@@ -759,7 +759,7 @@ window.fetchData = function(showSuccessAlert = false) {
                 $('#biometricStatusText').text(enabled ? 'Active - FaceID/TouchID Required' : 'Currently Disabled');
                 $('#biometricStatusText').toggleClass('text-success', enabled).toggleClass('text-white-50', !enabled);
             }
-            
+
             // Populate email parser settings (or use defaults)
             $('#emailSender').val(appData.settings.emailSender || 'MashreqAlerts@mashreq.com');
             $('#emailSubject').val(appData.settings.emailSubject || 'Transaction Confirmation on Mashreq Card');
@@ -789,9 +789,9 @@ window.fetchData = function(showSuccessAlert = false) {
                 Toast.fire({ icon: 'success', title: 'Database Synced Successfully!' });
             }
         },
-        error: function(err) {
+        error: function (err) {
             showLoading(false);
-            
+
             // Force logout and hide app content since connection failed
             localStorage.removeItem('ghRepo');
             localStorage.removeItem('ghToken');
@@ -799,7 +799,7 @@ window.fetchData = function(showSuccessAlert = false) {
             document.getElementById('authOverlay').style.display = 'flex';
             document.getElementById('appContent').style.display = 'none';
 
-            if(err.status === 404) {
+            if (err.status === 404) {
                 Swal.fire({ title: 'Database Not Found', text: `${getDatabaseFileName()} not found in repository. Please ensure it exists.`, icon: 'error', background: 'rgba(15, 23, 42, 0.85)', color: '#f8fafc' });
             } else {
                 Swal.fire({ title: 'Connection Error', text: 'Invalid Repository or Token. Access Denied.', icon: 'error', background: 'rgba(15, 23, 42, 0.85)', color: '#f8fafc' });
@@ -815,21 +815,21 @@ function startAutoPoll() {
     // Poll every 3 minutes
     pollInterval = setInterval(() => {
         if (!ghRepo || !ghToken) return;
-        
+
         $.ajax({
             url: getApiUrl(),
             method: 'GET',
             headers: getHeaders(),
-            success: function(response) {
+            success: function (response) {
                 if (response.sha && response.sha !== fileSha) {
                     fileSha = response.sha;
                     const decodedContent = window.atob(response.content);
                     appData = JSON.parse(decodeURIComponent(escape(decodedContent)));
-                    
+
                     if (window.autoCategorizeNewTransactions()) {
                         saveData(true);
                     }
-                    
+
                     refreshUI();
                     Toast.fire({ icon: 'info', title: 'New data synced in background!' });
                 }
@@ -838,7 +838,7 @@ function startAutoPoll() {
     }, 180000);
 }
 // Category Relational Helpers
-window.getCategoryName = function(id) {
+window.getCategoryName = function (id) {
     if (!id) return 'Unknown';
     let cat = appData.expenseCategories.find(c => c.id === id);
     if (cat) return cat.name;
@@ -847,14 +847,14 @@ window.getCategoryName = function(id) {
     return 'Unknown'; // Fallback if deleted
 };
 
-window.getCategoryId = function(name, type) {
+window.getCategoryId = function (name, type) {
     const list = type === 'expense' ? appData.expenseCategories : appData.incomeCategories;
     const cat = list.find(c => c.name === name);
     return cat ? cat.id : null;
 };
 function mergeState(local, remote) {
     const merged = JSON.parse(JSON.stringify(remote));
-    
+
     // O(N) Map Merge function for ultra-fast merging of 10,000+ items
     const mapMerge = (localArray, remoteArray) => {
         if (!localArray || !Array.isArray(localArray)) return remoteArray || [];
@@ -873,16 +873,16 @@ function mergeState(local, remote) {
     merged.goals = mapMerge(local.goals, merged.goals);
 
     if (local.categoryRules) {
-        if(!merged.categoryRules) merged.categoryRules = {};
+        if (!merged.categoryRules) merged.categoryRules = {};
         for (const catId in local.categoryRules) {
             const localKeywords = local.categoryRules[catId];
             if (!merged.categoryRules[catId]) merged.categoryRules[catId] = localKeywords;
             else merged.categoryRules[catId] = [...new Set([...merged.categoryRules[catId], ...localKeywords])];
         }
     }
-    
+
     if (local.categoryLimits) {
-        if(!merged.categoryLimits) merged.categoryLimits = {};
+        if (!merged.categoryLimits) merged.categoryLimits = {};
         for (const catId in local.categoryLimits) {
             merged.categoryLimits[catId] = local.categoryLimits[catId];
         }
@@ -899,20 +899,20 @@ function saveData() {
         url: getApiUrl(),
         method: 'GET',
         headers: getHeaders(),
-        success: function(response) {
+        success: function (response) {
             const remoteSha = response.sha;
-            
+
             // If the SHA matches, it means nobody else has edited the file. We can just push!
             // If the SHA differs, a race condition occurred! We must merge our local changes with the new remote changes.
             let finalStateToUpload = appData;
-            
+
             if (remoteSha !== fileSha) {
                 console.warn("CONCURRENCY COLLISION DETECTED! Running Smart Merge...");
                 const remoteContent = JSON.parse(decodeURIComponent(escape(window.atob(response.content))));
-                
+
                 // Smart Merge merges the two sets of data
                 finalStateToUpload = mergeState(appData, remoteContent);
-                
+
                 // Update our local state to mirror the newly merged truth
                 appData = finalStateToUpload;
                 refreshUI(); // Re-render to show any remote transactions that just arrived
@@ -932,10 +932,10 @@ function saveData() {
                 method: 'PUT',
                 headers: getHeaders(),
                 data: JSON.stringify(data),
-                success: function(putResponse) {
+                success: function (putResponse) {
                     fileSha = putResponse.content.sha;
                 },
-                error: function(err) {
+                error: function (err) {
                     if (err.status === 422) {
                         // GitHub rejects commits where the file content hasn't changed.
                         // This is perfectly fine, it means we're already perfectly in sync!
@@ -947,7 +947,7 @@ function saveData() {
                 }
             });
         },
-        error: function(err) {
+        error: function (err) {
             Toast.fire({ icon: 'error', title: 'Error fetching latest data for concurrency check!' });
             console.error(err);
         }
@@ -976,7 +976,7 @@ function renderSyncMetadata() {
         const d = String(dateObj.getDate()).padStart(2, '0');
         const m = String(dateObj.getMonth() + 1).padStart(2, '0');
         const y = dateObj.getFullYear();
-        const timeStr = dateObj.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        const timeStr = dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
         return `${d}-${m}-${y} ${timeStr}`;
     };
 
@@ -984,14 +984,14 @@ function renderSyncMetadata() {
     const lastSyncStr = lastSyncNow ? formatDate(lastSyncNow) : 'Never';
     const lastReviewedStr = appData.settings.lastSyncDate ? formatDate(appData.settings.lastSyncDate) : 'Never';
     const lastLogin = appData.settings.lastLogin ? formatDate(appData.settings.lastLogin) : 'Never';
-    
+
     const unreviewedCount = appData.transactions ? appData.transactions.filter(t => t.isReviewed !== true).length : 0;
-    
+
     $('#metaLastSyncNow').text(lastSyncStr);
     $('#metaLastReviewed').text(lastReviewedStr);
     $('#metaLastLogin').text(lastLogin);
     $('#metaPendingCount').text(unreviewedCount);
-    
+
     // Add mark as reviewed button if there are new records
     if (unreviewedCount > 0) {
         if ($('#markReviewedBtn').length === 0) {
@@ -1002,7 +1002,7 @@ function renderSyncMetadata() {
     }
 }
 
-window.markAllAsReviewed = function() {
+window.markAllAsReviewed = function () {
     if (!appData.settings) appData.settings = {};
     if (appData.transactions) {
         appData.transactions.forEach(tx => tx.isReviewed = true);
@@ -1015,23 +1015,23 @@ window.markAllAsReviewed = function() {
 
 
 // Settings: Categories
-window.addCategory = function(type) {
+window.addCategory = function (type) {
     const inputId = type === 'expense' ? '#newExpenseCat' : '#newIncomeCat';
     const val = $(inputId).val().trim();
     const targetArr = type === 'expense' ? appData.expenseCategories : appData.incomeCategories;
-    
+
     if (!val) {
         Toast.fire({ icon: 'warning', title: 'Category name cannot be empty' });
         return;
     }
-    
+
     const valLower = val.toLowerCase();
     if (targetArr.some(c => c.name.toLowerCase() === valLower)) {
         Toast.fire({ icon: 'warning', title: 'Category already exists' });
         return;
     }
-    
-    const newId = 'cat-' + type.substr(0,3) + '-' + generateUUID();
+
+    const newId = 'cat-' + type.substr(0, 3) + '-' + generateUUID();
     targetArr.push({ id: newId, name: val });
     $(inputId).val('');
     renderCategories();
@@ -1041,14 +1041,14 @@ window.addCategory = function(type) {
     Toast.fire({ icon: 'success', title: 'Category added' });
 }
 
-window.deleteCategory = async function(type, id) {
+window.deleteCategory = async function (type, id) {
     const name = getCategoryName(id);
-    
+
     // Check for linked objects (Foreign Key Constraints)
     const linkedTxs = appData.transactions.filter(tx => tx.type === type && tx.categoryId === id);
     const hasRule = (appData.categoryRules && appData.categoryRules[id] !== undefined);
     const hasLimit = (appData.categoryLimits && appData.categoryLimits[id] !== undefined);
-    
+
     if (linkedTxs.length > 0 || hasRule || hasLimit) {
         // Build options for reassigning
         const targetArr = type === 'expense' ? appData.expenseCategories : appData.incomeCategories;
@@ -1058,7 +1058,7 @@ window.deleteCategory = async function(type, id) {
                 options[c.id] = c.name;
             }
         });
-        
+
         // If there are no other categories to reassign to
         if (Object.keys(options).length === 0) {
             Toast.fire({ icon: 'warning', title: 'Create another category first to reassign linked data.' });
@@ -1104,7 +1104,7 @@ window.deleteCategory = async function(type, id) {
             if (appData.categoryRules && appData.categoryRules[id]) {
                 const oldKeywords = appData.categoryRules[id];
                 const existingTargetKeywords = appData.categoryRules[reassignId] || [];
-                
+
                 if (existingTargetKeywords.length > 0) {
                     // Merge keywords and remove duplicates
                     appData.categoryRules[reassignId] = [...new Set([...existingTargetKeywords, ...oldKeywords])];
@@ -1120,14 +1120,14 @@ window.deleteCategory = async function(type, id) {
                 appData.categoryLimits[reassignId] = (appData.categoryLimits[reassignId] || 0) + limit;
                 delete appData.categoryLimits[id];
             }
-            
+
             // Delete category
             if (type === 'expense') {
                 appData.expenseCategories = appData.expenseCategories.filter(c => c.id !== id);
             } else {
                 appData.incomeCategories = appData.incomeCategories.filter(c => c.id !== id);
             }
-            
+
             renderCategories();
             updateTransactionModalCategories();
             updateFilterDropdown();
@@ -1143,7 +1143,7 @@ window.deleteCategory = async function(type, id) {
             } else {
                 appData.incomeCategories = appData.incomeCategories.filter(c => c.id !== id);
             }
-            
+
             // Delete rules and limits attached to this category (Should be empty due to previous checks, but safe fallback)
             if (appData.categoryRules) {
                 delete appData.categoryRules[id];
@@ -1192,24 +1192,24 @@ function renderCategories() {
     });
 }
 
-window.moveCategory = function(type, id, direction) {
+window.moveCategory = function (type, id, direction) {
     const list = type === 'expense' ? appData.expenseCategories : appData.incomeCategories;
     const index = list.findIndex(c => c.id === id);
     if (index === -1) return;
-    
+
     const newIndex = index + direction;
     if (newIndex < 0 || newIndex >= list.length) return;
-    
+
     const temp = list[index];
     list[index] = list[newIndex];
     list[newIndex] = temp;
-    
+
     saveData();
     refreshUI();
     Toast.fire({ icon: 'success', title: 'Category order updated!' });
 };
 
-window.editCategory = async function(type, id) {
+window.editCategory = async function (type, id) {
     const oldName = getCategoryName(id);
     const { value: newCat } = await Swal.fire({
         title: 'Rename Category',
@@ -1223,7 +1223,7 @@ window.editCategory = async function(type, id) {
                 return 'Category name cannot be empty!';
             }
             const trimmed = value.trim();
-            const exists = type === 'expense' 
+            const exists = type === 'expense'
                 ? appData.expenseCategories.some(c => c.name.toLowerCase() === trimmed.toLowerCase() && c.id !== id)
                 : appData.incomeCategories.some(c => c.name.toLowerCase() === trimmed.toLowerCase() && c.id !== id);
             if (exists) {
@@ -1234,7 +1234,7 @@ window.editCategory = async function(type, id) {
 
     if (newCat && newCat.trim() !== oldName) {
         const trimmed = newCat.trim();
-        
+
         // 1. Update Category List Name
         if (type === 'expense') {
             const cat = appData.expenseCategories.find(c => c.id === id);
@@ -1250,7 +1250,7 @@ window.editCategory = async function(type, id) {
         updateFilterDropdown();
         refreshUI();
         saveData();
-        
+
         Toast.fire({ icon: 'success', title: `Renamed to "${trimmed}"` });
     }
 }
@@ -1259,7 +1259,7 @@ function updateTransactionModalCategories() {
     const type = $('input[name="txType"]:checked').val();
     const select = $('#txCategory');
     select.empty();
-    
+
     const cats = type === 'expense' ? appData.expenseCategories : appData.incomeCategories;
     cats.forEach(cat => {
         select.append(`<option value="${cat.id}">${cat.name}</option>`);
@@ -1270,7 +1270,7 @@ function updateFilterDropdown() {
     const filterSelect = $('#filterCategory');
     filterSelect.empty();
     filterSelect.append('<option value="All">All Categories</option>');
-    
+
     filterSelect.append('<optgroup label="Expense Categories">');
     appData.expenseCategories.forEach(cat => {
         filterSelect.append(`<option value="${cat.id}">${cat.name}</option>`);
@@ -1310,7 +1310,7 @@ function updateFilterDropdown() {
 function renderRulesTable() {
     const tbody = $('#rulesTableBody');
     tbody.empty();
-    
+
     if (!appData.categoryRules || Object.keys(appData.categoryRules).length === 0) {
         tbody.append(`<div class="text-center py-3 text-muted w-100">No rules defined.</div>`);
         return;
@@ -1334,7 +1334,7 @@ function renderRulesTable() {
     });
 }
 
-window.editRule = function(categoryId) {
+window.editRule = function (categoryId) {
     const keywords = appData.categoryRules[categoryId];
     $('#ruleCategory').val(categoryId);
     $('#ruleKeywords').val(keywords.join(', '));
@@ -1342,7 +1342,7 @@ window.editRule = function(categoryId) {
     renderRulesTable();
 }
 
-window.deleteRule = function(categoryId) {
+window.deleteRule = function (categoryId) {
     confirmAction('Delete Rule?', 'Are you sure you want to delete this auto-categorization rule?', 'Yes, Delete', () => {
         delete appData.categoryRules[categoryId];
         renderRulesTable();
@@ -1355,7 +1355,7 @@ window.deleteRule = function(categoryId) {
 function renderLimitsTable() {
     const tbody = $('#limitsTableBody');
     tbody.empty();
-    
+
     if (!appData.categoryLimits || Object.keys(appData.categoryLimits).length === 0) {
         tbody.append(`<div class="text-center py-3 text-muted w-100">No limits defined.</div>`);
         return;
@@ -1378,7 +1378,7 @@ function renderLimitsTable() {
     });
 }
 
-window.editLimit = function(catId) {
+window.editLimit = function (catId) {
     const limit = appData.categoryLimits[catId];
     $('#limitCategory').val(catId);
     $('#limitAmount').val(limit);
@@ -1386,7 +1386,7 @@ window.editLimit = function(catId) {
     renderLimitsTable();
 }
 
-window.deleteLimit = function(catId) {
+window.deleteLimit = function (catId) {
     const name = getCategoryName(catId);
     confirmAction('Delete Limit?', `Are you sure you want to delete the limit for ${name}?`, 'Yes, Delete', () => {
         delete appData.categoryLimits[catId];
@@ -1400,7 +1400,7 @@ window.deleteLimit = function(catId) {
 function renderRecentTransactions() {
     const tbody = $('#recentTransactionsBody');
     tbody.empty();
-    
+
     const sorted = [...appData.transactions].sort((a, b) => new Date(b.date) - new Date(a.date));
     const top5 = sorted.slice(0, 5);
 
@@ -1415,7 +1415,7 @@ function renderRecentTransactions() {
         const amtColor = tx.type === 'income' ? 'text-income' : '';
         const amtPrefix = tx.type === 'income' ? '+' : '-';
         const catName = getCategoryName(tx.categoryId);
-        
+
         tbody.append(`
             <tr>
                 <td class="text-nowrap">${formattedDate}</td>
@@ -1429,7 +1429,7 @@ function renderRecentTransactions() {
     });
 }
 
-window.exportTransactionsToCSV = function() {
+window.exportTransactionsToCSV = function () {
     const txs = window.currentFilteredTransactions || appData.transactions;
     if (txs.length === 0) {
         Toast.fire({ icon: 'info', title: 'No transactions to export' });
@@ -1437,7 +1437,7 @@ window.exportTransactionsToCSV = function() {
     }
 
     let csvContent = "Date,Merchant,Type,Category,Amount\n";
-    
+
     txs.forEach(tx => {
         const date = tx.date;
         const merchant = `"${(tx.merchant || '').replace(/"/g, '""')}"`;
@@ -1445,7 +1445,7 @@ window.exportTransactionsToCSV = function() {
         const catName = getCategoryName(tx.categoryId);
         const category = `"${(catName || '').replace(/"/g, '""')}"`;
         const amount = tx.amount;
-        
+
         csvContent += `${date},${merchant},${type},${category},${amount}\n`;
     });
 
@@ -1458,19 +1458,19 @@ window.exportTransactionsToCSV = function() {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    
+
     Toast.fire({ icon: 'success', title: 'Exported to CSV successfully' });
 };
 
 // Transactions Page: Full List
-window.renderTransactionsPage = function() {
+window.renderTransactionsPage = function () {
     const tbody = $('#transactionsTableBody');
     const pagination = $('#transactionsPagination');
     const totalEl = $('#transactionsTableTotal');
     const infoEl = $('#paginationInfo');
     tbody.empty();
     pagination.empty();
-    
+
     const searchQuery = $('#searchTx').val().toLowerCase();
     const filterCat = $('#filterCategory').val();
     const filterType = $('#filterType').val();
@@ -1484,31 +1484,31 @@ window.renderTransactionsPage = function() {
         const matchesCat = (filterCat === 'All' || !filterCat) ? true : tx.categoryId === filterCat;
         const matchesType = (filterType === 'All' || !filterType) ? true : tx.type === filterType;
         const matchesReview = filterUnreviewedOnly ? tx.isReviewed !== true : true;
-        
+
         let matchesDate = true;
         if (filterStartDate || filterEndDate) {
             const txDate = new Date(tx.date);
             if (!isNaN(txDate.getTime())) {
-                const localDateStr = txDate.getFullYear() + '-' + 
-                                     String(txDate.getMonth() + 1).padStart(2, '0') + '-' + 
-                                     String(txDate.getDate()).padStart(2, '0');
-                
+                const localDateStr = txDate.getFullYear() + '-' +
+                    String(txDate.getMonth() + 1).padStart(2, '0') + '-' +
+                    String(txDate.getDate()).padStart(2, '0');
+
                 if (filterStartDate && localDateStr < filterStartDate) matchesDate = false;
                 if (filterEndDate && localDateStr > filterEndDate) matchesDate = false;
             } else {
                 matchesDate = false; // Invalid dates don't match date filters
             }
         }
-        
+
         const isMatch = matchesSearch && matchesCat && matchesType && matchesDate && matchesReview;
-        
+
         // Calculate dynamic total
         if (isMatch) {
             const amt = parseFloat(tx.amount);
             if (tx.type === 'income') filteredTotal += amt;
             else filteredTotal -= amt;
         }
-        
+
         return isMatch;
     });
 
@@ -1547,7 +1547,7 @@ window.renderTransactionsPage = function() {
     const totalPages = Math.ceil(totalItems / rowsPerPage) || 1;
     if (currentPage > totalPages) currentPage = totalPages;
     if (currentPage < 1) currentPage = 1;
-    
+
     const startIndex = (currentPage - 1) * rowsPerPage;
     const endIndex = Math.min(startIndex + rowsPerPage, totalItems);
     const paginatedItems = filtered.slice(startIndex, endIndex);
@@ -1560,13 +1560,13 @@ window.renderTransactionsPage = function() {
         const d = dateObj.getDate().toString().padStart(2, '0');
         const m = (dateObj.getMonth() + 1).toString().padStart(2, '0');
         const y = dateObj.getFullYear();
-        const timeStr = dateObj.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        const timeStr = dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
         const formattedDate = `${d}-${m}-${y} ${timeStr}`;
         const amtColor = tx.type === 'income' ? 'text-income' : '';
         const amtPrefix = tx.type === 'income' ? '+' : '-';
         const typeBadgeClass = tx.type === 'income' ? 'bg-success' : 'bg-danger';
         const catName = getCategoryName(tx.categoryId);
-        
+
         const isNew = tx.isReviewed !== true;
         const newBadge = isNew ? `<span class="badge bg-info text-dark ms-2" style="font-size: 0.65em; vertical-align: middle;">NEW</span>` : '';
 
@@ -1589,7 +1589,7 @@ window.renderTransactionsPage = function() {
     // Render Pagination Buttons
     const prevDisabled = currentPage === 1 ? 'disabled' : '';
     const nextDisabled = currentPage === totalPages ? 'disabled' : '';
-    
+
     pagination.append(`
         <li class="page-item ${prevDisabled}">
             <a class="page-link" href="javascript:void(0)" onclick="changePage(1)" title="First Page"><i class="fa-solid fa-angles-left"></i></a>
@@ -1598,14 +1598,14 @@ window.renderTransactionsPage = function() {
             <a class="page-link" href="javascript:void(0)" onclick="changePage(${currentPage - 1})">Previous</a>
         </li>
     `);
-    
+
     // Dynamic page numbers (simplified to show all for small arrays, or ellipsis logic for large arrays. Keeping simple here)
     let startPage = Math.max(1, currentPage - 2);
     let endPage = Math.min(totalPages, startPage + 4);
     if (endPage - startPage < 4) {
         startPage = Math.max(1, endPage - 4);
     }
-    
+
     for (let i = startPage; i <= endPage; i++) {
         const activeClass = i === currentPage ? 'active' : '';
         pagination.append(`
@@ -1614,7 +1614,7 @@ window.renderTransactionsPage = function() {
             </li>
         `);
     }
-    
+
     pagination.append(`
         <li class="page-item ${nextDisabled}">
             <a class="page-link" href="javascript:void(0)" onclick="changePage(${currentPage + 1})">Next</a>
@@ -1625,7 +1625,7 @@ window.renderTransactionsPage = function() {
     `);
 }
 
-window.changePage = function(page) {
+window.changePage = function (page) {
     currentPage = page;
     renderTransactionsPage();
 }
@@ -1633,7 +1633,7 @@ window.changePage = function(page) {
 function populateDashboardFilters() {
     const yearSelector = $('#dashYearFilter');
     const monthSelector = $('#dashMonthFilter');
-    
+
     // Extract unique years and months from transactions
     const years = new Set();
     const monthsData = {}; // Format: { "2026": new Set(["01", "05"]) }
@@ -1643,7 +1643,7 @@ function populateDashboardFilters() {
             const d = new Date(tx.date);
             const y = d.getFullYear().toString();
             const m = String(d.getMonth() + 1).padStart(2, '0');
-            
+
             years.add(y);
             if (!monthsData[y]) monthsData[y] = new Set();
             monthsData[y].add(m);
@@ -1653,14 +1653,14 @@ function populateDashboardFilters() {
         years.add(currentY);
         monthsData[currentY] = new Set();
     }
-    
+
     // Populate Year Selector
     const sortedYears = Array.from(years).sort().reverse();
     yearSelector.empty();
     sortedYears.forEach(y => {
         yearSelector.append(`<option value="${y}">${y}</option>`);
     });
-    
+
     // Set Year State
     if (!currentDashYear) {
         const currentY = new Date().getFullYear().toString();
@@ -1673,10 +1673,10 @@ function populateDashboardFilters() {
         currentDashYear = sortedYears[0] || '';
     }
     yearSelector.val(currentDashYear);
-    
+
     // Attach monthsData to global scope for easy access by month updater
     window.dashboardMonthsData = monthsData;
-    
+
     updateDashMonthFilter();
 }
 
@@ -1684,7 +1684,7 @@ function updateDashMonthFilter() {
     const monthSelector = $('#dashMonthFilter');
     monthSelector.empty();
     monthSelector.append('<option value="">All Year</option>');
-    
+
     if (window.dashboardMonthsData && window.dashboardMonthsData[currentDashYear]) {
         const sortedMonths = Array.from(window.dashboardMonthsData[currentDashYear]).sort();
         sortedMonths.forEach(m => {
@@ -1709,15 +1709,15 @@ function updateDashMonthFilter() {
 
 function getFilteredDashboardTransactions() {
     if (!currentDashYear) return [];
-    
+
     return appData.transactions.filter(tx => {
         const d = new Date(tx.date);
         const y = d.getFullYear().toString();
         const m = String(d.getMonth() + 1).padStart(2, '0');
-        
+
         if (y !== currentDashYear) return false;
         if (currentDashMonth && m !== currentDashMonth) return false;
-        
+
         return true;
     });
 }
@@ -1747,7 +1747,7 @@ function updateDashboardGreeting() {
 function renderDashboard() {
     updateDashboardGreeting();
     const filteredTx = getFilteredDashboardTransactions();
-    
+
     let income = 0;
     let expense = 0;
     // Calculate timeframe specific income and expense
@@ -1772,7 +1772,7 @@ function renderDashboard() {
     if (appData.expenseCategories) {
         appData.expenseCategories.forEach(cat => catUsage[cat.id] = 0);
     }
-    
+
     filteredTx.forEach(tx => {
         if (tx.type === 'expense') {
             if (catUsage[tx.categoryId] !== undefined) {
@@ -1801,18 +1801,18 @@ function renderDashboard() {
         if (appData.categoryLimits && appData.categoryLimits[catId]) {
             limit = parseFloat(appData.categoryLimits[catId]);
         }
-        
+
         totalLimit += limit;
         totalSpent += spent;
-        
+
         let limitDisplay = limit > 0 ? `AED ${limit.toFixed(2)}` : `<span class="text-white-50 small">No Limit</span>`;
         let remainingDisplay = '-';
         let statusDisplay = '';
-        
+
         if (limit > 0) {
             const remaining = limit - spent;
             const pct = (spent / limit) * 100;
-            
+
             if (remaining < 0) {
                 remainingDisplay = `<span class="text-danger fw-bold">- AED ${Math.abs(remaining).toFixed(2)}</span>`;
             } else {
@@ -1839,7 +1839,7 @@ function renderDashboard() {
 
     let totalRemaining = totalLimit - totalSpent;
     let totalRemainingDisplay = '-';
-    
+
     if (totalLimit > 0) {
         if (totalRemaining < 0) {
             totalRemainingDisplay = `<span class="text-danger fw-bold">- AED ${Math.abs(totalRemaining).toFixed(2)}</span>`;
@@ -1849,7 +1849,7 @@ function renderDashboard() {
     }
 
     let mathString = `${income.toFixed(2)} - ${expense.toFixed(2)} =`;
-    let exactBalanceDisplay = timeframeBalance < 0 
+    let exactBalanceDisplay = timeframeBalance < 0
         ? `<span class="text-white-50">${mathString}</span> <br><span class="text-danger fw-bold">-AED ${Math.abs(timeframeBalance).toFixed(2)}</span>`
         : `<span class="text-white-50">${mathString}</span> <br><span class="text-success fw-bold">AED ${timeframeBalance.toFixed(2)}</span>`;
 
@@ -1865,17 +1865,17 @@ function renderDashboard() {
             </td>
         </tr>
     `);
-    
+
     renderYearlyChart();
     renderExpensePieChart();
 }
 
 function renderExpensePieChart() {
     if (!currentDashMonth || !currentDashYear) return;
-    
+
     const ctx = document.getElementById('expensePieChart');
     if (!ctx) return;
-    
+
     // Calculate category totals for the current month
     let catTotals = {};
     appData.transactions.forEach(tx => {
@@ -1883,7 +1883,7 @@ function renderExpensePieChart() {
             const dateObj = new Date(tx.date);
             const m = String(dateObj.getMonth() + 1).padStart(2, '0');
             const y = dateObj.getFullYear().toString();
-            
+
             if (m === currentDashMonth && y === currentDashYear) {
                 catTotals[tx.categoryId] = (catTotals[tx.categoryId] || 0) + parseFloat(tx.amount);
             }
@@ -1900,11 +1900,11 @@ function renderExpensePieChart() {
 
     const labels = sortedKeys.map(id => getCategoryName(id));
     const data = sortedKeys.map(id => catTotals[id]);
-    
+
     if (expensePieChartInstance) {
         expensePieChartInstance.destroy();
     }
-    
+
     // Default colors for pie slices
     const colors = [
         'rgba(59, 130, 246, 0.8)', // blue
@@ -1916,7 +1916,7 @@ function renderExpensePieChart() {
         'rgba(14, 165, 233, 0.8)', // sky
         'rgba(20, 184, 166, 0.8)'  // teal
     ];
-    
+
     expensePieChartInstance = new Chart(ctx, {
         type: 'doughnut',
         data: {
@@ -1943,13 +1943,13 @@ function renderExpensePieChart() {
                             return chart.data.labels.map((label, i) => {
                                 const ds = datasets[0];
                                 const value = ds.data[i];
-                                
+
                                 let sum = 0;
                                 ds.data.forEach(d => sum += d);
                                 const pct = sum > 0 ? (value * 100 / sum).toFixed(0) + '%' : '';
-                                
-                                const text = (ds.data.length === 1 && label === 'No Expenses Yet') 
-                                    ? 'No Expenses Recorded' 
+
+                                const text = (ds.data.length === 1 && label === 'No Expenses Yet')
+                                    ? 'No Expenses Recorded'
                                     : `${label}: AED ${value.toFixed(2)} (${pct})`;
 
                                 return {
@@ -1965,7 +1965,7 @@ function renderExpensePieChart() {
                 },
                 tooltip: {
                     callbacks: {
-                        label: function(context) {
+                        label: function (context) {
                             if (data.length === 0) return 'No expenses this month';
                             let label = context.label || '';
                             if (label) label += ': ';
@@ -1997,15 +1997,15 @@ function renderExpensePieChart() {
 
 function renderYearlyChart() {
     if (!currentDashYear) return;
-    
+
     const ctx = document.getElementById('yearlyChart');
     if (!ctx) return;
-    
+
     // Arrays for 12 months (Jan-Dec)
     const monthlyIncome = new Array(12).fill(0);
     const monthlyExpense = new Array(12).fill(0);
     const monthlyBalance = new Array(12).fill(0);
-    
+
     // Process transactions for the selected year
     if (appData.transactions) {
         appData.transactions.forEach(tx => {
@@ -2013,7 +2013,7 @@ function renderYearlyChart() {
             if (d.getFullYear().toString() === currentDashYear) {
                 const monthIndex = d.getMonth(); // 0 to 11
                 const amt = parseFloat(tx.amount);
-                
+
                 if (tx.type === 'income') {
                     monthlyIncome[monthIndex] += amt;
                 } else if (tx.type === 'expense') {
@@ -2022,20 +2022,20 @@ function renderYearlyChart() {
             }
         });
     }
-    
+
     // Calculate net balance for each month
     for (let i = 0; i < 12; i++) {
         monthlyBalance[i] = monthlyIncome[i] - monthlyExpense[i];
     }
-    
+
     const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     const fullMonthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
     const labels = [];
-    
+
     const mobileList = $('#yearlyMobileList');
     mobileList.empty();
 
-    for(let i = 0; i < 12; i++) {
+    for (let i = 0; i < 12; i++) {
         let bal = monthlyBalance[i];
         let inc = monthlyIncome[i];
         let exp = monthlyExpense[i];
@@ -2052,11 +2052,11 @@ function renderYearlyChart() {
             balStr = '-';
         }
         labels.push([monthNames[i], balStr]);
-        
+
         // Build Mobile Card
         let balColor = bal < 0 ? 'text-danger' : (bal > 0 ? 'text-primary' : 'text-white');
         let balPrefix = bal > 0 ? '+' : '';
-        
+
         mobileList.append(`
             <div class="card bg-dark bg-opacity-50 border border-secondary border-opacity-25 mb-3">
                 <div class="card-body p-3">
@@ -2077,11 +2077,11 @@ function renderYearlyChart() {
             </div>
         `);
     }
-    
+
     if (yearlyChartInstance) {
         yearlyChartInstance.destroy();
     }
-    
+
     yearlyChartInstance = new Chart(ctx, {
         type: 'bar',
         data: {
@@ -2136,7 +2136,7 @@ function renderYearlyChart() {
                         weight: 'bold',
                         size: 10
                     },
-                    formatter: function(value) {
+                    formatter: function (value) {
                         if (value === 0) return '';
                         if (Math.abs(value) >= 1000) {
                             return (value / 1000).toFixed(1) + 'k';
@@ -2151,7 +2151,7 @@ function renderYearlyChart() {
                 },
                 tooltip: {
                     callbacks: {
-                        label: function(context) {
+                        label: function (context) {
                             let label = context.dataset.label || '';
                             if (label) {
                                 label += ': ';
@@ -2188,21 +2188,21 @@ function renderYearlyChart() {
     });
 }
 
-window.editTransaction = function(id) {
+window.editTransaction = function (id) {
     const tx = appData.transactions.find(t => t.id === id);
-    if(tx) {
+    if (tx) {
         $('#txId').val(tx.id);
-        
+
         const fp = document.querySelector('#txDate')._flatpickr;
         if (fp) {
             fp.setDate(new Date(tx.date));
         } else {
             $('#txDate').val(tx.date);
         }
-        
+
         $('#txMerchant').val(tx.merchant);
         $('#txAmount').val(tx.amount);
-        
+
         // Select type toggle and trigger change to load correct categories
         if (tx.type === 'income') {
             $('#typeIncome').prop('checked', true);
@@ -2210,14 +2210,14 @@ window.editTransaction = function(id) {
             $('#typeExpense').prop('checked', true);
         }
         updateTransactionModalCategories();
-        
+
         $('#txCategory').val(tx.categoryId);
         $('#transactionModalTitle').text('Edit Transaction');
         $('#addTransactionModal').modal('show');
     }
 }
 
-window.markTransactionAsReviewed = function(id) {
+window.markTransactionAsReviewed = function (id) {
     const tx = appData.transactions.find(t => t.id === id);
     if (tx) {
         tx.isReviewed = true;
@@ -2227,7 +2227,7 @@ window.markTransactionAsReviewed = function(id) {
     }
 };
 
-window.deleteTransaction = function(id) {
+window.deleteTransaction = function (id) {
     confirmAction('Delete Transaction?', 'Are you sure you want to delete this transaction?', 'Yes, Delete', () => {
         appData.transactions = appData.transactions.filter(t => t.id !== id);
         refreshUI();
@@ -2254,10 +2254,10 @@ $('#addTransactionModal').on('hidden.bs.modal', function () {
 });
 
 // Budgets Page Logic
-window.renderBudgetsPage = function() {
+window.renderBudgetsPage = function () {
     const container = $('#budgetsListContainer');
     container.empty();
-    
+
     if (!appData.categoryLimits || Object.keys(appData.categoryLimits).length === 0) {
         container.html(`<div class="col-12"><div class="alert alert-info bg-transparent border-info text-info"><i class="fa-solid fa-circle-info me-2"></i>You haven't set any category limits yet. Go to Settings to create your first budget!</div></div>`);
         return;
@@ -2296,13 +2296,13 @@ window.renderBudgetsPage = function() {
         const oDisplayPct = ((totalSpent / totalLimit) * 100).toFixed(1);
         const cappedPct = Math.min(oDisplayPct, 100);
         const oAvailable = Math.max(totalLimit - totalSpent, 0).toFixed(2);
-        
+
         // Colors for circular progress
         let ringColor = 'rgba(59, 130, 246, 1)'; // Blue
         let ringShadow = 'rgba(59, 130, 246, 0.5)';
         if (oDisplayPct >= 100) { ringColor = 'rgba(239, 68, 68, 1)'; ringShadow = 'rgba(239, 68, 68, 0.6)'; }
         else if (oDisplayPct >= 80) { ringColor = 'rgba(245, 158, 11, 1)'; ringShadow = 'rgba(245, 158, 11, 0.5)'; }
-        
+
         // SVG Math
         const radius = 90;
         const circumference = 2 * Math.PI * radius;
@@ -2313,9 +2313,9 @@ window.renderBudgetsPage = function() {
         Object.keys(appData.categoryLimits).forEach(c => {
             const l = parseFloat(appData.categoryLimits[c] || 0);
             const s = usage[c] || 0;
-            if(l > 0) {
-                const p = (s/l)*100;
-                if(p > mostAtRisk.pct) { mostAtRisk = { catId: c, pct: p }; }
+            if (l > 0) {
+                const p = (s / l) * 100;
+                if (p > mostAtRisk.pct) { mostAtRisk = { catId: c, pct: p }; }
             }
         });
 
@@ -2380,7 +2380,7 @@ window.renderBudgetsPage = function() {
         // Animate the SVG ring after a tiny delay
         setTimeout(() => {
             const circle = overallContainer.find('.circular-progress-fill');
-            if(circle.length) circle.css('stroke-dashoffset', dashOffset);
+            if (circle.length) circle.css('stroke-dashoffset', dashOffset);
         }, 100);
     }
 
@@ -2389,7 +2389,7 @@ window.renderBudgetsPage = function() {
         const limit = parseFloat(appData.categoryLimits[cat]);
         const spent = usage[cat];
         const orderIndex = appData.expenseCategories.findIndex(c => c.id === cat);
-        return { cat, limit, spent, pct: limit > 0 ? (spent/limit)*100 : 0, orderIndex: orderIndex === -1 ? 9999 : orderIndex };
+        return { cat, limit, spent, pct: limit > 0 ? (spent / limit) * 100 : 0, orderIndex: orderIndex === -1 ? 9999 : orderIndex };
     });
     catArray.sort((a, b) => a.orderIndex - b.orderIndex);
 
@@ -2398,16 +2398,16 @@ window.renderBudgetsPage = function() {
         const catName = getCategoryName(item.cat);
         const limit = item.limit;
         const spent = item.spent;
-        
+
         const displayPercentage = item.pct.toFixed(1);
         const barWidth = Math.min(item.pct, 100).toFixed(1);
         const available = Math.max(limit - spent, 0).toFixed(2);
-        
+
         // Dynamic gradient colors based on status
         let gradStart = 'rgba(59, 130, 246, 1)';
         let gradEnd = 'rgba(14, 165, 233, 1)';
         let badgeColor = 'bg-primary';
-        
+
         if (item.pct >= 100) {
             gradStart = 'rgba(239, 68, 68, 1)'; gradEnd = 'rgba(220, 38, 38, 1)'; badgeColor = 'bg-danger text-white';
         } else if (item.pct >= 80) {
@@ -2456,7 +2456,7 @@ window.renderBudgetsPage = function() {
 
     // Trigger gradient fill animation
     setTimeout(() => {
-        container.find('.premium-cat-card').each(function(index) {
+        container.find('.premium-cat-card').each(function (index) {
             const card = $(this);
             const fill = card.find('.gradient-fill');
             const targetWidth = Math.min(catArray[index].pct, 100) + '%';
@@ -2469,14 +2469,14 @@ window.renderBudgetsPage = function() {
 // GOALS & GAMIFICATION MODULE
 // ==========================================
 
-window.showAddGoalModal = function() {
+window.showAddGoalModal = function () {
     $('#goalForm')[0].reset();
     $('#goalId').val('');
     $('#goalModalTitle').text('Create Goal');
     $('#addGoalModal').modal('show');
 };
 
-$('#goalForm').submit(function(e) {
+$('#goalForm').submit(function (e) {
     e.preventDefault();
     const id = $('#goalId').val();
     const name = $('#goalName').val().trim();
@@ -2510,7 +2510,7 @@ $('#goalForm').submit(function(e) {
     saveData();
 });
 
-window.editGoal = function(id) {
+window.editGoal = function (id) {
     const goal = appData.goals.find(g => g.id === id);
     if (!goal) return;
     $('#goalId').val(goal.id);
@@ -2520,7 +2520,7 @@ window.editGoal = function(id) {
     $('#addGoalModal').modal('show');
 };
 
-window.deleteGoal = function(id) {
+window.deleteGoal = function (id) {
     confirmAction('Delete Goal?', 'Are you sure you want to delete this goal? Saved funds will not be lost, just uncategorized.', 'Yes, Delete', () => {
         appData.goals = appData.goals.filter(g => g.id !== id);
         renderGoals();
@@ -2528,13 +2528,13 @@ window.deleteGoal = function(id) {
     });
 };
 
-window.showDepositModal = function(id) {
+window.showDepositModal = function (id) {
     $('#depositGoalForm')[0].reset();
     $('#depositGoalId').val(id);
     $('#depositGoalModal').modal('show');
 };
 
-$('#depositGoalForm').submit(function(e) {
+$('#depositGoalForm').submit(function (e) {
     e.preventDefault();
     const id = $('#depositGoalId').val();
     const amt = parseFloat($('#depositAmount').val());
@@ -2592,10 +2592,10 @@ function renderGoals() {
                                 <div class="progress-bar ${isComplete ? 'bg-success' : 'bg-primary'} progress-bar-striped ${isComplete ? '' : 'progress-bar-animated'}" role="progressbar" style="width: ${pct}%"></div>
                             </div>
                             <div class="mt-3 text-center">
-                                ${isComplete 
-                                    ? '<span class="badge bg-success w-100 py-2"><i class="fa-solid fa-trophy me-2"></i>Goal Reached!</span>' 
-                                    : `<button class="btn btn-outline-success btn-sm w-100 fw-bold" onclick="showDepositModal('${goal.id}')"><i class="fa-solid fa-coins me-2"></i>Deposit Funds</button>`
-                                }
+                                ${isComplete
+                ? '<span class="badge bg-success w-100 py-2"><i class="fa-solid fa-trophy me-2"></i>Goal Reached!</span>'
+                : `<button class="btn btn-outline-success btn-sm w-100 fw-bold" onclick="showDepositModal('${goal.id}')"><i class="fa-solid fa-coins me-2"></i>Deposit Funds</button>`
+            }
                             </div>
                         </div>
                     </div>
@@ -2609,9 +2609,9 @@ function renderDashboardAnalytics(filteredTx, totalExpense) {
     const now = new Date();
     const currentDashYear = $('#dashYearFilter').val();
     const currentDashMonth = $('#dashMonthFilter').val();
-    
+
     const isCurrentMonth = (!currentDashYear || currentDashYear == now.getFullYear()) && (!currentDashMonth || currentDashMonth == (now.getMonth() + 1));
-    
+
     let daysPassed = 1;
     let daysInMonth = 30;
 
@@ -2631,27 +2631,31 @@ function renderDashboardAnalytics(filteredTx, totalExpense) {
 
     const heatmapGrid = $('#heatmapGrid');
     heatmapGrid.empty();
-    
+
     const dailyExpenses = {};
+    const dailyIncomes = {};
     let maxDaily = 0;
-    
+
     filteredTx.forEach(tx => {
-        if (tx.type !== 'expense') return;
         const d = new Date(tx.date);
         const day = d.getDate();
-        dailyExpenses[day] = (dailyExpenses[day] || 0) + parseFloat(tx.amount);
-        if (dailyExpenses[day] > maxDaily) maxDaily = dailyExpenses[day];
+        if (tx.type === 'expense') {
+            dailyExpenses[day] = (dailyExpenses[day] || 0) + parseFloat(tx.amount);
+            if (dailyExpenses[day] > maxDaily) maxDaily = dailyExpenses[day];
+        } else if (tx.type === 'income') {
+            dailyIncomes[day] = (dailyIncomes[day] || 0) + parseFloat(tx.amount);
+        }
     });
 
     for (let i = 1; i <= daysInMonth; i++) {
         const spent = dailyExpenses[i] || 0;
         let opacity = 0;
         if (spent > 0) {
-            opacity = 0.2 + (0.8 * (spent / maxDaily)); 
+            opacity = 0.2 + (0.8 * (spent / maxDaily));
         }
-        
+
         let bgColor = spent > 0 ? `rgba(239, 68, 68, ${opacity})` : 'rgba(255,255,255,0.05)';
-        
+
         heatmapGrid.append(`
             <div style="width: 25px; height: 25px; background: ${bgColor}; border-radius: 4px; cursor: pointer; transition: transform 0.2s;"
                  title="Day ${i}: AED ${spent.toFixed(2)}"
@@ -2663,5 +2667,57 @@ function renderDashboardAnalytics(filteredTx, totalExpense) {
     }
 
     $('[data-bs-toggle="tooltip"]').tooltip();
+
+    // Render the new Expense Calendar
+    renderExpenseCalendar(filteredTx, currentDashYear, currentDashMonth, dailyExpenses, dailyIncomes, daysInMonth);
+}
+
+function renderExpenseCalendar(filteredTx, currentYear, currentMonth, dailyExpenses, dailyIncomes, daysInMonth) {
+    const calendarGrid = $('#expenseCalendarGrid');
+    calendarGrid.empty();
+
+    const now = new Date();
+
+    let year = currentYear ? parseInt(currentYear) : now.getFullYear();
+    let month = currentMonth ? parseInt(currentMonth) - 1 : now.getMonth();
+
+    // First day of the month (0 = Sun, 1 = Mon, etc.)
+    const firstDay = new Date(year, month, 1).getDay();
+
+    // Add empty cells for days before the 1st
+    for (let i = 0; i < firstDay; i++) {
+        calendarGrid.append('<div class="calendar-day empty"></div>');
+    }
+
+    // Add cells for each day
+    for (let day = 1; day <= daysInMonth; day++) {
+        const spent = dailyExpenses[day] || 0;
+        const earned = dailyIncomes[day] || 0;
+
+        let isToday = false;
+        if (year === now.getFullYear() && month === now.getMonth() && day === now.getDate()) {
+            isToday = true;
+        }
+
+        let amountsHtml = '';
+        if (earned > 0) {
+            amountsHtml += `<div class="calendar-amount text-success" style="font-size:0.75rem;">+ AED ${earned.toFixed(0)}</div>`;
+        }
+        if (spent > 0) {
+            amountsHtml += `<div class="calendar-amount text-danger" style="font-size:0.75rem;">- AED ${spent.toFixed(0)}</div>`;
+        }
+        if (spent === 0 && earned === 0) {
+            amountsHtml = `<div class="calendar-amount text-white-50 opacity-25">-</div>`;
+        }
+
+        const todayClass = isToday ? 'today' : '';
+
+        calendarGrid.append(`
+            <div class="calendar-day ${todayClass}">
+                <div class="calendar-date">${day}</div>
+                <div class="mt-auto d-flex flex-column justify-content-end">${amountsHtml}</div>
+            </div>
+        `);
+    }
 }
 
