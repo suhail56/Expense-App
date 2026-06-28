@@ -2610,6 +2610,16 @@ function renderDashboardAnalytics(filteredTx, totalExpense) {
     const currentDashYear = $('#dashYearFilter').val();
     const currentDashMonth = $('#dashMonthFilter').val();
 
+    // Hide Daily sections when viewing All Year
+    if (!currentDashMonth) {
+        $('#advancedAnalyticsRow').hide();
+        $('#calendarRow').hide();
+        return;
+    } else {
+        $('#advancedAnalyticsRow').fadeIn();
+        $('#calendarRow').fadeIn();
+    }
+
     const isCurrentMonth = (!currentDashYear || currentDashYear == now.getFullYear()) && (!currentDashMonth || currentDashMonth == (now.getMonth() + 1));
 
     let daysPassed = 1;
