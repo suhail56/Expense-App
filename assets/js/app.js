@@ -1,4 +1,5 @@
 // State
+$.ajaxSetup({ cache: false });
 let appData = {
     settings: {
         gasUrl: '',
@@ -525,6 +526,28 @@ $(document).ready(function() {
     });
 });
 
+window.autoCategorizeNewTransactions = function() {
+    if (!appData.categoryRules || Object.keys(appData.categoryRules).length === 0) return false;
+    let updatedCount = 0;
+    appData.transactions.forEach(tx => {
+        // Only apply to newly imported (unreviewed) transactions
+        if (tx.isReviewed !== true) {
+            const merchantLower = tx.merchant.toLowerCase();
+            for (const catId in appData.categoryRules) {
+                const keywords = appData.categoryRules[catId];
+                if (keywords.some(kw => merchantLower.includes(kw))) {
+                    if (tx.categoryId !== catId) {
+                        tx.categoryId = catId;
+                        updatedCount++;
+                    }
+                    break;
+                }
+            }
+        }
+    });
+    return updatedCount > 0;
+};
+
 // GitHub API Methods
 function getDatabaseFileName() {
     if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:') {
@@ -732,6 +755,10 @@ window.fetchData = function(showSuccessAlert = false) {
                 window.pendingSyncDateUpdate = null;
             }
 
+            if (window.autoCategorizeNewTransactions()) {
+                needsMigrationSave = true;
+            }
+
             if (needsMigrationSave) {
                 saveData(true); // pass true to indicate silent background save if we update it later
             }
@@ -778,6 +805,11 @@ function startAutoPoll() {
                     fileSha = response.sha;
                     const decodedContent = window.atob(response.content);
                     appData = JSON.parse(decodeURIComponent(escape(decodedContent)));
+                    
+                    if (window.autoCategorizeNewTransactions()) {
+                        saveData(true);
+                    }
+                    
                     refreshUI();
                     Toast.fire({ icon: 'info', title: 'New data synced in background!' });
                 }
