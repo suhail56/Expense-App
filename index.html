@@ -8,10 +8,12 @@
     <link rel="icon" type="image/png" href="favicon.png">
     <link rel="apple-touch-icon" href="favicon.png">
     <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Expenses">
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#0f172a">
+    <meta name="description" content="A premium, fast, offline-capable personal finance tracker to manage your budgets, goals, and transactions securely.">
     <!-- Google Fonts -->
     <link href="assets/inter/inter.css" rel="stylesheet">
     <!-- Bootstrap CSS -->
@@ -22,7 +24,7 @@
     <link rel="stylesheet" href="assets/css/flatpickr.min.css">
     <link rel="stylesheet" href="assets/css/flatpickr-dark.css">
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/style.css?v=2.1">
 </head>
 
 <body>
@@ -77,7 +79,7 @@
             <header
                 class="mobile-header d-md-none d-flex align-items-center justify-content-between mb-4 glass-card px-4 py-3">
                 <h4 class="mb-0 fw-bold" id="pageTitle">Dashboard</h4>
-                <button class="btn btn-outline-danger btn-sm" onclick="$('#logoutBtn').click()">
+                <button class="btn btn-outline-danger btn-sm" onclick="$('#logoutBtn').click()" aria-label="Log Out">
                     <i class="fa-solid fa-right-from-bracket"></i>
                 </button>
             </header>
@@ -320,9 +322,9 @@
                             <div class="row mb-4 align-items-center g-2">
                                 <div class="col-md-3 mb-2 mb-md-0">
                                     <div class="input-group">
-                                        <input type="text" class="form-control" id="searchTx" placeholder="Search...">
+                                        <input type="text" class="form-control" id="searchTx" placeholder="Search..." aria-label="Search Transactions">
                                         <button class="btn btn-outline-secondary" type="button" id="clearFiltersBtn"
-                                            title="Clear Filters">
+                                            title="Clear Filters" aria-label="Clear Filters">
                                             <i class="fa-solid fa-xmark"></i>
                                         </button>
                                     </div>
@@ -787,22 +789,22 @@
 
     <!-- Scripts -->
     <!-- jQuery -->
-    <script src="assets/js/jquery.min.js"></script>
+    <script src="assets/js/jquery.min.js" defer></script>
     <!-- Bootstrap JS -->
-    <script src="assets/js/bootstrap.bundle.min.js"></script>
+    <script src="assets/js/bootstrap.bundle.min.js" defer></script>
     <!-- Chart.js -->
-    <script src="assets/js/chart.min.js"></script>
-    <script src="assets/js/chartjs-plugin-datalabels.min.js"></script>
+    <script src="assets/js/chart.min.js" defer></script>
+    <script src="assets/js/chartjs-plugin-datalabels.min.js" defer></script>
 
     <!-- SweetAlert2 -->
-    <script src="assets/js/sweetalert2.min.js"></script>
+    <script src="assets/js/sweetalert2.min.js" defer></script>
     
     <!-- Flatpickr JS -->
-    <script src="assets/js/flatpickr.min.js"></script>
+    <script src="assets/js/flatpickr.min.js" defer></script>
 
     <!-- Custom Scripts -->
-    <script src="assets/js/router.js"></script>
-    <script src="assets/js/app.js"></script>
+    <script src="assets/js/router.js?v=2.1" defer></script>
+    <script src="assets/js/app.js?v=2.1" defer></script>
 
     <!-- PWA Service Worker Registration -->
     <script>
