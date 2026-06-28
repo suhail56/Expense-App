@@ -688,6 +688,28 @@ input:-webkit-autofill:active{
         border: 4px solid var(--bg-dark);
     }
     
+    /* Toast positioning adjustment */
+    .swal2-container.swal2-bottom {
+        bottom: calc(75px + env(safe-area-inset-bottom)) !important;
+    }
+    
+    /* Mobile Command Bar Buttons Layout */
+    .glass-card .card-body.justify-content-between > .d-flex.gap-2 {
+        flex-wrap: wrap;
+        width: 100%;
+        margin-top: 0.75rem;
+    }
+    
+    .glass-card .card-body.justify-content-between > .d-flex.gap-2 .btn {
+        flex: 1 1 calc(50% - 0.5rem);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 0.6rem 0.5rem;
+        font-size: 0.85rem;
+    }
+    
+    
     .main-content {
         padding: 0 1rem 90px 1rem;
         overflow-x: hidden;
