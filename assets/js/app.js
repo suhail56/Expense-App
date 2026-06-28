@@ -101,7 +101,7 @@ $(document).ready(function() {
     });
 
     // Initialize Premium DatePicker for Filters
-    flatpickr('#filterStartDate, #filterEndDate', {
+    flatpickr('#filterStartDate, #filterEndDate, #syncStartDate', {
         dateFormat: "Y-m-d",
         altInput: true,
         altFormat: "M j, Y"
@@ -217,7 +217,8 @@ $(document).ready(function() {
             merchant: merchant,
             type: type,
             categoryId: categoryId,
-            amount: parseFloat(amountStr).toFixed(2)
+            amount: parseFloat(amountStr).toFixed(2),
+            isReviewed: true
         };
 
         // Strict Foreign Key Constraint Validation
@@ -254,6 +255,7 @@ $(document).ready(function() {
     $('#filterCategory').on('change', function() { currentPage = 1; renderTransactionsPage(); });
     $('#filterType').on('change', function() { currentPage = 1; renderTransactionsPage(); });
     $('#filterStartDate').on('change', function() { currentPage = 1; renderTransactionsPage(); });
+    $('#filterUnreviewedOnly').on('change', function() { currentPage = 1; renderTransactionsPage(); });
     
     // Dashboard Filters Event Listeners
     $('#dashYearFilter').change(function() {
@@ -297,6 +299,7 @@ $(document).ready(function() {
         $('#searchTx').val('');
         $('#filterCategory').val('All');
         $('#filterType').val('All');
+        $('#filterUnreviewedOnly').prop('checked', false);
         
         const startPicker = document.getElementById('filterStartDate')._flatpickr;
         if (startPicker) startPicker.clear();
@@ -458,6 +461,13 @@ $(document).ready(function() {
                 if (res.status === 'success') {
                     Swal.fire({ title: 'Sync Complete', text: res.message, icon: 'success', background: 'rgba(15, 23, 42, 0.85)', color: '#f8fafc' });
                     localStorage.setItem('lastSyncNowTime', new Date().toISOString());
+                    
+                    // To prevent missing transactions, we roll the date back exactly 1 day from right now.
+                    // This creates a safe 1-day overlap. The smart-merge engine will ignore any duplicates!
+                    const d = new Date();
+                    d.setDate(d.getDate() - 1);
+                    window.pendingSyncDateUpdate = d.toISOString().split('T')[0];
+                    
                     fetchData();
                 } else {
                     Swal.fire({ title: 'Sync Failed', text: res.message, icon: 'error', background: 'rgba(15, 23, 42, 0.85)', color: '#f8fafc' });
@@ -655,11 +665,22 @@ window.fetchData = function() {
             // Populate settings inputs
             $('#gasUrl').val(appData.settings.gasUrl || '');
             $('#syncStartDate').val(appData.settings.syncStartDate || '');
+            let fpSync = document.querySelector('#syncStartDate')._flatpickr;
+            if (fpSync) fpSync.setDate(appData.settings.syncStartDate || '');
             
             // Populate email parser settings (or use defaults)
             $('#emailSender').val(appData.settings.emailSender || 'MashreqAlerts@mashreq.com');
             $('#emailSubject').val(appData.settings.emailSubject || 'Transaction Confirmation on Mashreq Card');
             $('#emailRegex').val(appData.settings.emailRegex || 'purchase of (?:AED|USD)\\s+([\\d,.]+)\\s+at\\s+(.*?)\\s+on\\s+([\\d]{2}-[A-Z]{3}-[\\d]{4}\\s+[\\d]{2}:[\\d]{2}\\s+[A-Z]{2})');
+
+            // Process Automated Sync Date Update (with 1-day overlap)
+            if (window.pendingSyncDateUpdate) {
+                appData.settings.syncStartDate = window.pendingSyncDateUpdate;
+                $('#syncStartDate').val(window.pendingSyncDateUpdate);
+                if (fpSync) fpSync.setDate(window.pendingSyncDateUpdate);
+                needsMigrationSave = true;
+                window.pendingSyncDateUpdate = null;
+            }
 
             if (needsMigrationSave) {
                 saveData(true); // pass true to indicate silent background save if we update it later
@@ -727,25 +748,23 @@ window.getCategoryId = function(name, type) {
 };
 function mergeState(local, remote) {
     const merged = JSON.parse(JSON.stringify(remote));
-    if (local.transactions && Array.isArray(local.transactions)) {
-        local.transactions.forEach(localTx => {
-            const remoteIdx = merged.transactions.findIndex(rTx => rTx.id === localTx.id);
-            if (remoteIdx === -1) merged.transactions.push(localTx);
-            else merged.transactions[remoteIdx] = localTx;
-        });
-    }
-
-    const mergeCategories = (type) => {
-        const localList = type === 'expense' ? local.expenseCategories : local.incomeCategories;
-        const mergedList = type === 'expense' ? merged.expenseCategories : merged.incomeCategories;
-        if (localList) {
-            localList.forEach(localCat => {
-                if (!mergedList.find(rCat => rCat.id === localCat.id)) mergedList.push(localCat);
-            });
+    
+    // O(N) Map Merge function for ultra-fast merging of 10,000+ items
+    const mapMerge = (localArray, remoteArray) => {
+        if (!localArray || !Array.isArray(localArray)) return remoteArray || [];
+        const mergedMap = new Map();
+        if (remoteArray && Array.isArray(remoteArray)) {
+            remoteArray.forEach(item => mergedMap.set(item.id, item));
         }
+        localArray.forEach(item => mergedMap.set(item.id, item));
+        return Array.from(mergedMap.values());
     };
-    mergeCategories('expense');
-    mergeCategories('income');
+
+    // Apply O(N) Map Merge to all data arrays
+    merged.transactions = mapMerge(local.transactions, merged.transactions);
+    merged.expenseCategories = mapMerge(local.expenseCategories, merged.expenseCategories);
+    merged.incomeCategories = mapMerge(local.incomeCategories, merged.incomeCategories);
+    merged.goals = mapMerge(local.goals, merged.goals);
 
     if (local.categoryRules) {
         if(!merged.categoryRules) merged.categoryRules = {};
@@ -765,27 +784,10 @@ function mergeState(local, remote) {
 
     if (local.settings) merged.settings = { ...merged.settings, ...local.settings };
 
-    // Merge Goals
-    if (local.goals && Array.isArray(local.goals)) {
-        if (!merged.goals) merged.goals = [];
-        local.goals.forEach(localGoal => {
-            const remoteIdx = merged.goals.findIndex(rG => rG.id === localGoal.id);
-            if (remoteIdx === -1) merged.goals.push(localGoal);
-            else merged.goals[remoteIdx] = localGoal; // Trust local progress
-        });
-    }
-
     return merged;
 }
 
 function saveData() {
-    if (appData.settings && appData.settings.lastSyncCount !== undefined) {
-        const currentCount = appData.transactions ? appData.transactions.length : 0;
-        if (currentCount < appData.settings.lastSyncCount) {
-            appData.settings.lastSyncCount = currentCount;
-        }
-    }
-
     // Concurrency Engine: Fetch latest state before pushing
     $.ajax({
         url: getApiUrl(),
@@ -860,17 +862,19 @@ function renderSyncMetadata() {
     const lastSyncStr = lastSyncNow ? new Date(lastSyncNow).toLocaleString() : 'Never';
     const lastReviewedStr = appData.settings.lastSyncDate ? new Date(appData.settings.lastSyncDate).toLocaleString() : 'Never';
     const lastLogin = appData.settings.lastLogin ? new Date(appData.settings.lastLogin).toLocaleString() : 'Never';
-    const syncCount = appData.settings.lastSyncCount || 0;
+    
     const currentCount = appData.transactions ? appData.transactions.length : 0;
+    const unreviewedCount = appData.transactions ? appData.transactions.filter(t => t.isReviewed !== true).length : 0;
+    const reviewedCount = currentCount - unreviewedCount;
     
     $('#metaLastSyncNow').text(lastSyncStr);
     $('#metaLastReviewed').text(lastReviewedStr);
     $('#metaLastLogin').text(lastLogin);
-    $('#metaLastSyncCount').text(syncCount);
+    $('#metaLastSyncCount').text(reviewedCount);
     $('#metaCurrentCount').text(currentCount);
     
     // Add mark as reviewed button if there are new records
-    if (currentCount > syncCount) {
+    if (unreviewedCount > 0) {
         if ($('#markReviewedBtn').length === 0) {
             $('#metaCurrentCount').parent().after('<button id="markReviewedBtn" class="btn btn-sm btn-success ms-2 py-0 px-2" onclick="markAllAsReviewed()">Mark Reviewed</button>');
         }
@@ -881,7 +885,9 @@ function renderSyncMetadata() {
 
 window.markAllAsReviewed = function() {
     if (!appData.settings) appData.settings = {};
-    appData.settings.lastSyncCount = appData.transactions ? appData.transactions.length : 0;
+    if (appData.transactions) {
+        appData.transactions.forEach(tx => tx.isReviewed = true);
+    }
     appData.settings.lastSyncDate = new Date().toISOString();
     saveData();
     refreshUI();
@@ -1330,12 +1336,14 @@ window.renderTransactionsPage = function() {
     const filterType = $('#filterType').val();
     const filterStartDate = $('#filterStartDate').val();
     const filterEndDate = $('#filterEndDate').val();
+    const filterUnreviewedOnly = $('#filterUnreviewedOnly').is(':checked');
 
     let filteredTotal = 0;
     let filtered = appData.transactions.filter(tx => {
         const matchesSearch = tx.merchant.toLowerCase().includes(searchQuery);
         const matchesCat = (filterCat === 'All' || !filterCat) ? true : tx.categoryId === filterCat;
         const matchesType = (filterType === 'All' || !filterType) ? true : tx.type === filterType;
+        const matchesReview = filterUnreviewedOnly ? tx.isReviewed !== true : true;
         
         let matchesDate = true;
         if (filterStartDate || filterEndDate) {
@@ -1354,7 +1362,7 @@ window.renderTransactionsPage = function() {
             }
         }
         
-        const isMatch = matchesSearch && matchesCat && matchesType && matchesDate;
+        const isMatch = matchesSearch && matchesCat && matchesType && matchesDate && matchesReview;
         
         // Calculate dynamic total
         if (isMatch) {
@@ -1408,8 +1416,6 @@ window.renderTransactionsPage = function() {
     // Update Info Text
     infoEl.text(`Showing ${startIndex + 1} to ${endIndex} of ${totalItems} entries`);
 
-    const syncCount = (appData.settings && appData.settings.lastSyncCount) !== undefined ? appData.settings.lastSyncCount : 0;
-
     paginatedItems.forEach(tx => {
         const dateObj = new Date(tx.date);
         const formattedDate = dateObj.toLocaleDateString() + ' ' + dateObj.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
@@ -1418,7 +1424,7 @@ window.renderTransactionsPage = function() {
         const typeBadgeClass = tx.type === 'income' ? 'bg-success' : 'bg-danger';
         const catName = getCategoryName(tx.categoryId);
         
-        const isNew = appData.transactions.indexOf(tx) >= syncCount;
+        const isNew = tx.isReviewed !== true;
         const newBadge = isNew ? `<span class="badge bg-info text-dark ms-2" style="font-size: 0.65em; vertical-align: middle;">NEW</span>` : '';
 
         tbody.append(`
@@ -2026,7 +2032,14 @@ window.editTransaction = function(id) {
     const tx = appData.transactions.find(t => t.id === id);
     if(tx) {
         $('#txId').val(tx.id);
-        $('#txDate').val(tx.date);
+        
+        const fp = document.querySelector('#txDate')._flatpickr;
+        if (fp) {
+            fp.setDate(new Date(tx.date));
+        } else {
+            $('#txDate').val(tx.date);
+        }
+        
         $('#txMerchant').val(tx.merchant);
         $('#txAmount').val(tx.amount);
         
@@ -2052,6 +2065,14 @@ window.deleteTransaction = function(id) {
         Toast.fire({ icon: 'success', title: 'Transaction deleted' });
     });
 }
+
+// Initialize modal state on open
+$('#addTransactionModal').on('show.bs.modal', function () {
+    if (!$('#txId').val()) { // Only set to current time if creating a new record
+        const fp = document.querySelector('#txDate')._flatpickr;
+        if (fp) fp.setDate(new Date());
+    }
+});
 
 // Reset modal on close
 $('#addTransactionModal').on('hidden.bs.modal', function () {

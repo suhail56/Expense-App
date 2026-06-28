@@ -14,6 +14,13 @@
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#0f172a">
     <meta name="description" content="A premium, fast, offline-capable personal finance tracker to manage your budgets, goals, and transactions securely.">
+    <!-- SEO and OpenGraph -->
+    <meta property="og:title" content="Personal Finance Tracker">
+    <meta property="og:description" content="A premium, offline-capable personal finance tracker to manage your budgets and goals.">
+    <meta property="og:type" content="website">
+    <!-- Performance: Preload Critical Fonts -->
+    <link rel="preload" href="assets/inter/Inter-Regular.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="assets/inter/Inter-Bold.woff2" as="font" type="font/woff2" crossorigin>
     <!-- Google Fonts -->
     <link href="assets/inter/inter.css" rel="stylesheet">
     <!-- Bootstrap CSS -->
@@ -344,11 +351,17 @@
                                 </div>
                                 <div class="col-md-4">
                                     <div class="input-group">
-                                        <input type="date" class="form-control" id="filterStartDate" title="Start Date">
+                                        <input type="date" class="form-control" id="filterStartDate" title="Start Date" aria-label="Start Date Filter">
                                         <span
                                             class="input-group-text bg-transparent text-secondary border-secondary">to</span>
-                                        <input type="date" class="form-control" id="filterEndDate" title="End Date">
+                                        <input type="date" class="form-control" id="filterEndDate" title="End Date" aria-label="End Date Filter">
                                     </div>
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="filterUnreviewedOnly">
+                                    <label class="form-check-label text-white-50 ms-2" for="filterUnreviewedOnly"><i class="fa-solid fa-circle-exclamation text-info me-1"></i>Show Unreviewed (NEW) Only</label>
                                 </div>
                             </div>
                             <div class="table-responsive flex-grow-1">
@@ -492,7 +505,7 @@
 
                                     <h6 class="text-secondary small fw-bold">Expense Categories</h6>
                                     <div class="d-flex mb-3">
-                                        <input type="text" id="newExpenseCat" class="form-control me-2"
+                                        <input type="text" id="newExpenseCat" class="form-control me-2" aria-label="New Expense Category Name"
                                             placeholder="New Expense Category">
                                         <button class="btn btn-danger" onclick="addCategory('expense')">Add</button>
                                     </div>
@@ -500,7 +513,7 @@
 
                                     <h6 class="text-secondary small fw-bold mt-4">Income Categories</h6>
                                     <div class="d-flex mb-3">
-                                        <input type="text" id="newIncomeCat" class="form-control me-2"
+                                        <input type="text" id="newIncomeCat" class="form-control me-2" aria-label="New Income Category Name"
                                             placeholder="New Income Category">
                                         <button class="btn btn-success" onclick="addCategory('income')">Add</button>
                                     </div>
@@ -698,11 +711,11 @@
                         <input type="hidden" id="goalId">
                         <div class="mb-3">
                             <label class="form-label">Goal Name</label>
-                            <input type="text" class="form-control" id="goalName" maxlength="50" required placeholder="e.g. New Car">
+                            <input type="text" class="form-control" id="goalName" maxlength="50" required placeholder="e.g. New Car" aria-label="Goal Name">
                         </div>
                         <div class="mb-4">
                             <label class="form-label">Target Amount (AED)</label>
-                            <input type="number" step="0.01" class="form-control" id="goalTarget" required>
+                            <input type="number" step="0.01" class="form-control" id="goalTarget" required aria-label="Goal Target Amount">
                         </div>
                         <button type="submit" class="btn btn-primary w-100 py-2 fw-bold" id="saveGoalBtn">Save Goal</button>
                     </form>
@@ -724,7 +737,7 @@
                         <input type="hidden" id="depositGoalId">
                         <div class="mb-4">
                             <label class="form-label">Amount to Deposit (AED)</label>
-                            <input type="number" step="0.01" class="form-control" id="depositAmount" required>
+                            <input type="number" step="0.01" class="form-control" id="depositAmount" required aria-label="Deposit Amount">
                         </div>
                         <button type="submit" class="btn btn-success w-100 py-2 fw-bold" id="saveDepositBtn">Deposit</button>
                     </form>
@@ -761,7 +774,7 @@
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Merchant / Description</label>
-                            <input type="text" class="form-control" id="txMerchant" maxlength="80" required>
+                            <input type="text" class="form-control" id="txMerchant" maxlength="80" required aria-label="Transaction Merchant or Description">
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Category</label>
@@ -771,7 +784,7 @@
                         </div>
                         <div class="mb-4">
                             <label class="form-label">Amount (AED)</label>
-                            <input type="number" step="0.01" class="form-control" id="txAmount">
+                            <input type="number" step="0.01" class="form-control" id="txAmount" aria-label="Transaction Amount">
                         </div>
                         <button type="submit" class="btn btn-primary w-100 py-2 fw-bold" id="saveTransactionBtn">Save
                             Transaction</button>
