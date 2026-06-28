@@ -11,7 +11,7 @@
 
 html {
     font-size: 14px;
-    overflow-x: hidden;
+    overflow-x: clip;
 }
 
 body {
@@ -20,9 +20,10 @@ body {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     min-height: 100vh;
     margin: 0;
-    overflow-x: hidden;
+    overflow-x: clip;
     background-attachment: fixed;
     transition: background-color 0.5s ease;
+    -webkit-overflow-scrolling: touch;
 }
 
 /* Dynamic Page Themes */
@@ -766,7 +767,7 @@ input:-webkit-autofill:active{
     
     .main-content {
         padding: 0 1rem 90px 1rem;
-        overflow-x: hidden;
+        overflow-x: clip;
         -ms-overflow-style: none;
         scrollbar-width: none;
     }
