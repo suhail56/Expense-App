@@ -1145,28 +1145,49 @@ window.deleteCategory = async function(type, id) {
 function renderCategories() {
     const expList = $('#expenseCategoriesList');
     expList.empty();
-    appData.expenseCategories.forEach(cat => {
+    appData.expenseCategories.forEach((cat, index) => {
         expList.append(`
             <div class="category-tag">
                 <span class="me-2 text-truncate d-inline-block" style="max-width: 150px; vertical-align: bottom;">${escapeHTML(cat.name)}</span> 
-                <i class="fa-solid fa-pen text-info me-2" onclick="editCategory('expense', '${cat.id}')" title="Edit"></i>
-                <i class="fa-solid fa-xmark text-danger" onclick="deleteCategory('expense', '${cat.id}')" title="Delete"></i>
+                ${index > 0 ? `<i class="fa-solid fa-chevron-left text-secondary me-2 cursor-pointer" onclick="moveCategory('expense', '${cat.id}', -1)" title="Move Left"></i>` : ''}
+                ${index < appData.expenseCategories.length - 1 ? `<i class="fa-solid fa-chevron-right text-secondary me-2 cursor-pointer" onclick="moveCategory('expense', '${cat.id}', 1)" title="Move Right"></i>` : ''}
+                <i class="fa-solid fa-pen text-info me-2 cursor-pointer" onclick="editCategory('expense', '${cat.id}')" title="Edit"></i>
+                <i class="fa-solid fa-xmark text-danger cursor-pointer" onclick="deleteCategory('expense', '${cat.id}')" title="Delete"></i>
             </div>
         `);
     });
 
     const incList = $('#incomeCategoriesList');
     incList.empty();
-    appData.incomeCategories.forEach(cat => {
+    appData.incomeCategories.forEach((cat, index) => {
         incList.append(`
             <div class="category-tag">
                 <span class="me-2 text-truncate d-inline-block" style="max-width: 150px; vertical-align: bottom;">${escapeHTML(cat.name)}</span> 
-                <i class="fa-solid fa-pen text-info me-2" onclick="editCategory('income', '${cat.id}')" title="Edit"></i>
-                <i class="fa-solid fa-xmark text-danger" onclick="deleteCategory('income', '${cat.id}')" title="Delete"></i>
+                ${index > 0 ? `<i class="fa-solid fa-chevron-left text-secondary me-2 cursor-pointer" onclick="moveCategory('income', '${cat.id}', -1)" title="Move Left"></i>` : ''}
+                ${index < appData.incomeCategories.length - 1 ? `<i class="fa-solid fa-chevron-right text-secondary me-2 cursor-pointer" onclick="moveCategory('income', '${cat.id}', 1)" title="Move Right"></i>` : ''}
+                <i class="fa-solid fa-pen text-info me-2 cursor-pointer" onclick="editCategory('income', '${cat.id}')" title="Edit"></i>
+                <i class="fa-solid fa-xmark text-danger cursor-pointer" onclick="deleteCategory('income', '${cat.id}')" title="Delete"></i>
             </div>
         `);
     });
 }
+
+window.moveCategory = function(type, id, direction) {
+    const list = type === 'expense' ? appData.expenseCategories : appData.incomeCategories;
+    const index = list.findIndex(c => c.id === id);
+    if (index === -1) return;
+    
+    const newIndex = index + direction;
+    if (newIndex < 0 || newIndex >= list.length) return;
+    
+    const temp = list[index];
+    list[index] = list[newIndex];
+    list[newIndex] = temp;
+    
+    saveData();
+    refreshUI();
+    Toast.fire({ icon: 'success', title: 'Category order updated!' });
+};
 
 window.editCategory = async function(type, id) {
     const oldName = getCategoryName(id);
@@ -2333,13 +2354,14 @@ window.renderBudgetsPage = function() {
         }, 100);
     }
 
-    // Sort categories by % used descending
+    // Sort categories by custom order defined in settings
     let catArray = Object.keys(appData.categoryLimits).map(cat => {
         const limit = parseFloat(appData.categoryLimits[cat]);
         const spent = usage[cat];
-        return { cat, limit, spent, pct: limit > 0 ? (spent/limit)*100 : 0 };
+        const orderIndex = appData.expenseCategories.findIndex(c => c.id === cat);
+        return { cat, limit, spent, pct: limit > 0 ? (spent/limit)*100 : 0, orderIndex: orderIndex === -1 ? 9999 : orderIndex };
     });
-    catArray.sort((a, b) => b.pct - a.pct);
+    catArray.sort((a, b) => a.orderIndex - b.orderIndex);
 
     // Render Premium Cards
     catArray.forEach(item => {
