@@ -112,6 +112,7 @@ $(document).ready(function() {
         authOverlay.style.display = 'none';
         
         if (typeof isBiometricsEnabled === 'function' && isBiometricsEnabled()) {
+            document.body.className = 'theme-login';
             $('#lockScreenOverlay').css('display', 'flex');
         } else {
             appContent.style.display = 'flex';
@@ -121,6 +122,7 @@ $(document).ready(function() {
             fetchData();
         }
     } else {
+        document.body.className = 'theme-login';
         authOverlay.style.display = 'flex';
     }
 
@@ -176,7 +178,10 @@ $(document).ready(function() {
     $('#logoutBtn').click(function() {
         localStorage.removeItem('ghRepo');
         localStorage.removeItem('ghToken');
-        location.reload();
+        document.body.className = 'theme-login';
+        document.getElementById('appContent').style.display = 'none';
+        document.getElementById('authOverlay').style.display = 'flex';
+        $('#githubToken').val('');location.reload();
     });
 
     // Auto-Logout for Inactivity (15 minutes)
@@ -743,6 +748,7 @@ window.fetchData = function(showSuccessAlert = false) {
             // Force logout and hide app content since connection failed
             localStorage.removeItem('ghRepo');
             localStorage.removeItem('ghToken');
+            document.body.className = 'theme-login';
             document.getElementById('authOverlay').style.display = 'flex';
             document.getElementById('appContent').style.display = 'none';
 

@@ -23,6 +23,9 @@ function handleRouteChange() {
     $('.app-view').removeClass('active');
     $('.nav-link[data-view]').removeClass('active');
 
+    // Apply Dynamic Page Background Theme
+    document.body.className = `theme-${hash}`;
+
     // Show selected view
     $(`#view-${hash}`).addClass('active');
     
