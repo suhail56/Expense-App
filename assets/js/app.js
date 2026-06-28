@@ -48,7 +48,7 @@ let expensePieChartInstance = null;
 // Pagination Variables
 let fileSha = null;
 let currentPage = 1;
-const rowsPerPage = 10;
+let rowsPerPage = 10;
 
 // GitHub API config
 let ghRepo = localStorage.getItem('ghRepo') || '';
@@ -284,6 +284,12 @@ $(document).ready(function() {
     $('#filterType').on('change', function() { currentPage = 1; renderTransactionsPage(); });
     $('#filterStartDate').on('change', function() { currentPage = 1; renderTransactionsPage(); });
     $('#filterUnreviewedOnly').on('change', function() { currentPage = 1; renderTransactionsPage(); });
+    $('#rowsPerPageSelect').on('change', function() { 
+        const val = $(this).val();
+        rowsPerPage = val === 'All' ? 9999999 : parseInt(val, 10);
+        currentPage = 1; 
+        renderTransactionsPage(); 
+    });
     
     // Dashboard Filters Event Listeners
     $('#dashYearFilter').change(function() {
@@ -1501,6 +1507,7 @@ window.renderTransactionsPage = function() {
     const totalItems = filtered.length;
     const totalPages = Math.ceil(totalItems / rowsPerPage) || 1;
     if (currentPage > totalPages) currentPage = totalPages;
+    if (currentPage < 1) currentPage = 1;
     
     const startIndex = (currentPage - 1) * rowsPerPage;
     const endIndex = Math.min(startIndex + rowsPerPage, totalItems);
@@ -1542,6 +1549,9 @@ window.renderTransactionsPage = function() {
     
     pagination.append(`
         <li class="page-item ${prevDisabled}">
+            <a class="page-link" href="javascript:void(0)" onclick="changePage(1)" title="First Page"><i class="fa-solid fa-angles-left"></i></a>
+        </li>
+        <li class="page-item ${prevDisabled}">
             <a class="page-link" href="javascript:void(0)" onclick="changePage(${currentPage - 1})">Previous</a>
         </li>
     `);
@@ -1565,6 +1575,9 @@ window.renderTransactionsPage = function() {
     pagination.append(`
         <li class="page-item ${nextDisabled}">
             <a class="page-link" href="javascript:void(0)" onclick="changePage(${currentPage + 1})">Next</a>
+        </li>
+        <li class="page-item ${nextDisabled}">
+            <a class="page-link" href="javascript:void(0)" onclick="changePage(${totalPages})" title="Last Page"><i class="fa-solid fa-angles-right"></i></a>
         </li>
     `);
 }

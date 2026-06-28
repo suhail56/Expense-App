@@ -407,12 +407,24 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="d-flex align-items-center mb-3">
+                            <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
                                 <div class="form-check form-switch">
                                     <input class="form-check-input" type="checkbox" id="filterUnreviewedOnly">
                                     <label class="form-check-label text-white-50 ms-2" for="filterUnreviewedOnly"><i
                                             class="fa-solid fa-circle-exclamation text-info me-1"></i>Show Unreviewed
                                         (NEW) Only</label>
+                                </div>
+                                <div class="d-flex align-items-center gap-2">
+                                    <label class="text-white-50 small mb-0 text-nowrap"
+                                        for="rowsPerPageSelect">Rows-page:</label>
+                                    <select
+                                        class="form-select form-select-sm bg-transparent text-white border-secondary"
+                                        id="rowsPerPageSelect" style="width: auto; cursor: pointer;">
+                                        <option value="10">10</option>
+                                        <option value="20">20</option>
+                                        <option value="50">50</option>
+                                        <option value="100">100</option>
+                                    </select>
                                 </div>
                             </div>
                             <div class="table-responsive flex-grow-1">
