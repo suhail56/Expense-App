@@ -36,6 +36,18 @@
 
 <body>
 
+    <!-- Biometric Lock Screen Overlay -->
+    <div id="lockScreenOverlay" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(9, 9, 11, 0.95); backdrop-filter: blur(20px); z-index: 9999; flex-direction: column; align-items: center; justify-content: center;">
+        <div class="text-center">
+            <i class="fa-solid fa-lock fa-4x text-primary mb-4" style="filter: drop-shadow(0 0 20px rgba(13, 110, 253, 0.5));"></i>
+            <h2 class="fw-bold text-white mb-2">App Locked</h2>
+            <p class="text-white-50 mb-4">Authenticate using FaceID or TouchID to access your financial data.</p>
+            <button class="btn btn-primary btn-lg rounded-pill px-5 fw-bold" onclick="handleBiometricUnlock()" style="box-shadow: 0 10px 20px -5px rgba(13, 110, 253, 0.4);">
+                <i class="fa-solid fa-fingerprint me-2"></i> Unlock
+            </button>
+        </div>
+    </div>
+
     <!-- App Layout Container -->
     <div class="app-layout" id="appContent" style="display: none;">
 
@@ -628,6 +640,24 @@
                                 </div>
                             </div>
 
+                            <!-- Security Settings Card -->
+                            <div class="card glass-card mb-4" id="biometricSecurityCard" style="display: none;">
+                                <div class="card-body">
+                                    <h5 class="fw-bold mb-3"><i class="fa-solid fa-shield-halved me-2 text-success"></i>Security & Privacy</h5>
+                                    <p class="text-muted small">Protect your financial data by requiring FaceID, TouchID, or Windows Hello every time you open the app.</p>
+                                    
+                                    <div class="d-flex align-items-center justify-content-between p-3 rounded" style="background: rgba(255, 255, 255, 0.03);">
+                                        <div>
+                                            <h6 class="mb-0 fw-bold">Biometric App Lock</h6>
+                                            <small class="text-white-50" id="biometricStatusText">Currently Disabled</small>
+                                        </div>
+                                        <div class="form-check form-switch fs-4 mb-0">
+                                            <input class="form-check-input" type="checkbox" id="toggleBiometricsBtn" style="cursor: pointer;">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
                             <!-- Auto Categorization Rules Card -->
                             <div class="card glass-card mb-4">
                                 <div class="card-body">
@@ -816,6 +846,7 @@
     <script src="assets/js/flatpickr.min.js" defer></script>
 
     <!-- Custom Scripts -->
+    <script src="assets/js/security.js?v=2.1" defer></script>
     <script src="assets/js/router.js?v=2.1" defer></script>
     <script src="assets/js/app.js?v=2.1" defer></script>
 

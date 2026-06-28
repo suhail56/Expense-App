@@ -110,14 +110,36 @@ $(document).ready(function() {
     // Auth Check
     if (ghRepo && ghToken) {
         authOverlay.style.display = 'none';
-        appContent.style.display = 'flex';
-        $('#displayRepo').val(ghRepo);
-        initRouter();
-        initDevMode(); // Initialize DEV MODE badge if applicable
-        fetchData();
+        
+        if (typeof isBiometricsEnabled === 'function' && isBiometricsEnabled()) {
+            $('#lockScreenOverlay').css('display', 'flex');
+        } else {
+            appContent.style.display = 'flex';
+            $('#displayRepo').val(ghRepo);
+            initRouter();
+            initDevMode(); // Initialize DEV MODE badge if applicable
+            fetchData();
+        }
     } else {
         authOverlay.style.display = 'flex';
     }
+
+    window.handleBiometricUnlock = async function() {
+        if (typeof authenticateBiometrics === 'function') {
+            const success = await authenticateBiometrics();
+            if (success) {
+                $('#lockScreenOverlay').fadeOut(300, function() {
+                    appContent.style.display = 'flex';
+                    $('#displayRepo').val(ghRepo);
+                    initRouter();
+                    initDevMode();
+                    fetchData();
+                });
+            } else {
+                Toast.fire({ icon: 'error', title: 'Biometric Authentication Failed' });
+            }
+        }
+    };
 
     // Auth Form Submit
     $('#authForm').submit(function(e) {
@@ -313,6 +335,21 @@ $(document).ready(function() {
         currentSortDir = 'desc';
         currentPage = 1;
         renderTransactionsPage();
+    });
+
+    // Biometrics Toggle Listener
+    $('#toggleBiometricsBtn').change(async function() {
+        const isChecked = $(this).is(':checked');
+        if (isChecked) {
+            const success = await window.registerBiometrics();
+            if (!success) $(this).prop('checked', false);
+        } else {
+            window.disableBiometrics();
+        }
+        
+        const enabled = typeof isBiometricsEnabled === 'function' && isBiometricsEnabled();
+        $('#biometricStatusText').text(enabled ? 'Active - FaceID/TouchID Required' : 'Currently Disabled');
+        $('#biometricStatusText').toggleClass('text-success', enabled).toggleClass('text-white-50', !enabled);
     });
 
     // Auto-Categorization Rules Form
@@ -667,6 +704,14 @@ window.fetchData = function() {
             $('#syncStartDate').val(appData.settings.syncStartDate || '');
             let fpSync = document.querySelector('#syncStartDate')._flatpickr;
             if (fpSync) fpSync.setDate(appData.settings.syncStartDate || '');
+            
+            if (typeof isBiometricsSupported === 'function' && isBiometricsSupported()) {
+                $('#biometricSecurityCard').show();
+                const enabled = isBiometricsEnabled();
+                $('#toggleBiometricsBtn').prop('checked', enabled);
+                $('#biometricStatusText').text(enabled ? 'Active - FaceID/TouchID Required' : 'Currently Disabled');
+                $('#biometricStatusText').toggleClass('text-success', enabled).toggleClass('text-white-50', !enabled);
+            }
             
             // Populate email parser settings (or use defaults)
             $('#emailSender').val(appData.settings.emailSender || 'MashreqAlerts@mashreq.com');
