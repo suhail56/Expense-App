@@ -1871,9 +1871,17 @@ function renderExpensePieChart() {
             }
         }
     });
+    // Sort keys by custom category order
+    const sortedKeys = Object.keys(catTotals).sort((a, b) => {
+        let idxA = appData.expenseCategories.findIndex(c => c.id === a);
+        let idxB = appData.expenseCategories.findIndex(c => c.id === b);
+        if (idxA === -1) idxA = 9999;
+        if (idxB === -1) idxB = 9999;
+        return idxA - idxB;
+    });
 
-    const labels = Object.keys(catTotals).map(id => getCategoryName(id));
-    const data = Object.values(catTotals);
+    const labels = sortedKeys.map(id => getCategoryName(id));
+    const data = sortedKeys.map(id => catTotals[id]);
     
     if (expensePieChartInstance) {
         expensePieChartInstance.destroy();
