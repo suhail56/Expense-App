@@ -47,13 +47,13 @@ window.registerBiometrics = async function () {
         const publicKey = {
             challenge: challenge,
             rp: {
-                name: "Antigravity Finance",
+                name: "Finance",
                 id: window.location.hostname || "localhost"
             },
             user: {
                 id: userId,
-                name: "user@antigravity",
-                displayName: "Antigravity User"
+                name: "user@finance",
+                displayName: "Finance User"
             },
             pubKeyCredParams: [
                 { type: "public-key", alg: -7 }, // ES256
