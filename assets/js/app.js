@@ -2711,10 +2711,10 @@ function renderExpenseCalendar(filteredTx, currentYear, currentMonth, dailyExpen
 
         let amountsHtml = '';
         if (earned > 0) {
-            amountsHtml += `<div class="calendar-amount text-success" style="font-size:0.75rem;">+ AED ${earned.toFixed(0)}</div>`;
+            amountsHtml += `<div class="calendar-amount text-success">+ AED ${earned.toFixed(0)}</div>`;
         }
         if (spent > 0) {
-            amountsHtml += `<div class="calendar-amount text-danger" style="font-size:0.75rem;">- AED ${spent.toFixed(0)}</div>`;
+            amountsHtml += `<div class="calendar-amount text-danger">- AED ${spent.toFixed(0)}</div>`;
         }
         if (spent === 0 && earned === 0) {
             amountsHtml = `<div class="calendar-amount text-white-50 opacity-25">-</div>`;
