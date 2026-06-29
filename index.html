@@ -250,29 +250,6 @@
                         </div>
                     </div>
 
-                    <!-- ADVANCED ANALYTICS SECTION -->
-                    <div class="row mb-4" id="advancedAnalyticsRow">
-                        <div class="col-12">
-                            <div class="card glass-card border-0 shadow-lg" style="background: rgba(15, 23, 42, 0.6);">
-                                <div
-                                    class="card-body p-4 d-flex flex-column flex-md-row justify-content-around align-items-center">
-                                    <h5 class="card-title fw-bold text-white mb-4 mb-md-0"><i
-                                            class="fa-solid fa-wand-magic-sparkles text-warning me-2"></i>AI Forecast
-                                    </h5>
-                                    <div class="text-center mb-4 mb-md-0">
-                                        <div class="small text-white-50 text-uppercase tracking-wider mb-1">Average
-                                            Daily Spend</div>
-                                        <h3 class="fw-bold text-white mb-0" id="forecastDailyAvg">AED 0.00</h3>
-                                    </div>
-                                    <div class="text-center p-3 rounded" style="background: rgba(255,255,255,0.05);">
-                                        <div class="small text-white-50 text-uppercase tracking-wider mb-1">Projected
-                                            End of Month</div>
-                                        <h2 class="fw-bold text-danger mb-0" id="forecastEOM">AED 0.00</h2>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
 
                     <!-- Daily Calendar Section -->
                     <div class="row mb-4" id="calendarRow">
@@ -311,6 +288,30 @@
                                         class="hide-scrollbar">
                                         <div style="min-width: 650px; height: 100%;">
                                             <canvas id="yearlyChart"></canvas>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- ADVANCED ANALYTICS SECTION -->
+                        <div class="col-12 mb-4" id="advancedAnalyticsRow">
+                            <div class="card glass-card border-0 shadow-lg" style="background: rgba(15, 23, 42, 0.6);">
+                                <div class="card-body p-4">
+                                    <div class="d-flex align-items-start gap-4">
+                                        <div class="p-3 rounded-circle d-none d-md-flex align-items-center justify-content-center"
+                                            style="background: linear-gradient(135deg, rgba(139, 92, 246, 0.2) 0%, rgba(109, 40, 217, 0.4) 100%); box-shadow: 0 0 20px rgba(139, 92, 246, 0.3); width: 60px; height: 60px;">
+                                            <i class="fa-solid fa-brain fa-2x text-warning"></i>
+                                        </div>
+                                        <div class="flex-grow-1">
+                                            <h5 class="fw-bold text-white mb-2"><i
+                                                    class="fa-solid fa-wand-magic-sparkles text-warning me-2 d-md-none"></i>AI
+                                                Financial Insights</h5>
+                                            <div id="aiInsightsText" class="text-white-50"
+                                                style="font-size: 0.95rem; line-height: 1.6;">
+                                                <!-- Dynamic generated text -->
+                                                Analyzing your spending patterns...
+                                            </div>
                                         </div>
                                     </div>
                                 </div>

@@ -2634,8 +2634,60 @@ function renderDashboardAnalytics(filteredTx, totalExpense) {
     const dailyAvg = totalExpense / daysPassed;
     const projectedEOM = dailyAvg * daysInMonth;
 
-    $('#forecastDailyAvg').text(`AED ${dailyAvg.toFixed(2)}`);
-    $('#forecastEOM').text(`AED ${projectedEOM.toFixed(2)}`);
+    // Premium AI Financial Insights Generation
+    let aiText = '';
+    
+    let topCatId = null;
+    let maxCatSpent = 0;
+    
+    let localCatUsage = {};
+    filteredTx.forEach(tx => {
+        if (tx.type === 'expense') {
+            localCatUsage[tx.categoryId] = (localCatUsage[tx.categoryId] || 0) + parseFloat(tx.amount);
+        }
+    });
+
+    Object.keys(localCatUsage).forEach(id => {
+        if (localCatUsage[id] > maxCatSpent) {
+            maxCatSpent = localCatUsage[id];
+            topCatId = id;
+        }
+    });
+    
+    let totalBudget = 0;
+    if (appData.categoryLimits) {
+        Object.keys(appData.categoryLimits).forEach(id => {
+            totalBudget += parseFloat(appData.categoryLimits[id] || 0);
+        });
+    }
+
+    if (totalExpense === 0) {
+        aiText = "You haven't recorded any expenses for this period yet. Add transactions to receive AI insights on your spending patterns.";
+    } else {
+        let budgetText = "";
+        let topCatText = "";
+
+        if (totalBudget > 0) {
+            let projectedSavings = totalBudget - projectedEOM;
+            if (projectedSavings > 0) {
+                budgetText = `on track to <span class="text-success fw-bold">save AED ${projectedSavings.toFixed(0)}</span> against your total budget`;
+            } else {
+                budgetText = `<span class="text-danger fw-bold">projected to overspend by AED ${Math.abs(projectedSavings).toFixed(0)}</span> against your budget`;
+            }
+        } else {
+            budgetText = `pacing towards a total monthly spend of <span class="text-white fw-bold">AED ${projectedEOM.toFixed(0)}</span>`;
+        }
+        
+        if (topCatId) {
+            let catName = getCategoryName(topCatId);
+            let catPct = ((maxCatSpent / totalExpense) * 100).toFixed(0);
+            topCatText = ` Your highest expenditure is <span class="text-white fw-bold">${catName}</span>, which currently accounts for ${catPct}% of all spending.`;
+        }
+
+        aiText = `Based on your average daily spend of AED ${dailyAvg.toFixed(0)}, you are ${budgetText}.${topCatText}`;
+    }
+
+    $('#aiInsightsText').html(aiText);
 
     const dailyExpenses = {};
     const dailyIncomes = {};
