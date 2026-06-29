@@ -215,7 +215,13 @@ body.light-mode .mobile-header {
     font-size: 1.3rem; /* Slightly larger icon */
 }
 
-.nav-link:hover, .nav-link.active {
+@media (hover: hover) and (pointer: fine) {
+    .nav-link:hover {
+        color: var(--text-primary);
+    }
+}
+
+.nav-link.active {
     color: var(--text-primary);
 }
 
@@ -603,9 +609,11 @@ input:-webkit-autofill:active{
     height: auto;
     display: block;
 }
-.premium-settings-nav .glass-pill:hover {
-    background: rgba(255, 255, 255, 0.05);
-    color: white;
+@media (hover: hover) and (pointer: fine) {
+    .premium-settings-nav .glass-pill:hover {
+        background: rgba(255, 255, 255, 0.05);
+        color: white;
+    }
 }
 .premium-settings-nav .glass-pill.active {
     background: rgba(255, 255, 255, 0.1) !important;
