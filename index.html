@@ -301,6 +301,11 @@
                                 <div class="card-body p-4 text-center d-flex flex-column justify-content-center">
                                     <h5 class="card-title fw-bold text-white mb-4"><i
                                             class="fa-solid fa-heart-pulse text-danger me-2"></i>Financial Health Score
+                                        <i class="fa-solid fa-circle-info ms-2 text-white-50"
+                                            style="cursor: pointer; font-size: 0.9rem; transition: color 0.2s;"
+                                            onmouseover="this.classList.replace('text-white-50', 'text-white')"
+                                            onmouseout="this.classList.replace('text-white', 'text-white-50')"
+                                            data-bs-toggle="modal" data-bs-target="#healthScoreInfoModal"></i>
                                     </h5>
 
                                     <div class="d-flex flex-column align-items-center justify-content-center">
@@ -995,6 +1000,57 @@
                         <button type="submit" class="btn btn-success w-100 py-2 fw-bold"
                             id="saveDepositBtn">Deposit</button>
                     </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Health Score Info Modal -->
+    <div class="modal fade" id="healthScoreInfoModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content glass-card" style="background: rgba(15, 23, 42, 0.95);">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title fw-bold text-white"><i
+                            class="fa-solid fa-calculator text-primary me-2"></i>How is this calculated?</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                        aria-label="Close"></button>
+                </div>
+                <div class="modal-body border-0 text-white-50 pt-0">
+                    <p class="mb-4">The AI starts you at a perfect <strong>100 points</strong> each month and adjusts
+                        based on financial best practices:</p>
+
+                    <div class="mb-3">
+                        <h6 class="text-white fw-bold mb-1"><i
+                                class="fa-solid fa-piggy-bank text-success me-2"></i>Savings Rate</h6>
+                        <ul class="small mb-0" style="list-style-type: none; padding-left: 1.5rem;">
+                            <li><span class="text-success">+5 pts</span> if you save 20%+ of your income.</li>
+                            <li><span class="text-warning">-20 pts</span> if you save less than 10%.</li>
+                            <li><span class="text-danger">-40 pts</span> if you spend more than you earn.</li>
+                        </ul>
+                    </div>
+
+                    <div class="mb-3">
+                        <h6 class="text-white fw-bold mb-1"><i class="fa-solid fa-chart-pie text-info me-2"></i>Budget
+                            Utilization</h6>
+                        <ul class="small mb-0" style="list-style-type: none; padding-left: 1.5rem;">
+                            <li><span class="text-warning">-10 pts</span> if you exceed 90% of your total budget limits.
+                            </li>
+                            <li><span class="text-danger">-25 pts</span> if you exceed 100% of your total budget.</li>
+                        </ul>
+                    </div>
+
+                    <div>
+                        <h6 class="text-white fw-bold mb-1"><i
+                                class="fa-solid fa-triangle-exclamation text-warning me-2"></i>Category Discipline</h6>
+                        <ul class="small mb-0" style="list-style-type: none; padding-left: 1.5rem;">
+                            <li><span class="text-danger">-5 pts</span> for <em>every</em> individual category limit you
+                                exceed.</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-primary w-100 fw-bold rounded-pill" data-bs-dismiss="modal">Got
+                        it!</button>
                 </div>
             </div>
         </div>
