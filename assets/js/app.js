@@ -156,6 +156,12 @@ $(document).ready(function () {
         }
     };
 
+    window.fallbackToLogin = function () {
+        $('#lockScreenOverlay').fadeOut(300, function () {
+            authOverlay.style.display = 'flex';
+        });
+    };
+
     // Auth Form Submit
     $('#authForm').submit(function (e) {
         e.preventDefault();
