@@ -1775,8 +1775,13 @@ function renderDashboard() {
 
     // Render Category Summary Table
     let catUsage = {};
+    let catMerchantUsage = {};
+
     if (appData.expenseCategories) {
-        appData.expenseCategories.forEach(cat => catUsage[cat.id] = 0);
+        appData.expenseCategories.forEach(cat => {
+            catUsage[cat.id] = 0;
+            catMerchantUsage[cat.id] = {};
+        });
     }
 
     filteredTx.forEach(tx => {
@@ -1785,6 +1790,14 @@ function renderDashboard() {
                 catUsage[tx.categoryId] += parseFloat(tx.amount);
             } else {
                 catUsage[tx.categoryId] = parseFloat(tx.amount);
+            }
+
+            if (!catMerchantUsage[tx.categoryId]) catMerchantUsage[tx.categoryId] = {};
+            let mName = tx.merchant.trim() || 'Unknown';
+            if (catMerchantUsage[tx.categoryId][mName]) {
+                catMerchantUsage[tx.categoryId][mName] += parseFloat(tx.amount);
+            } else {
+                catMerchantUsage[tx.categoryId][mName] = parseFloat(tx.amount);
             }
         }
     });
@@ -1832,9 +1845,19 @@ function renderDashboard() {
             statusDisplay = `<span class="text-white-50">-</span>`;
         }
 
+        let topMerchantDisplay = '';
+        if (catMerchantUsage[catId] && Object.keys(catMerchantUsage[catId]).length > 0) {
+            let topMerchant = Object.keys(catMerchantUsage[catId]).reduce((a, b) => catMerchantUsage[catId][a] > catMerchantUsage[catId][b] ? a : b);
+            let topAmt = catMerchantUsage[catId][topMerchant];
+            topMerchantDisplay = `<div class="mt-1" style="color: #c084fc; font-size: 0.75rem;"><i class="fa-solid fa-crown text-warning me-1"></i>Top: ${escapeHTML(topMerchant)} (AED ${topAmt.toFixed(2)})</div>`;
+        }
+
         tbody.append(`
             <tr>
-                <td><span class="fw-bold"><i class="fa-solid fa-tag me-2 text-primary opacity-75"></i>${catName}</span></td>
+                <td>
+                    <span class="fw-bold"><i class="fa-solid fa-tag me-2 text-primary opacity-75"></i>${catName}</span>
+                    ${topMerchantDisplay}
+                </td>
                 <td class="text-end text-white-50">${limitDisplay}</td>
                 <td class="text-end fw-bold text-white">AED ${spent.toFixed(2)}</td>
                 <td class="text-end">${remainingDisplay}</td>
