@@ -294,12 +294,54 @@
                             </div>
                         </div>
 
+                        <!-- FINANCIAL HEALTH SCORE -->
+                        <div class="col-12 col-lg-5 mb-4">
+                            <div class="card glass-card border-0 shadow-lg h-100"
+                                style="background: rgba(15, 23, 42, 0.6);">
+                                <div class="card-body p-4 text-center d-flex flex-column justify-content-center">
+                                    <h5 class="card-title fw-bold text-white mb-4"><i
+                                            class="fa-solid fa-heart-pulse text-danger me-2"></i>Financial Health Score
+                                    </h5>
+
+                                    <div class="d-flex flex-column align-items-center justify-content-center">
+                                        <!-- Circular Progress Ring -->
+                                        <div class="position-relative d-inline-flex align-items-center justify-content-center mb-3"
+                                            style="width: 110px; height: 110px;">
+                                            <svg width="110" height="110" viewBox="0 0 110 110"
+                                                class="position-absolute" style="transform: rotate(-90deg);">
+                                                <circle cx="55" cy="55" r="45" fill="none"
+                                                    stroke="rgba(255,255,255,0.05)" stroke-width="10"></circle>
+                                                <circle id="healthScoreCircle" cx="55" cy="55" r="45" fill="none"
+                                                    stroke="#22c55e" stroke-width="10" stroke-dasharray="283"
+                                                    stroke-dashoffset="283" stroke-linecap="round"
+                                                    style="transition: stroke-dashoffset 1.5s ease-out, stroke 0.5s;">
+                                                </circle>
+                                            </svg>
+                                            <div class="d-flex flex-column align-items-center justify-content-center position-absolute w-100 h-100"
+                                                style="top: 0; left: 0;">
+                                                <span class="fs-2 fw-bold text-white lh-1"
+                                                    id="healthScoreValue">0</span>
+                                                <span class="text-white-50 small text-uppercase tracking-wider mt-1"
+                                                    style="font-size: 0.55rem;">Out of 100</span>
+                                            </div>
+                                        </div>
+
+                                        <h4 class="fw-bold text-white mb-2" id="healthScoreGrade">Evaluating...</h4>
+                                        <p class="text-white-50 small mb-0" id="healthScoreDesc"
+                                            style="max-width: 400px; margin: 0 auto;">Analyzing your budget
+                                            utilization...</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         <!-- ADVANCED ANALYTICS SECTION -->
-                        <div class="col-12 mb-4" id="advancedAnalyticsRow">
-                            <div class="card glass-card border-0 shadow-lg" style="background: rgba(15, 23, 42, 0.6);">
-                                <div class="card-body p-4">
-                                    <div class="d-flex align-items-start gap-4">
-                                        <div class="p-3 rounded-circle d-none d-md-flex align-items-center justify-content-center"
+                        <div class="col-12 col-lg-7 mb-4" id="advancedAnalyticsRow">
+                            <div class="card glass-card border-0 shadow-lg h-100"
+                                style="background: rgba(15, 23, 42, 0.6);">
+                                <div class="card-body p-4 d-flex flex-column justify-content-center">
+                                    <div class="d-flex align-items-center gap-4">
+                                        <div class="p-3 rounded-circle d-none d-md-flex align-items-center justify-content-center flex-shrink-0"
                                             style="background: linear-gradient(135deg, rgba(139, 92, 246, 0.2) 0%, rgba(109, 40, 217, 0.4) 100%); box-shadow: 0 0 20px rgba(139, 92, 246, 0.3); width: 60px; height: 60px;">
                                             <i class="fa-solid fa-brain fa-2x text-warning"></i>
                                         </div>

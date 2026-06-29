@@ -2641,9 +2641,12 @@ function renderDashboardAnalytics(filteredTx, totalExpense) {
     let maxCatSpent = 0;
     
     let localCatUsage = {};
+    let totalIncome = 0;
     filteredTx.forEach(tx => {
         if (tx.type === 'expense') {
             localCatUsage[tx.categoryId] = (localCatUsage[tx.categoryId] || 0) + parseFloat(tx.amount);
+        } else if (tx.type === 'income') {
+            totalIncome += parseFloat(tx.amount);
         }
     });
 
@@ -2660,6 +2663,93 @@ function renderDashboardAnalytics(filteredTx, totalExpense) {
             totalBudget += parseFloat(appData.categoryLimits[id] || 0);
         });
     }
+
+    // --- FINANCIAL HEALTH SCORE ---
+    let healthScore = 100;
+    let healthDesc = "Great job managing your finances!";
+
+    // 1. Savings Rate penalty/bonus
+    let savingsRate = 0;
+    if (totalIncome > 0) {
+        savingsRate = ((totalIncome - totalExpense) / totalIncome) * 100;
+        if (savingsRate < 0) {
+            healthScore -= 40; // Deficit
+            healthDesc = "You are spending more than you earn. Focus on cutting wants.";
+        } else if (savingsRate < 10) {
+            healthScore -= 20; // Low savings
+            healthDesc = "Your savings rate is low. Try to reach the 20% savings goal.";
+        } else if (savingsRate >= 20) {
+            healthScore += 5; // Excellent savings
+            healthDesc = "Excellent! You are hitting the 20% savings rule perfectly.";
+        }
+    } else if (totalExpense > 0) {
+        healthScore -= 30; // Spending with no income recorded
+        healthDesc = "High spending with no income recorded this month.";
+    } else if (totalExpense === 0 && totalIncome === 0) {
+        healthScore = 0;
+        healthDesc = "Add transactions to calculate your score.";
+    }
+
+    // 2. Budget utilization penalty
+    if (totalBudget > 0) {
+        let budgetUtil = (totalExpense / totalBudget) * 100;
+        if (budgetUtil > 100) {
+            healthScore -= 25;
+            healthDesc = "You have exceeded your total budget limits.";
+        } else if (budgetUtil > 90) {
+            healthScore -= 10;
+        }
+    }
+
+    // 3. Category specific overspends
+    let overBudgetCount = 0;
+    Object.keys(localCatUsage).forEach(id => {
+        if (appData.categoryLimits && appData.categoryLimits[id]) {
+            if (localCatUsage[id] > parseFloat(appData.categoryLimits[id])) {
+                overBudgetCount++;
+            }
+        }
+    });
+
+    healthScore -= (overBudgetCount * 5); // -5 for each category over limit
+    
+    // Clamp score
+    healthScore = Math.max(0, Math.min(100, healthScore));
+
+    // Determine Grade
+    let grade = "Excellent";
+    let circleColor = "#22c55e"; // green
+    if (healthScore === 0 && totalExpense === 0 && totalIncome === 0) {
+        grade = "No Data";
+        circleColor = "rgba(255,255,255,0.2)";
+    } else if (healthScore < 50) {
+        grade = "Needs Work";
+        circleColor = "#ef4444"; // red
+    } else if (healthScore < 80) {
+        grade = "Fair";
+        circleColor = "#f59e0b"; // warning orange
+    }
+
+    // Animate score
+    const circle = document.getElementById('healthScoreCircle');
+    if (circle) {
+        const radius = circle.r.baseVal.value;
+        const circumference = radius * 2 * Math.PI;
+        const offset = circumference - (healthScore / 100) * circumference;
+        
+        setTimeout(() => {
+            circle.style.strokeDashoffset = offset;
+            circle.style.stroke = circleColor;
+        }, 100);
+    }
+    
+    $('#healthScoreValue').text(Math.round(healthScore));
+    $('#healthScoreGrade').text(grade).css('color', circleColor);
+    if (overBudgetCount > 0 && healthScore >= 50 && totalExpense > 0) {
+        healthDesc += ` (${overBudgetCount} categor${overBudgetCount > 1 ? 'ies' : 'y'} over limit)`;
+    }
+    $('#healthScoreDesc').text(healthDesc);
+    // --- END FINANCIAL HEALTH SCORE ---
 
     if (totalExpense === 0) {
         aiText = "You haven't recorded any expenses for this period yet. Add transactions to receive AI insights on your spending patterns.";
