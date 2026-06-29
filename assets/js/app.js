@@ -1849,7 +1849,7 @@ function renderDashboard() {
         if (catMerchantUsage[catId] && Object.keys(catMerchantUsage[catId]).length > 0) {
             let topMerchant = Object.keys(catMerchantUsage[catId]).reduce((a, b) => catMerchantUsage[catId][a] > catMerchantUsage[catId][b] ? a : b);
             let topAmt = catMerchantUsage[catId][topMerchant];
-            topMerchantDisplay = `<div class="mt-1" style="color: #c084fc; font-size: 0.75rem;"><i class="fa-solid fa-crown text-warning me-1"></i>Top: ${escapeHTML(topMerchant)} (AED ${topAmt.toFixed(2)})</div>`;
+            topMerchantDisplay = `<div class="mt-1 fw-bold" style="color: #c084fc; font-size: 0.85rem;"><i class="fa-solid fa-crown text-warning me-1"></i>Top: ${escapeHTML(topMerchant)} (AED ${topAmt.toFixed(2)})</div>`;
         }
 
         tbody.append(`
