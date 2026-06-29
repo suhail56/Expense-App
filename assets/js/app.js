@@ -2038,13 +2038,8 @@ function renderYearlyChart() {
     const fullMonthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
     const labels = [];
 
-    const mobileList = $('#yearlyMobileList');
-    mobileList.empty();
-
     for (let i = 0; i < 12; i++) {
         let bal = monthlyBalance[i];
-        let inc = monthlyIncome[i];
-        let exp = monthlyExpense[i];
         let balStr = '';
         if (bal !== 0) {
             if (Math.abs(bal) >= 1000) {
@@ -2052,38 +2047,12 @@ function renderYearlyChart() {
             } else {
                 balStr = bal.toFixed(0);
             }
-            // Add a plus or minus for clarity
             balStr = (bal > 0 ? '+' : '') + balStr;
         } else {
             balStr = '-';
         }
         labels.push([monthNames[i], balStr]);
-
-        // Build Mobile Card
-        let balColor = bal < 0 ? 'text-danger' : (bal > 0 ? 'text-primary' : 'text-white');
-        let balPrefix = bal > 0 ? '+' : '';
-
-        mobileList.append(`
-            <div class="card bg-dark bg-opacity-50 border border-secondary border-opacity-25 mb-3">
-                <div class="card-body p-3">
-                    <h6 class="fw-bold text-white text-uppercase mb-3 border-bottom border-secondary border-opacity-25 pb-2">${fullMonthNames[i]}</h6>
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <span class="text-white-50 small fw-bold">Income</span>
-                        <span class="text-success fw-bold">AED ${inc.toFixed(2)}</span>
-                    </div>
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <span class="text-white-50 small fw-bold">Expense</span>
-                        <span class="text-danger fw-bold">AED ${exp.toFixed(2)}</span>
-                    </div>
-                    <div class="d-flex justify-content-between align-items-center pt-2 mt-2 border-top border-secondary border-opacity-25">
-                        <span class="text-white-50 small fw-bold">Net Balance</span>
-                        <span class="${balColor} fw-bold">${balPrefix} AED ${bal.toFixed(2)}</span>
-                    </div>
-                </div>
-            </div>
-        `);
     }
-
     if (yearlyChartInstance) {
         yearlyChartInstance.destroy();
     }
