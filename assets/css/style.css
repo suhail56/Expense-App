@@ -597,28 +597,34 @@ input:-webkit-autofill:active{
 }
 
 /* Premium Settings Nav Tabs */
+.premium-settings-nav {
+    padding-bottom: 5px; /* space for scrollbar */
+}
 .premium-settings-nav .glass-pill {
     color: var(--text-secondary);
-    background: transparent;
+    background: rgba(255, 255, 255, 0.03); /* Subtle background for inactive pills */
     border-radius: 12px;
-    padding: 1rem 1.2rem;
+    padding: 0.8rem 1.2rem;
     font-weight: 600;
-    text-align: left;
+    text-align: center;
     transition: all 0.3s ease;
-    border: 1px solid transparent !important;
+    border: 1px solid rgba(255, 255, 255, 0.05) !important;
     height: auto;
-    display: block;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap;
 }
 @media (hover: hover) and (pointer: fine) {
     .premium-settings-nav .glass-pill:hover {
-        background: rgba(255, 255, 255, 0.05);
+        background: rgba(255, 255, 255, 0.08);
         color: white;
     }
 }
 .premium-settings-nav .glass-pill.active {
     background: rgba(255, 255, 255, 0.1) !important;
     color: white !important;
-    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
 }
 .hide-scrollbar::-webkit-scrollbar {
