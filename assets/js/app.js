@@ -1578,7 +1578,7 @@ window.renderTransactionsPage = function () {
                 <td><span class="category-badge text-truncate d-inline-block" style="max-width: 120px;" title="${escapeHTML(catName)}">${escapeHTML(catName)}</span></td>
                 <td class="fw-bold text-nowrap ${amtColor}">${amtPrefix} AED ${tx.amount}</td>
                 <td class="text-nowrap">
-                    ${isNew ? `<button class="btn-action text-success" onclick="markTransactionAsReviewed('${tx.id}')" title="Mark as Reviewed"><i class="fa-solid fa-check-double"></i></button>` : ''}
+                    ${isNew ? `<button class="btn-action text-success" style="font-size: 1.25rem; padding: 8px 12px;" onclick="markTransactionAsReviewed('${tx.id}')" title="Mark as Reviewed"><i class="fa-solid fa-check-double"></i></button>` : ''}
                     <button class="btn-action" onclick="editTransaction('${tx.id}')" title="Edit"><i class="fa-solid fa-pen"></i></button>
                     <button class="btn-action delete" onclick="deleteTransaction('${tx.id}')" title="Delete"><i class="fa-solid fa-trash"></i></button>
                 </td>
