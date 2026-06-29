@@ -2637,9 +2637,6 @@ function renderDashboardAnalytics(filteredTx, totalExpense) {
     $('#forecastDailyAvg').text(`AED ${dailyAvg.toFixed(2)}`);
     $('#forecastEOM').text(`AED ${projectedEOM.toFixed(2)}`);
 
-    const heatmapGrid = $('#heatmapGrid');
-    heatmapGrid.empty();
-
     const dailyExpenses = {};
     const dailyIncomes = {};
     let maxDaily = 0;
@@ -2654,25 +2651,6 @@ function renderDashboardAnalytics(filteredTx, totalExpense) {
             dailyIncomes[day] = (dailyIncomes[day] || 0) + parseFloat(tx.amount);
         }
     });
-
-    for (let i = 1; i <= daysInMonth; i++) {
-        const spent = dailyExpenses[i] || 0;
-        let opacity = 0;
-        if (spent > 0) {
-            opacity = 0.2 + (0.8 * (spent / maxDaily));
-        }
-
-        let bgColor = spent > 0 ? `rgba(239, 68, 68, ${opacity})` : 'rgba(255,255,255,0.05)';
-
-        heatmapGrid.append(`
-            <div style="width: 25px; height: 25px; background: ${bgColor}; border-radius: 4px; cursor: pointer; transition: transform 0.2s;"
-                 title="Day ${i}: AED ${spent.toFixed(2)}"
-                 data-bs-toggle="tooltip"
-                 onmouseover="this.style.transform='scale(1.2)'"
-                 onmouseout="this.style.transform='scale(1)'">
-            </div>
-        `);
-    }
 
     $('[data-bs-toggle="tooltip"]').tooltip();
 
@@ -2697,6 +2675,12 @@ function renderExpenseCalendar(filteredTx, currentYear, currentMonth, dailyExpen
         calendarGrid.append('<div class="calendar-day empty"></div>');
     }
 
+    // Calculate max daily expense for heatmap scaling
+    let maxDaily = 0;
+    for (let day = 1; day <= daysInMonth; day++) {
+        if (dailyExpenses[day] > maxDaily) maxDaily = dailyExpenses[day];
+    }
+
     // Add cells for each day
     for (let day = 1; day <= daysInMonth; day++) {
         const spent = dailyExpenses[day] || 0;
@@ -2712,7 +2696,7 @@ function renderExpenseCalendar(filteredTx, currentYear, currentMonth, dailyExpen
             amountsHtml += `<div class="calendar-amount text-success">+ AED ${earned.toFixed(0)}</div>`;
         }
         if (spent > 0) {
-            amountsHtml += `<div class="calendar-amount text-danger">- AED ${spent.toFixed(0)}</div>`;
+            amountsHtml += `<div class="calendar-amount text-white fw-bold">- AED ${spent.toFixed(0)}</div>`;
         }
         if (spent === 0 && earned === 0) {
             amountsHtml = `<div class="calendar-amount text-white-50 opacity-25">-</div>`;
@@ -2720,8 +2704,15 @@ function renderExpenseCalendar(filteredTx, currentYear, currentMonth, dailyExpen
 
         const todayClass = isToday ? 'today' : '';
 
+        // Apply Heatmap Background
+        let heatmapStyle = '';
+        if (spent > 0 && maxDaily > 0) {
+            let opacity = 0.05 + (0.35 * (spent / maxDaily)); // Subtle red tint
+            heatmapStyle = `style="background: rgba(239, 68, 68, ${opacity}); border-color: rgba(239, 68, 68, ${opacity + 0.1});"`;
+        }
+
         calendarGrid.append(`
-            <div class="calendar-day ${todayClass}">
+            <div class="calendar-day ${todayClass}" ${heatmapStyle}>
                 <div class="calendar-date">${day}</div>
                 <div class="mt-auto d-flex flex-column justify-content-end">${amountsHtml}</div>
             </div>
