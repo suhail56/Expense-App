@@ -1506,12 +1506,33 @@ function renderRulesTable() {
     });
 }
 
-window.editRule = function (categoryId) {
+window.editRule = async function (categoryId) {
     const keywords = appData.categoryRules[categoryId];
-    $('#ruleCategory').val(categoryId);
-    $('#ruleKeywords').val(keywords.join(', '));
-    delete appData.categoryRules[categoryId];
-    renderRulesTable();
+    const catName = getCategoryName(categoryId);
+    
+    const { value: newKeywords } = await Swal.fire({
+        title: `Edit Rule: ${catName}`,
+        input: 'text',
+        inputValue: keywords.join(', '),
+        inputPlaceholder: 'Keywords separated by comma',
+        showCancelButton: true,
+        confirmButtonText: 'Save',
+        confirmButtonColor: '#10b981',
+        background: '#1e293b',
+        color: '#f8fafc'
+    });
+
+    if (newKeywords !== undefined) {
+        const processed = newKeywords.split(',').map(k => k.trim().toLowerCase()).filter(k => k);
+        if (processed.length > 0) {
+            appData.categoryRules[categoryId] = [...new Set(processed)];
+            renderRulesTable();
+            saveData();
+            Toast.fire({ icon: 'success', title: 'Rule updated' });
+        } else {
+            Toast.fire({ icon: 'warning', title: 'Keywords cannot be empty' });
+        }
+    }
 }
 
 window.deleteRule = function (categoryId) {
@@ -1555,12 +1576,32 @@ function renderLimitsTable() {
     });
 }
 
-window.editLimit = function (catId) {
+window.editLimit = async function (catId) {
     const limit = appData.categoryLimits[catId];
-    $('#limitCategory').val(catId);
-    $('#limitAmount').val(limit);
-    delete appData.categoryLimits[catId];
-    renderLimitsTable();
+    const catName = getCategoryName(catId);
+    
+    const { value: newLimit } = await Swal.fire({
+        title: `Edit Limit: ${catName}`,
+        input: 'number',
+        inputValue: limit,
+        inputAttributes: { min: 1, step: 1 },
+        showCancelButton: true,
+        confirmButtonText: 'Save',
+        confirmButtonColor: '#10b981',
+        background: '#1e293b',
+        color: '#f8fafc'
+    });
+
+    if (newLimit !== undefined) {
+        if (!isNaN(newLimit) && newLimit > 0) {
+            appData.categoryLimits[catId] = parseFloat(newLimit);
+            renderLimitsTable();
+            saveData();
+            Toast.fire({ icon: 'success', title: 'Limit updated' });
+        } else {
+            Toast.fire({ icon: 'warning', title: 'Invalid amount' });
+        }
+    }
 }
 
 window.deleteLimit = function (catId) {
