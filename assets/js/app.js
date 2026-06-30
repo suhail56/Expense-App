@@ -1768,10 +1768,10 @@ function renderDashboard() {
 
     renderDashboardAnalytics(filteredTx, expense);
 
-    $('#dashBalance').text(`AED ${timeframeBalance.toFixed(2)}`);
-    $('#dashIncome').text(`AED ${income.toFixed(2)}`);
-    $('#dashExpense').text(`AED ${expense.toFixed(2)}`);
-    $('#dashSavingsRate').text(`${savingsRate}%`);
+    $('.dashBalanceVal').text(`AED ${timeframeBalance.toFixed(2)}`);
+    $('.dashIncomeVal').text(`AED ${income.toFixed(2)}`);
+    $('.dashExpenseVal').text(`AED ${expense.toFixed(2)}`);
+    $('.dashSavingsRateVal').text(`${savingsRate}%`);
 
     // Render Category Summary Table
     let catUsage = {};

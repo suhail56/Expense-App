@@ -23,7 +23,27 @@ body {
     overflow-x: clip;
     background-attachment: fixed;
     transition: background-color 0.5s ease;
+    
+    /* Native App Feel */
     -webkit-overflow-scrolling: touch;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    user-select: none;
+    overscroll-behavior-y: none;
+}
+
+/* Allow text selection in inputs */
+input, textarea, select {
+    user-select: auto;
+}
+
+/* Hide scrollbars completely globally */
+::-webkit-scrollbar {
+    display: none;
+}
+* {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
 }
 
 /* Dynamic Page Themes */
@@ -915,4 +935,78 @@ input:-webkit-autofill:active{
     border-left: 4px solid var(--accent-red);
     padding: 12px 16px;
     border-radius: 0 8px 8px 0;
+}
+
+/* Mobile-Only Overhauls (Premium UI) */
+@media (max-width: 768px) {
+    /* Hide Category Table Headers */
+    #view-dashboard .custom-table thead {
+        display: none !important;
+    }
+    
+    /* Convert Category Table to Native-Like List */
+    #view-dashboard .custom-table tbody tr {
+        display: flex;
+        flex-direction: column;
+        padding: 1rem 0;
+        border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    
+    #view-dashboard .custom-table tbody td {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.35rem 0;
+        border: none !important;
+        text-align: right !important;
+        background: transparent !important;
+        font-size: 0.95rem;
+    }
+    
+    /* Ensure the first cell (Category Name) spans full width */
+    #view-dashboard .custom-table tbody td:nth-child(1) {
+        display: block;
+        font-size: 1.1rem;
+        margin-bottom: 0.5rem;
+        text-align: left !important;
+    }
+    
+    #view-dashboard .custom-table tbody td:nth-child(2)::before {
+        content: "Limit";
+        opacity: 0.5;
+        font-size: 0.85rem;
+    }
+    #view-dashboard .custom-table tbody td:nth-child(3)::before {
+        content: "Total Spent";
+        opacity: 0.5;
+        font-size: 0.85rem;
+    }
+    #view-dashboard .custom-table tbody td:nth-child(4)::before {
+        content: "Remaining";
+        opacity: 0.5;
+        font-size: 0.85rem;
+    }
+    #view-dashboard .custom-table tbody td:nth-child(5) {
+        display: none; /* Hide status badge on mobile to save space */
+    }
+
+    /* Restrict Chart Sizes */
+    #expensePieChart {
+        max-height: 250px !important;
+    }
+    
+    /* Mobile DataTables Pagination Cleanup */
+    .dataTables_paginate .paginate_button:not(.previous):not(.next) {
+        display: none !important;
+    }
+    .dataTables_wrapper .dataTables_info {
+        font-size: 0.8rem !important;
+        margin-bottom: 0.8rem;
+        text-align: center;
+    }
+    .dataTables_wrapper .dataTables_paginate {
+        display: flex;
+        justify-content: center;
+        width: 100%;
+    }
 }
