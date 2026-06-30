@@ -1815,10 +1815,7 @@ window.renderTransactionsPage = function () {
                             <button class="swipe-action-btn swipe-action-delete" onclick="deleteTransaction('${tx.id}')"><i class="fa-solid fa-trash"></i></button>
                         </div>
                         <div class="swipe-content p-3 d-flex align-items-center justify-content-between w-100" style="min-width: 0;">
-                            <div class="d-flex align-items-center gap-3 overflow-hidden flex-grow-1" style="min-width: 0;">
-                                <div class="rounded-circle d-flex justify-content-center align-items-center flex-shrink-0" style="width: 44px; height: 44px; background: rgba(255,255,255,0.05);">
-                                    <i class="fa-solid ${tx.type === 'income' ? 'fa-arrow-trend-up text-success' : 'fa-basket-shopping text-white-50'}"></i>
-                                </div>
+                            <div class="d-flex align-items-center overflow-hidden flex-grow-1" style="min-width: 0;">
                                 <div class="overflow-hidden pe-2 w-100" style="min-width: 0;">
                                     <h6 class="mb-0 fw-bold text-truncate w-100">${escapeHTML(tx.merchant)}</h6>
                                     <small class="text-white-50 d-block text-truncate w-100">${escapeHTML(catName)} • ${formattedDate.split(' ')[0]}</small>
