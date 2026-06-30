@@ -116,6 +116,7 @@ document.addEventListener('touchstart', (e) => {
     if (!swipeContent) {
         // Reset any open rows if tapping elsewhere
         if (activeSwipeRow && !e.target.closest('.swipe-row-wrapper')) {
+            activeSwipeRow.classList.remove('dragging');
             activeSwipeRow.style.transform = 'translateX(0)';
             activeSwipeRow = null;
         }
@@ -124,11 +125,20 @@ document.addEventListener('touchstart', (e) => {
     
     // Close previously active row if tapping a different one
     if (activeSwipeRow && activeSwipeRow !== swipeContent) {
+        activeSwipeRow.classList.remove('dragging');
         activeSwipeRow.style.transform = 'translateX(0)';
     }
     
-    swipeStartX = e.touches[0].clientX;
     activeSwipeRow = swipeContent;
+    
+    let initialOffset = 0;
+    const currentTransform = activeSwipeRow.style.transform;
+    if (currentTransform && currentTransform.includes('translateX')) {
+        initialOffset = parseFloat(currentTransform.replace('translateX(', '').replace('px)', ''));
+        if (isNaN(initialOffset)) initialOffset = 0;
+    }
+    
+    swipeStartX = e.touches[0].clientX - initialOffset;
     activeSwipeRow.classList.add('dragging');
 }, { passive: true });
 
@@ -155,7 +165,9 @@ document.addEventListener('touchmove', (e) => {
 
 document.addEventListener('touchend', (e) => {
     if (!activeSwipeRow) return;
+    
     activeSwipeRow.classList.remove('dragging');
+    void activeSwipeRow.offsetWidth; // Force reflow for smooth transition
     
     const wrapper = activeSwipeRow.closest('.swipe-row-wrapper');
     const hasLeft = wrapper.querySelector('.swipe-actions-left') !== null;
@@ -1519,7 +1531,8 @@ window.editRule = async function (categoryId) {
         confirmButtonText: 'Save',
         confirmButtonColor: '#10b981',
         background: '#1e293b',
-        color: '#f8fafc'
+        color: '#f8fafc',
+        heightAuto: false
     });
 
     if (newKeywords !== undefined) {
@@ -1589,7 +1602,8 @@ window.editLimit = async function (catId) {
         confirmButtonText: 'Save',
         confirmButtonColor: '#10b981',
         background: '#1e293b',
-        color: '#f8fafc'
+        color: '#f8fafc',
+        heightAuto: false
     });
 
     if (newLimit !== undefined) {
