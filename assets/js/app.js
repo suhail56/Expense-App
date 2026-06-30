@@ -103,98 +103,7 @@ window.triggerHaptic = function (type = 'light') {
     } catch (e) { }
 };
 
-// --- Pull to Refresh Engine ---
-let touchStartY = 0;
-let touchStartX = 0;
-let pullDistance = 0;
-let isPulling = false;
-let lastScrollTime = 0;
-const PTR_THRESHOLD = 120; // Increased threshold
-
-window.addEventListener('scroll', () => {
-    lastScrollTime = Date.now();
-}, { passive: true });
-
-document.addEventListener('touchstart', (e) => {
-    // Strict check to ensure we are truly at the top
-    // AND the user hasn't scrolled in the last 200ms (prevents triggering when tapping to stop scroll inertia)
-    if (window.scrollY <= 0 && document.documentElement.scrollTop <= 0 && (Date.now() - lastScrollTime > 200)) {
-        touchStartY = e.touches[0].clientY;
-        touchStartX = e.touches[0].clientX;
-        isPulling = true;
-    }
-}, { passive: true });
-
-document.addEventListener('touchmove', (e) => {
-    if (!isPulling) return;
-    const currentY = e.touches[0].clientY;
-    const currentX = e.touches[0].clientX;
-    pullDistance = currentY - touchStartY;
-
-    // Abort if the user is swiping horizontally more than vertically
-    if (Math.abs(currentX - touchStartX) > Math.abs(pullDistance)) {
-        isPulling = false;
-        return;
-    }
-    
-    if (pullDistance > 0 && window.scrollY <= 0) {
-        let ptrEl = document.getElementById('ptr-loader');
-        if (!ptrEl) {
-            ptrEl = document.createElement('div');
-            ptrEl.id = 'ptr-loader';
-            ptrEl.innerHTML = '<i class="fa-solid fa-rotate text-primary fs-3"></i>';
-            ptrEl.style.cssText = 'position:fixed; top:-60px; left:50%; transform:translateX(-50%); z-index:9999; background:rgba(30,41,59,0.95); backdrop-filter:blur(10px); border:1px solid rgba(255,255,255,0.1); border-radius:50%; width:45px; height:45px; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 15px rgba(0,0,0,0.5); transition: top 0.1s;';
-            document.body.appendChild(ptrEl);
-        }
-        
-        let visualPull = Math.min(pullDistance * 0.4, 80);
-        ptrEl.style.top = `${-60 + visualPull}px`;
-        ptrEl.style.transform = `translateX(-50%) rotate(${visualPull * 5}deg)`;
-        
-        if (pullDistance > PTR_THRESHOLD) {
-            if (!ptrEl.dataset.thresholdHit) {
-                window.triggerHaptic('light');
-                ptrEl.dataset.thresholdHit = "true";
-            }
-        } else {
-            ptrEl.dataset.thresholdHit = "";
-        }
-    }
-}, { passive: true });
-
-document.addEventListener('touchend', () => {
-    if (!isPulling) return;
-    isPulling = false;
-    
-    let ptrEl = document.getElementById('ptr-loader');
-    if (ptrEl) {
-        if (pullDistance > PTR_THRESHOLD) {
-            ptrEl.style.transition = 'top 0.3s ease';
-            ptrEl.style.top = '25px';
-            ptrEl.querySelector('i').classList.add('fa-spin');
-            window.triggerHaptic('medium');
-            
-            // Trigger Sync
-            setTimeout(() => {
-                const dashSyncBtn = document.querySelector('.dashSyncBtn');
-                if (dashSyncBtn) {
-                    dashSyncBtn.click();
-                } else if (typeof window.fetchData === 'function') {
-                    window.fetchData(true);
-                }
-                setTimeout(() => {
-                    ptrEl.style.top = '-100px';
-                    setTimeout(() => ptrEl.remove(), 300);
-                }, 1500); // Artificial delay to show spinner
-            }, 300);
-        } else {
-            ptrEl.style.transition = 'top 0.3s ease';
-            ptrEl.style.top = '-100px';
-            setTimeout(() => ptrEl.remove(), 300);
-        }
-    }
-    pullDistance = 0;
-});
+// Pull to Refresh Engine has been removed per user request
 
 // --- Swipe to Action Engine ---
 let swipeStartX = 0;
@@ -2777,7 +2686,7 @@ window.renderBudgetsPage = function () {
                     <div class="gradient-track my-2" style="height: 6px; background: rgba(0,0,0,0.3); border-radius: 3px;">
                         <div class="gradient-fill" style="width: 0%; height: 100%; border-radius: 3px; background: linear-gradient(90deg, ${gradStart}, ${gradEnd});"></div>
                     </div>
-                    <div class="d-flex justify-content-between text-white-50 mt-2" style="font-size: 0.75rem;">
+                    <div class="d-flex justify-content-between text-white-50 mt-2" style="font-size: 0.9rem;">
                         <span>AED ${spent.toFixed(0)} / ${limit.toFixed(0)}</span>
                         <span class="${item.pct >= 100 ? 'text-danger fw-bold' : 'text-success'}">AED ${available} Left</span>
                     </div>
@@ -2958,7 +2867,7 @@ function renderGoals() {
                                     </div>
                                     <div>
                                         <h6 class="fw-bold mb-0 text-white text-truncate" style="max-width: 170px;">${escapeHTML(goal.name)}</h6>
-                                        <small class="text-white-50 d-block mt-1" style="font-size: 0.75rem;">AED ${goal.savedAmount.toFixed(0)} / ${goal.targetAmount.toFixed(0)}</small>
+                                        <small class="text-white-50 d-block mt-1" style="font-size: 0.9rem;">AED ${goal.savedAmount.toFixed(0)} / ${goal.targetAmount.toFixed(0)}</small>
                                     </div>
                                 </div>
                                 <div class="d-flex align-items-center gap-2">
