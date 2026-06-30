@@ -371,6 +371,9 @@ body.light-mode .mobile-header {
 
 /* Mobile-friendly Transactions Table */
 @media (max-width: 768px) {
+    .app-view {
+        padding-bottom: 90px;
+    }
     #view-transactions .custom-table thead {
         display: none;
     }

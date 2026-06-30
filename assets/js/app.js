@@ -1487,14 +1487,19 @@ function renderRulesTable() {
         const keywords = appData.categoryRules[categoryId];
         const catName = getCategoryName(categoryId);
         tbody.append(`
-            <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center p-3 rounded mb-2" style="background: rgba(0,0,0,0.15); border: 1px solid rgba(255,255,255,0.05);">
-                <div class="mb-2 mb-sm-0 text-truncate">
-                    <span class="category-badge mb-2 d-inline-block">${escapeHTML(catName)}</span>
-                    <div class="small text-white-50 lh-sm text-truncate">${escapeHTML(keywords.join(', '))}</div>
+            <div class="d-flex justify-content-between align-items-center p-3 rounded-3 mb-2 shadow-sm" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05);">
+                <div class="d-flex align-items-center gap-3 overflow-hidden pe-2">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 40px; height: 40px; background: rgba(255,255,255,0.05);">
+                        <i class="fa-solid fa-wand-magic-sparkles text-info"></i>
+                    </div>
+                    <div class="overflow-hidden w-100" style="min-width: 0;">
+                        <h6 class="fw-bold mb-1 text-white text-truncate w-100">${escapeHTML(catName)}</h6>
+                        <small class="text-white-50 d-block text-truncate w-100">${escapeHTML(keywords.join(', '))}</small>
+                    </div>
                 </div>
-                <div class="text-end text-sm-start mt-2 mt-sm-0 flex-shrink-0">
-                    <button class="btn-action edit me-2" onclick="editRule('${categoryId}')"><i class="fa-solid fa-pen-to-square"></i></button>
-                    <button class="btn-action delete" onclick="deleteRule('${categoryId}')"><i class="fa-solid fa-trash"></i></button>
+                <div class="flex-shrink-0 d-flex gap-2">
+                    <button class="btn btn-sm btn-outline-secondary rounded-circle d-flex align-items-center justify-content-center p-0" style="width: 32px; height: 32px;" onclick="editRule('${categoryId}')"><i class="fa-solid fa-pen"></i></button>
+                    <button class="btn btn-sm btn-outline-danger rounded-circle d-flex align-items-center justify-content-center p-0" style="width: 32px; height: 32px;" onclick="deleteRule('${categoryId}')"><i class="fa-solid fa-trash"></i></button>
                 </div>
             </div>
         `);
@@ -1531,14 +1536,19 @@ function renderLimitsTable() {
     Object.keys(appData.categoryLimits).forEach(catId => {
         const catName = getCategoryName(catId);
         tbody.append(`
-            <div class="d-flex justify-content-between align-items-center p-3 rounded mb-2" style="background: rgba(0,0,0,0.15); border: 1px solid rgba(255,255,255,0.05);">
-                <div class="text-truncate">
-                    <span class="category-badge d-inline-block mb-1">${escapeHTML(catName)}</span>
-                    <div class="fw-bold text-white small">AED ${parseFloat(appData.categoryLimits[catId]).toFixed(2)}</div>
+            <div class="d-flex justify-content-between align-items-center p-3 rounded-3 mb-2 shadow-sm" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05);">
+                <div class="d-flex align-items-center gap-3 overflow-hidden pe-2">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 40px; height: 40px; background: rgba(255,255,255,0.05);">
+                        <i class="fa-solid fa-tags text-warning"></i>
+                    </div>
+                    <div class="overflow-hidden w-100" style="min-width: 0;">
+                        <h6 class="fw-bold mb-1 text-white text-truncate w-100">${escapeHTML(catName)}</h6>
+                        <span class="text-warning fw-bold small">AED ${parseFloat(appData.categoryLimits[catId]).toFixed(2)}</span>
+                    </div>
                 </div>
-                <div class="flex-shrink-0">
-                    <button class="btn-action edit me-2" onclick="editLimit('${catId}')"><i class="fa-solid fa-pen-to-square"></i></button>
-                    <button class="btn-action delete" onclick="deleteLimit('${catId}')"><i class="fa-solid fa-trash"></i></button>
+                <div class="flex-shrink-0 d-flex gap-2">
+                    <button class="btn btn-sm btn-outline-secondary rounded-circle d-flex align-items-center justify-content-center p-0" style="width: 32px; height: 32px;" onclick="editLimit('${catId}')"><i class="fa-solid fa-pen"></i></button>
+                    <button class="btn btn-sm btn-outline-danger rounded-circle d-flex align-items-center justify-content-center p-0" style="width: 32px; height: 32px;" onclick="deleteLimit('${catId}')"><i class="fa-solid fa-trash"></i></button>
                 </div>
             </div>
         `);
