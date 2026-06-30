@@ -1009,4 +1009,9 @@ input:-webkit-autofill:active{
         justify-content: center;
         width: 100%;
     }
+    
+    /* Mobile Custom Pagination Cleanup */
+    #transactionsPagination .page-item:not(:first-child):not(:last-child):not(:nth-child(2)):not(:nth-last-child(2)) {
+        display: none !important;
+    }
 }

@@ -1578,15 +1578,41 @@ window.renderTransactionsPage = function () {
 
         tbody.append(`
             <tr ${isNew ? 'style="background: rgba(13, 202, 240, 0.05);"' : ''}>
-                <td class="text-nowrap">${formattedDate}${newBadge}</td>
-                <td class="fw-bold text-truncate" style="max-width: 180px;" title="${escapeHTML(tx.merchant)}">${escapeHTML(tx.merchant)}</td>
-                <td><span class="badge ${typeBadgeClass} text-uppercase">${tx.type}</span></td>
-                <td><span class="category-badge text-truncate d-inline-block" style="max-width: 120px;" title="${escapeHTML(catName)}">${escapeHTML(catName)}</span></td>
-                <td class="fw-bold text-nowrap ${amtColor}">${amtPrefix} AED ${tx.amount}</td>
-                <td class="text-nowrap">
+                <!-- Desktop View (Hidden on Mobile) -->
+                <td class="d-none d-md-table-cell text-nowrap">${formattedDate}${newBadge}</td>
+                <td class="d-none d-md-table-cell fw-bold text-truncate" style="max-width: 180px;" title="${escapeHTML(tx.merchant)}">${escapeHTML(tx.merchant)}</td>
+                <td class="d-none d-md-table-cell"><span class="badge ${typeBadgeClass} text-uppercase">${tx.type}</span></td>
+                <td class="d-none d-md-table-cell"><span class="category-badge text-truncate d-inline-block" style="max-width: 120px;" title="${escapeHTML(catName)}">${escapeHTML(catName)}</span></td>
+                <td class="d-none d-md-table-cell fw-bold text-nowrap ${amtColor}">${amtPrefix} AED ${tx.amount}</td>
+                <td class="d-none d-md-table-cell text-nowrap">
                     ${isNew ? `<button class="btn-action text-success" style="font-size: 1.25rem; padding: 8px 12px;" onclick="markTransactionAsReviewed('${tx.id}')" title="Mark as Reviewed"><i class="fa-solid fa-check-double"></i></button>` : ''}
                     <button class="btn-action" onclick="editTransaction('${tx.id}')" title="Edit"><i class="fa-solid fa-pen"></i></button>
                     <button class="btn-action delete" onclick="deleteTransaction('${tx.id}')" title="Delete"><i class="fa-solid fa-trash"></i></button>
+                </td>
+
+                <!-- Mobile View (Hidden on Desktop) -->
+                <td class="d-md-none p-3 w-100 border-0 border-bottom" style="border-color: rgba(255,255,255,0.05) !important; background: transparent;">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div class="d-flex align-items-center gap-3 overflow-hidden">
+                            <div class="rounded-circle d-flex justify-content-center align-items-center flex-shrink-0" style="width: 44px; height: 44px; background: rgba(255,255,255,0.05);">
+                                <i class="fa-solid ${tx.type === 'income' ? 'fa-arrow-trend-up text-success' : 'fa-basket-shopping text-white-50'}"></i>
+                            </div>
+                            <div class="overflow-hidden">
+                                <h6 class="mb-0 fw-bold text-truncate" style="max-width: 160px;">${escapeHTML(tx.merchant)}</h6>
+                                <small class="text-white-50 d-block text-truncate">${escapeHTML(catName)} • ${formattedDate.split(' ')[0]}</small>
+                            </div>
+                        </div>
+                        <div class="text-end ms-2 flex-shrink-0 d-flex align-items-center">
+                            <div class="d-flex flex-column align-items-end">
+                                <h6 class="mb-0 fw-bold ${amtColor}">${amtPrefix} AED ${tx.amount}</h6>
+                                ${newBadge ? `<span class="badge bg-info text-dark mt-1" style="font-size: 0.55rem;">NEW</span>` : ''}
+                            </div>
+                            <!-- Subtle Context Menu Trigger -->
+                            <button class="btn btn-link text-white-50 p-0 ms-3" style="text-decoration: none;" onclick="editTransaction('${tx.id}')">
+                                <i class="fa-solid fa-ellipsis-vertical fs-5"></i>
+                            </button>
+                        </div>
+                    </div>
                 </td>
             </tr>
         `);
@@ -2211,6 +2237,15 @@ window.editTransaction = function (id) {
 
         $('#txCategory').val(tx.categoryId);
         $('#transactionModalTitle').text('Edit Transaction');
+        
+        // Show and wire up delete button
+        const deleteBtn = $('#deleteModalBtn');
+        deleteBtn.removeClass('d-none');
+        deleteBtn.off('click').on('click', function() {
+            $('#addTransactionModal').modal('hide');
+            deleteTransaction(id);
+        });
+
         $('#addTransactionModal').modal('show');
     }
 }
@@ -2249,6 +2284,7 @@ $('#addTransactionModal').on('hidden.bs.modal', function () {
     $('#typeExpense').prop('checked', true);
     updateTransactionModalCategories();
     $('#transactionModalTitle').text('Add Transaction');
+    $('#deleteModalBtn').addClass('d-none').off('click');
 });
 
 // Budgets Page Logic
