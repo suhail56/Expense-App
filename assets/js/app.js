@@ -105,13 +105,16 @@ window.triggerHaptic = function (type = 'light') {
 
 // --- Pull to Refresh Engine ---
 let touchStartY = 0;
+let touchStartX = 0;
 let pullDistance = 0;
 let isPulling = false;
-const PTR_THRESHOLD = 90;
+const PTR_THRESHOLD = 120; // Increased threshold
 
 document.addEventListener('touchstart', (e) => {
-    if (window.scrollY <= 0) {
+    // Strict check to ensure we are truly at the top
+    if (window.scrollY <= 0 && document.documentElement.scrollTop <= 0) {
         touchStartY = e.touches[0].clientY;
+        touchStartX = e.touches[0].clientX;
         isPulling = true;
     }
 }, { passive: true });
@@ -119,7 +122,14 @@ document.addEventListener('touchstart', (e) => {
 document.addEventListener('touchmove', (e) => {
     if (!isPulling) return;
     const currentY = e.touches[0].clientY;
+    const currentX = e.touches[0].clientX;
     pullDistance = currentY - touchStartY;
+
+    // Abort if the user is swiping horizontally more than vertically
+    if (Math.abs(currentX - touchStartX) > Math.abs(pullDistance)) {
+        isPulling = false;
+        return;
+    }
     
     if (pullDistance > 0 && window.scrollY <= 0) {
         let ptrEl = document.getElementById('ptr-loader');
@@ -681,8 +691,31 @@ $(document).ready(function () {
         const gasUrl = appData.settings.gasUrl;
         const startDate = appData.settings.syncStartDate || '';
 
-        $('#triggerSyncBtn').prop('disabled', true).html('<i class="fa-solid fa-spinner fa-spin me-2"></i>Syncing...');
-        $('.dashSyncBtn').prop('disabled', true).html('<i class="fa-solid fa-spinner fa-spin me-2"></i>Syncing...');
+        function setSyncBtnState(isSyncing) {
+            if (isSyncing) {
+                $('#triggerSyncBtn').prop('disabled', true).html('<i class="fa-solid fa-spinner fa-spin me-2"></i>Syncing...');
+                $('.dashSyncBtn').each(function() {
+                    $(this).prop('disabled', true);
+                    if ($(this).closest('.mobile-header').length > 0) {
+                        $(this).html('<i class="fa-solid fa-spinner fa-spin"></i>');
+                    } else {
+                        $(this).html('<i class="fa-solid fa-spinner fa-spin me-2"></i>Syncing...');
+                    }
+                });
+            } else {
+                $('#triggerSyncBtn').prop('disabled', false).html('<i class="fa-solid fa-bolt me-2"></i> Sync Now');
+                $('.dashSyncBtn').each(function() {
+                    $(this).prop('disabled', false);
+                    if ($(this).closest('.mobile-header').length > 0) {
+                        $(this).html('<i class="fa-solid fa-bolt"></i>');
+                    } else {
+                        $(this).html('<i class="fa-solid fa-bolt me-1"></i> Sync Now');
+                    }
+                });
+            }
+        }
+
+        setSyncBtnState(true);
 
         $.ajax({
             url: gasUrl,
@@ -695,8 +728,7 @@ $(document).ready(function () {
                 dbFileName: getDatabaseFileName()
             },
             success: function (res) {
-                $('#triggerSyncBtn').prop('disabled', false).html('<i class="fa-solid fa-bolt me-2"></i> Sync Now');
-                $('.dashSyncBtn').prop('disabled', false).html('<i class="fa-solid fa-bolt me-1"></i> Sync Now');
+                setSyncBtnState(false);
                 if (res.status === 'success') {
                     Swal.fire({ title: 'Sync Complete', text: res.message, icon: 'success', background: 'rgba(15, 23, 42, 0.85)', color: '#f8fafc' });
                     localStorage.setItem('lastSyncNowTime', new Date().toISOString());
@@ -713,8 +745,7 @@ $(document).ready(function () {
                 }
             },
             error: function (err) {
-                $('#triggerSyncBtn').prop('disabled', false).html('<i class="fa-solid fa-bolt me-2"></i> Sync Now');
-                $('.dashSyncBtn').prop('disabled', false).html('<i class="fa-solid fa-bolt me-1"></i> Sync Now');
+                setSyncBtnState(false);
                 Swal.fire({ title: 'Error', text: 'Error contacting Google Apps Script.', icon: 'error', background: 'rgba(15, 23, 42, 0.85)', color: '#f8fafc' });
                 console.error(err);
             }
@@ -1817,21 +1848,22 @@ window.renderTransactionsPage = function () {
                             <button class="swipe-action-btn swipe-action-edit" onclick="editTransaction('${tx.id}')"><i class="fa-solid fa-pen"></i></button>
                             <button class="swipe-action-btn swipe-action-delete" onclick="deleteTransaction('${tx.id}')"><i class="fa-solid fa-trash"></i></button>
                         </div>
-                        <div class="swipe-content p-3 d-flex align-items-center justify-content-between">
-                            <div class="d-flex align-items-center gap-3 overflow-hidden">
+                        <div class="swipe-content p-3 d-flex align-items-center justify-content-between w-100">
+                            <div class="d-flex align-items-center gap-3 overflow-hidden flex-grow-1">
                                 <div class="rounded-circle d-flex justify-content-center align-items-center flex-shrink-0" style="width: 44px; height: 44px; background: rgba(255,255,255,0.05);">
                                     <i class="fa-solid ${tx.type === 'income' ? 'fa-arrow-trend-up text-success' : 'fa-basket-shopping text-white-50'}"></i>
                                 </div>
-                                <div class="overflow-hidden">
-                                    <h6 class="mb-0 fw-bold text-truncate" style="max-width: 160px;">${escapeHTML(tx.merchant)}</h6>
-                                    <small class="text-white-50 d-block text-truncate">${escapeHTML(catName)} • ${formattedDate.split(' ')[0]}</small>
+                                <div class="overflow-hidden pe-2 w-100">
+                                    <h6 class="mb-0 fw-bold text-truncate w-100">${escapeHTML(tx.merchant)}</h6>
+                                    <small class="text-white-50 d-block text-truncate w-100">${escapeHTML(catName)} • ${formattedDate.split(' ')[0]}</small>
                                 </div>
                             </div>
-                            <div class="text-end ms-2 flex-shrink-0 d-flex align-items-center">
+                            <div class="text-end flex-shrink-0 d-flex align-items-center gap-2">
                                 <div class="d-flex flex-column align-items-end">
-                                    <h6 class="mb-0 fw-bold ${amtColor}">${amtPrefix} AED ${tx.amount}</h6>
-                                    ${newBadge ? `<span class="badge bg-info text-dark mt-1" style="font-size: 0.55rem;">NEW</span>` : ''}
+                                    <h6 class="mb-0 fw-bold ${amtColor}">${amtPrefix} AED ${Math.abs(tx.amount).toFixed(2)}</h6>
+                                    ${isNew ? `<span class="badge bg-info text-dark mt-1" style="font-size: 0.55rem; padding: 0.25em 0.5em;">NEW</span>` : ''}
                                 </div>
+                                ${isNew ? `<button class="btn btn-sm text-success p-0 flex-shrink-0 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; background: rgba(25, 135, 84, 0.1); border-radius: 50%;" onclick="markTransactionAsReviewed('${tx.id}')"><i class="fa-solid fa-check"></i></button>` : ''}
                             </div>
                         </div>
                     </div>
@@ -2213,8 +2245,9 @@ function renderExpensePieChart() {
                     position: 'bottom',
                     labels: {
                         color: '#ffffff',
-                        font: { size: 12, family: "'Inter', sans-serif" },
-                        padding: 15,
+                        font: { size: window.innerWidth <= 768 ? 11 : 12, family: "'Inter', sans-serif" },
+                        padding: window.innerWidth <= 768 ? 10 : 15,
+                        boxWidth: 15,
                         generateLabels: (chart) => {
                             const datasets = chart.data.datasets;
                             return chart.data.labels.map((label, i) => {
@@ -2223,11 +2256,18 @@ function renderExpensePieChart() {
 
                                 let sum = 0;
                                 ds.data.forEach(d => sum += d);
-                                const pct = sum > 0 ? (value * 100 / sum).toFixed(0) + '%' : '';
+                                const pctNum = sum > 0 ? (value * 100 / sum) : 0;
+                                const pct = pctNum.toFixed(0) + '%';
+
+                                // Truncate very long category names on mobile
+                                let shortLabel = label;
+                                if (window.innerWidth <= 768 && shortLabel.length > 15) {
+                                    shortLabel = shortLabel.substring(0, 15) + '...';
+                                }
 
                                 const text = (ds.data.length === 1 && label === 'No Expenses Yet')
                                     ? 'No Expenses Recorded'
-                                    : `${label}: AED ${value.toFixed(2)} (${pct})`;
+                                    : `${shortLabel}: AED ${value.toFixed(0)} (${pct})`;
 
                                 return {
                                     text: text,
@@ -2261,8 +2301,10 @@ function renderExpensePieChart() {
                         let sum = 0;
                         let dataArr = ctx.chart.data.datasets[0].data;
                         dataArr.map(data => { sum += data; });
-                        let percentage = (value * 100 / sum).toFixed(0) + "%";
-                        return percentage === "0%" ? "" : percentage;
+                        let pctNum = (value * 100 / sum);
+                        // Hide label if less than 5% to prevent messy overlapping on small screens
+                        if (pctNum < 5) return "";
+                        return pctNum.toFixed(0) + "%";
                     }
                 }
             },
@@ -2716,7 +2758,7 @@ window.renderBudgetsPage = function () {
                 </div>
 
                 <!-- Mobile Native List Row (Hidden on Desktop) -->
-                <div class="d-md-none border-0 border-bottom py-3" style="border-color: rgba(255,255,255,0.05) !important;">
+                <div class="d-md-none border-0 border-bottom py-4 mb-2" style="border-color: rgba(255,255,255,0.05) !important;">
                     <div class="d-flex justify-content-between align-items-center mb-2">
                         <div class="d-flex align-items-center gap-3">
                             <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 38px; height: 38px; background: rgba(255,255,255,0.05);">
@@ -2740,11 +2782,11 @@ window.renderBudgetsPage = function () {
 
     // Trigger gradient fill animation
     setTimeout(() => {
-        container.find('.premium-cat-card').each(function (index) {
-            const card = $(this);
-            const fill = card.find('.gradient-fill');
+        container.children('.col-12').each(function (index) {
+            const col = $(this);
+            const fills = col.find('.gradient-fill');
             const targetWidth = Math.min(catArray[index].pct, 100) + '%';
-            fill.css('width', targetWidth);
+            fills.css('width', targetWidth);
         });
     }, 100);
 }

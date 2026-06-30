@@ -975,7 +975,7 @@ input:-webkit-autofill:active{
     #view-dashboard .custom-table tbody td:nth-child(1) {
         display: block;
         font-size: 1.1rem;
-        margin-bottom: 0.5rem;
+        margin-bottom: 0.75rem;
         text-align: left !important;
     }
     
@@ -983,16 +983,22 @@ input:-webkit-autofill:active{
         content: "Limit";
         opacity: 0.5;
         font-size: 0.85rem;
+        flex: 1;
+        text-align: left;
     }
     #view-dashboard .custom-table tbody td:nth-child(3)::before {
         content: "Total Spent";
         opacity: 0.5;
         font-size: 0.85rem;
+        flex: 1;
+        text-align: left;
     }
     #view-dashboard .custom-table tbody td:nth-child(4)::before {
         content: "Remaining";
         opacity: 0.5;
         font-size: 0.85rem;
+        flex: 1;
+        text-align: left;
     }
     #view-dashboard .custom-table tbody td:nth-child(5) {
         display: none; /* Hide status badge on mobile to save space */
