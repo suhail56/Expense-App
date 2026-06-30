@@ -1323,7 +1323,7 @@ function renderCategories() {
             <div class="d-md-none w-100 d-flex justify-content-between align-items-center p-3 rounded" style="background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.05);">
                 <span class="text-white fw-bold">${escapeHTML(cat.name)}</span>
                 <div class="dropdown">
-                    <button class="btn btn-link text-white-50 p-0" data-bs-toggle="dropdown" style="text-decoration: none;">
+                    <button class="btn btn-link text-white-50 p-0" data-bs-toggle="dropdown" data-bs-display="static" style="text-decoration: none;">
                         <i class="fa-solid fa-ellipsis-vertical fs-5 px-3 py-1"></i>
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end dropdown-menu-dark shadow-lg">
@@ -1355,7 +1355,7 @@ function renderCategories() {
             <div class="d-md-none w-100 d-flex justify-content-between align-items-center p-3 rounded" style="background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.05);">
                 <span class="text-white fw-bold">${escapeHTML(cat.name)}</span>
                 <div class="dropdown">
-                    <button class="btn btn-link text-white-50 p-0" data-bs-toggle="dropdown" style="text-decoration: none;">
+                    <button class="btn btn-link text-white-50 p-0" data-bs-toggle="dropdown" data-bs-display="static" style="text-decoration: none;">
                         <i class="fa-solid fa-ellipsis-vertical fs-5 px-3 py-1"></i>
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end dropdown-menu-dark shadow-lg">
@@ -1408,7 +1408,8 @@ window.editCategory = async function (type, id) {
             if (exists) {
                 return 'A category with this name already exists!';
             }
-        }
+        },
+        heightAuto: false
     });
 
     if (newCat && newCat.trim() !== oldName) {
