@@ -2369,10 +2369,10 @@ window.renderBudgetsPage = function () {
         }
 
         overallContainer.html(`
-            <div class="budget-hero-card p-4 p-md-5">
+            <div class="budget-hero-card p-3 p-md-5">
                 <div class="row align-items-center">
                     <div class="col-md-5 text-center mb-4 mb-md-0">
-                        <div class="circular-progress-container">
+                        <div class="circular-progress-container" style="transform: scale(0.9); transform-origin: center;">
                             <svg class="circular-progress-svg" style="filter: drop-shadow(0 0 10px ${ringShadow});">
                                 <circle class="circular-progress-bg" cx="110" cy="110" r="${radius}"></circle>
                                 <circle class="circular-progress-fill" cx="110" cy="110" r="${radius}" 
@@ -2386,21 +2386,21 @@ window.renderBudgetsPage = function () {
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-7 ps-md-4">
-                        <h3 class="fw-bold text-white mb-1">Command Center</h3>
-                        <p class="text-white-50 mb-4">Your overall monthly spending pace.</p>
+                    <div class="col-md-7 ps-md-4 text-center text-md-start">
+                        <h3 class="fw-bold text-white mb-1 fs-4 fs-md-3">Command Center</h3>
+                        <p class="text-white-50 mb-4 small md-md-base">Your overall monthly spending pace.</p>
                         
-                        <div class="row g-3">
+                        <div class="row g-2 g-md-3">
                             <div class="col-6">
-                                <div class="p-3 rounded" style="background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.05);">
-                                    <span class="d-block text-white-50 small text-uppercase fw-bold mb-1">Total Limit</span>
-                                    <span class="fw-bold text-white fs-5">AED ${totalLimit.toFixed(2)}</span>
+                                <div class="p-2 p-md-3 rounded" style="background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.05);">
+                                    <span class="d-block text-white-50 text-uppercase fw-bold mb-1" style="font-size: 0.65rem;">Total Limit</span>
+                                    <span class="fw-bold text-white fs-6 fs-md-5">AED ${totalLimit.toFixed(2)}</span>
                                 </div>
                             </div>
                             <div class="col-6">
-                                <div class="p-3 rounded" style="background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.05);">
-                                    <span class="d-block text-white-50 small text-uppercase fw-bold mb-1">Total Spent</span>
-                                    <span class="fw-bold text-white fs-5">AED ${totalSpent.toFixed(2)}</span>
+                                <div class="p-2 p-md-3 rounded" style="background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.05);">
+                                    <span class="d-block text-white-50 text-uppercase fw-bold mb-1" style="font-size: 0.65rem;">Total Spent</span>
+                                    <span class="fw-bold text-white fs-6 fs-md-5">AED ${totalSpent.toFixed(2)}</span>
                                 </div>
                             </div>
                         </div>
@@ -2451,8 +2451,9 @@ window.renderBudgetsPage = function () {
         }
 
         container.append(`
-            <div class="col-md-6 col-xl-4 mb-4">
-                <div class="premium-cat-card p-4 h-100 d-flex flex-column">
+            <div class="col-12 col-md-6 col-xl-4 mb-3 mb-md-4">
+                <!-- Desktop Premium Card (Hidden on Mobile) -->
+                <div class="premium-cat-card p-4 h-100 d-none d-md-flex flex-column">
                     <div class="d-flex justify-content-between align-items-center mb-4">
                         <div class="d-flex align-items-center">
                             <div class="rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px; background: rgba(255,255,255,0.1);">
@@ -2482,6 +2483,26 @@ window.renderBudgetsPage = function () {
                             <span class="d-block text-white-50 small text-uppercase mb-1" style="font-size: 0.65rem;">Left</span>
                             <span class="fw-bold ${item.pct >= 100 ? 'text-danger' : 'text-success'} small">AED ${available}</span>
                         </div>
+                    </div>
+                </div>
+
+                <!-- Mobile Native List Row (Hidden on Desktop) -->
+                <div class="d-md-none border-0 border-bottom py-3" style="border-color: rgba(255,255,255,0.05) !important;">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 38px; height: 38px; background: rgba(255,255,255,0.05);">
+                                <i class="fa-solid fa-tags text-white" style="font-size: 0.85rem;"></i>
+                            </div>
+                            <h6 class="fw-bold mb-0 text-white">${catName}</h6>
+                        </div>
+                        <span class="text-white fw-bold" style="font-size: 0.85rem;">${displayPercentage}%</span>
+                    </div>
+                    <div class="gradient-track my-2" style="height: 6px; background: rgba(0,0,0,0.3); border-radius: 3px;">
+                        <div class="gradient-fill" style="width: 0%; height: 100%; border-radius: 3px; background: linear-gradient(90deg, ${gradStart}, ${gradEnd});"></div>
+                    </div>
+                    <div class="d-flex justify-content-between text-white-50 mt-2" style="font-size: 0.75rem;">
+                        <span>AED ${spent.toFixed(0)} / ${limit.toFixed(0)}</span>
+                        <span class="${item.pct >= 100 ? 'text-danger fw-bold' : 'text-success'}">AED ${available} Left</span>
                     </div>
                 </div>
             </div>
