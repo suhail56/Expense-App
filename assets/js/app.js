@@ -108,11 +108,17 @@ let touchStartY = 0;
 let touchStartX = 0;
 let pullDistance = 0;
 let isPulling = false;
+let lastScrollTime = 0;
 const PTR_THRESHOLD = 120; // Increased threshold
+
+window.addEventListener('scroll', () => {
+    lastScrollTime = Date.now();
+}, { passive: true });
 
 document.addEventListener('touchstart', (e) => {
     // Strict check to ensure we are truly at the top
-    if (window.scrollY <= 0 && document.documentElement.scrollTop <= 0) {
+    // AND the user hasn't scrolled in the last 200ms (prevents triggering when tapping to stop scroll inertia)
+    if (window.scrollY <= 0 && document.documentElement.scrollTop <= 0 && (Date.now() - lastScrollTime > 200)) {
         touchStartY = e.touches[0].clientY;
         touchStartX = e.touches[0].clientX;
         isPulling = true;
@@ -1848,12 +1854,12 @@ window.renderTransactionsPage = function () {
                             <button class="swipe-action-btn swipe-action-edit" onclick="editTransaction('${tx.id}')"><i class="fa-solid fa-pen"></i></button>
                             <button class="swipe-action-btn swipe-action-delete" onclick="deleteTransaction('${tx.id}')"><i class="fa-solid fa-trash"></i></button>
                         </div>
-                        <div class="swipe-content p-3 d-flex align-items-center justify-content-between w-100">
-                            <div class="d-flex align-items-center gap-3 overflow-hidden flex-grow-1">
+                        <div class="swipe-content p-3 d-flex align-items-center justify-content-between w-100" style="min-width: 0;">
+                            <div class="d-flex align-items-center gap-3 overflow-hidden flex-grow-1" style="min-width: 0;">
                                 <div class="rounded-circle d-flex justify-content-center align-items-center flex-shrink-0" style="width: 44px; height: 44px; background: rgba(255,255,255,0.05);">
                                     <i class="fa-solid ${tx.type === 'income' ? 'fa-arrow-trend-up text-success' : 'fa-basket-shopping text-white-50'}"></i>
                                 </div>
-                                <div class="overflow-hidden pe-2 w-100">
+                                <div class="overflow-hidden pe-2 w-100" style="min-width: 0;">
                                     <h6 class="mb-0 fw-bold text-truncate w-100">${escapeHTML(tx.merchant)}</h6>
                                     <small class="text-white-50 d-block text-truncate w-100">${escapeHTML(catName)} • ${formattedDate.split(' ')[0]}</small>
                                 </div>

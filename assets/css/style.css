@@ -956,10 +956,19 @@ input:-webkit-autofill:active{
     #view-dashboard .custom-table tbody tr {
         display: flex;
         flex-direction: column;
-        padding: 1rem 0;
+        padding: 1rem; /* Added horizontal padding */
         border-bottom: 1px solid rgba(255,255,255,0.05);
     }
     
+    #transactionsTable {
+        table-layout: fixed;
+        width: 100%;
+    }
+    
+    .chart-container {
+        height: 250px !important; /* Reduce pie chart gap on mobile */
+    }
+
     #view-dashboard .custom-table tbody td {
         display: flex;
         justify-content: space-between;
