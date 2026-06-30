@@ -62,7 +62,7 @@ const loadingOverlay = document.getElementById('loadingOverlay');
 // SweetAlert2 Configuration
 const Toast = Swal.mixin({
     toast: true,
-    position: window.innerWidth <= 768 ? 'bottom' : 'top-end',
+    position: window.innerWidth <= 768 ? 'top' : 'top-end',
     showConfirmButton: false,
     timer: 3000,
     timerProgressBar: true,
