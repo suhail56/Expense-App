@@ -2613,6 +2613,15 @@ function renderGoals() {
     const container = $('#goalsContainer');
     container.empty();
 
+    // Mobile "New Goal" Button
+    container.append(`
+        <div class="col-12 d-md-none mb-4 mt-2">
+            <button class="btn w-100 fw-bold d-flex align-items-center justify-content-center gap-2 py-3 rounded-4 shadow-sm" onclick="showAddGoalModal()" style="background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple)); color: white; border: none;">
+                <i class="fa-solid fa-plus fs-5"></i> Create New Goal
+            </button>
+        </div>
+    `);
+
     if (!appData.goals || appData.goals.length === 0) {
         container.append(`<div class="col-12 text-center py-5 text-muted"><i class="fa-solid fa-bullseye fa-3x mb-3 opacity-50"></i><h5>No Goals Yet</h5><p>Set a savings target to track your progress.</p></div>`);
         return;
@@ -2624,10 +2633,11 @@ function renderGoals() {
         if (pct > 100) pct = 100;
 
         container.append(`
-            <div class="col-md-6 col-lg-4 mb-4">
-                <div class="card glass-card h-100 border-0 shadow-lg" style="background: rgba(15, 23, 42, 0.6); position: relative; overflow: hidden;">
+            <div class="col-12 col-md-6 col-lg-4 mb-3 mb-md-4">
+                <!-- Desktop Card (Hidden on Mobile) -->
+                <div class="card glass-card h-100 border-0 shadow-lg d-none d-md-flex flex-column" style="background: rgba(15, 23, 42, 0.6); position: relative; overflow: hidden;">
                     ${isComplete ? '<div style="position: absolute; top: -15px; right: -15px; width: 60px; height: 60px; background: #10b981; transform: rotate(45deg); display: flex; align-items: flex-end; justify-content: center; padding-bottom: 5px;"><i class="fa-solid fa-check text-white" style="transform: rotate(-45deg);"></i></div>' : ''}
-                    <div class="card-body p-4 d-flex flex-column">
+                    <div class="card-body p-4 d-flex flex-column h-100">
                         <div class="d-flex justify-content-between mb-3">
                             <h5 class="fw-bold text-white mb-0 text-truncate" title="${escapeHTML(goal.name)}">${escapeHTML(goal.name)}</h5>
                             <div class="dropdown">
@@ -2653,6 +2663,39 @@ function renderGoals() {
             }
                             </div>
                         </div>
+                    </div>
+                </div>
+
+                <!-- Mobile Native List Row (Hidden on Desktop) -->
+                <div class="d-md-none border-0 border-bottom py-3 px-2" style="border-color: rgba(255,255,255,0.05) !important;">
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 44px; height: 44px; background: ${isComplete ? 'rgba(16, 185, 129, 0.15)' : 'rgba(255,255,255,0.05)'};">
+                                <i class="fa-solid ${isComplete ? 'fa-check text-success' : 'fa-bullseye text-white-50'}" style="font-size: 1.1rem;"></i>
+                            </div>
+                            <div>
+                                <h6 class="fw-bold mb-0 text-white text-truncate" style="max-width: 170px;">${escapeHTML(goal.name)}</h6>
+                                <small class="text-white-50 d-block mt-1" style="font-size: 0.75rem;">AED ${goal.savedAmount.toFixed(0)} / ${goal.targetAmount.toFixed(0)}</small>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            ${isComplete 
+                                ? `<span class="badge bg-success rounded-pill px-2 py-1"><i class="fa-solid fa-trophy"></i></span>` 
+                                : `<button class="btn btn-sm btn-success rounded-circle d-flex align-items-center justify-content-center p-0" style="width: 32px; height: 32px;" onclick="showDepositModal('${goal.id}')" title="Deposit"><i class="fa-solid fa-plus"></i></button>`
+                            }
+                            <div class="dropdown">
+                                <button class="btn btn-link text-white-50 p-0 ms-1" style="text-decoration: none;" data-bs-toggle="dropdown">
+                                    <i class="fa-solid fa-ellipsis-vertical fs-5 px-2"></i>
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end dropdown-menu-dark">
+                                    <li><a class="dropdown-item" href="javascript:void(0);" onclick="editGoal('${goal.id}')">Edit Goal</a></li>
+                                    <li><a class="dropdown-item text-danger" href="javascript:void(0);" onclick="deleteGoal('${goal.id}')">Delete</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="progress mt-3" style="height: 4px; background: rgba(255,255,255,0.1); border-radius: 4px;">
+                        <div class="progress-bar ${isComplete ? 'bg-success' : 'bg-primary'}" role="progressbar" style="width: ${pct}%"></div>
                     </div>
                 </div>
             </div>
