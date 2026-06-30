@@ -22,6 +22,11 @@ function handleRouteChange() {
     // Hide all views, remove active states
     $('.app-view').removeClass('active');
     $('.nav-link[data-view]').removeClass('active');
+    
+    // Trigger haptic feedback on navigation
+    if (typeof window.triggerHaptic === 'function') {
+        window.triggerHaptic('light');
+    }
 
     // Apply Dynamic Page Background Theme
     document.body.className = `theme-${hash}`;

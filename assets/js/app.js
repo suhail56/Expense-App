@@ -89,6 +89,171 @@ function confirmAction(title, text, confirmButtonText, actionCallback) {
     });
 }
 
+// --- Haptic Feedback Engine ---
+window.triggerHaptic = function (type = 'light') {
+    if (!navigator.vibrate) return;
+    try {
+        switch (type) {
+            case 'light': navigator.vibrate(10); break;
+            case 'medium': navigator.vibrate(20); break;
+            case 'heavy': navigator.vibrate(40); break;
+            case 'success': navigator.vibrate([20, 50, 20]); break;
+            case 'error': navigator.vibrate([40, 50, 40, 50, 40]); break;
+        }
+    } catch (e) { }
+};
+
+// --- Pull to Refresh Engine ---
+let touchStartY = 0;
+let pullDistance = 0;
+let isPulling = false;
+const PTR_THRESHOLD = 90;
+
+document.addEventListener('touchstart', (e) => {
+    if (window.scrollY <= 0) {
+        touchStartY = e.touches[0].clientY;
+        isPulling = true;
+    }
+}, { passive: true });
+
+document.addEventListener('touchmove', (e) => {
+    if (!isPulling) return;
+    const currentY = e.touches[0].clientY;
+    pullDistance = currentY - touchStartY;
+    
+    if (pullDistance > 0 && window.scrollY <= 0) {
+        let ptrEl = document.getElementById('ptr-loader');
+        if (!ptrEl) {
+            ptrEl = document.createElement('div');
+            ptrEl.id = 'ptr-loader';
+            ptrEl.innerHTML = '<i class="fa-solid fa-rotate text-primary fs-3"></i>';
+            ptrEl.style.cssText = 'position:fixed; top:-60px; left:50%; transform:translateX(-50%); z-index:9999; background:rgba(30,41,59,0.95); backdrop-filter:blur(10px); border:1px solid rgba(255,255,255,0.1); border-radius:50%; width:45px; height:45px; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 15px rgba(0,0,0,0.5); transition: top 0.1s;';
+            document.body.appendChild(ptrEl);
+        }
+        
+        let visualPull = Math.min(pullDistance * 0.4, 80);
+        ptrEl.style.top = `${-60 + visualPull}px`;
+        ptrEl.style.transform = `translateX(-50%) rotate(${visualPull * 5}deg)`;
+        
+        if (pullDistance > PTR_THRESHOLD) {
+            if (!ptrEl.dataset.thresholdHit) {
+                window.triggerHaptic('light');
+                ptrEl.dataset.thresholdHit = "true";
+            }
+        } else {
+            ptrEl.dataset.thresholdHit = "";
+        }
+    }
+}, { passive: true });
+
+document.addEventListener('touchend', () => {
+    if (!isPulling) return;
+    isPulling = false;
+    
+    let ptrEl = document.getElementById('ptr-loader');
+    if (ptrEl) {
+        if (pullDistance > PTR_THRESHOLD) {
+            ptrEl.style.transition = 'top 0.3s ease';
+            ptrEl.style.top = '25px';
+            ptrEl.querySelector('i').classList.add('fa-spin');
+            window.triggerHaptic('medium');
+            
+            // Trigger Sync
+            setTimeout(() => {
+                const dashSyncBtn = document.querySelector('.dashSyncBtn');
+                if (dashSyncBtn) {
+                    dashSyncBtn.click();
+                } else if (typeof window.fetchData === 'function') {
+                    window.fetchData(true);
+                }
+                setTimeout(() => {
+                    ptrEl.style.top = '-100px';
+                    setTimeout(() => ptrEl.remove(), 300);
+                }, 1500); // Artificial delay to show spinner
+            }, 300);
+        } else {
+            ptrEl.style.transition = 'top 0.3s ease';
+            ptrEl.style.top = '-100px';
+            setTimeout(() => ptrEl.remove(), 300);
+        }
+    }
+    pullDistance = 0;
+});
+
+// --- Swipe to Action Engine ---
+let swipeStartX = 0;
+let swipeCurrentX = 0;
+let activeSwipeRow = null;
+const SWIPE_THRESHOLD = 50;
+
+document.addEventListener('touchstart', (e) => {
+    const swipeContent = e.target.closest('.swipe-content');
+    if (!swipeContent) {
+        // Reset any open rows if tapping elsewhere
+        if (activeSwipeRow && !e.target.closest('.swipe-row-wrapper')) {
+            activeSwipeRow.style.transform = 'translateX(0)';
+            activeSwipeRow = null;
+        }
+        return;
+    }
+    
+    // Close previously active row if tapping a different one
+    if (activeSwipeRow && activeSwipeRow !== swipeContent) {
+        activeSwipeRow.style.transform = 'translateX(0)';
+    }
+    
+    swipeStartX = e.touches[0].clientX;
+    activeSwipeRow = swipeContent;
+    activeSwipeRow.classList.add('dragging');
+}, { passive: true });
+
+document.addEventListener('touchmove', (e) => {
+    if (!activeSwipeRow || !activeSwipeRow.classList.contains('dragging')) return;
+    
+    swipeCurrentX = e.touches[0].clientX - swipeStartX;
+    
+    // Determine bounds based on available actions
+    const wrapper = activeSwipeRow.closest('.swipe-row-wrapper');
+    const hasLeft = wrapper.querySelector('.swipe-actions-left') !== null;
+    const hasRight = wrapper.querySelector('.swipe-actions-right') !== null;
+    
+    if (!hasLeft && swipeCurrentX > 0) swipeCurrentX = 0;
+    if (!hasRight && swipeCurrentX < 0) swipeCurrentX = 0;
+    
+    // Limit drag distance visually
+    let visualX = swipeCurrentX;
+    if (visualX > 100) visualX = 100 + (visualX - 100) * 0.2;
+    if (visualX < -150) visualX = -150 + (visualX + 150) * 0.2; 
+    
+    activeSwipeRow.style.transform = `translateX(${visualX}px)`;
+}, { passive: true });
+
+document.addEventListener('touchend', (e) => {
+    if (!activeSwipeRow) return;
+    activeSwipeRow.classList.remove('dragging');
+    
+    const wrapper = activeSwipeRow.closest('.swipe-row-wrapper');
+    const hasLeft = wrapper.querySelector('.swipe-actions-left') !== null;
+    const hasRight = wrapper.querySelector('.swipe-actions-right') !== null;
+    
+    if (hasRight && swipeCurrentX < -SWIPE_THRESHOLD) {
+        const buttonsCount = wrapper.querySelectorAll('.swipe-actions-right .swipe-action-btn').length;
+        activeSwipeRow.style.transform = `translateX(-${buttonsCount * 75}px)`;
+        if (typeof window.triggerHaptic === 'function') window.triggerHaptic('light');
+    } else if (hasLeft && swipeCurrentX > SWIPE_THRESHOLD) {
+        const buttonsCount = wrapper.querySelectorAll('.swipe-actions-left .swipe-action-btn').length;
+        activeSwipeRow.style.transform = `translateX(${buttonsCount * 75}px)`;
+        if (typeof window.triggerHaptic === 'function') window.triggerHaptic('light');
+    } else {
+        activeSwipeRow.style.transform = `translateX(0)`;
+        activeSwipeRow = null;
+    }
+    
+    swipeStartX = 0;
+    swipeCurrentX = 0;
+});
+// ------------------------------
+
 // Initialize
 $(document).ready(function () {
 
@@ -288,6 +453,12 @@ $(document).ready(function () {
         saveBtn.prop('disabled', false);
         refreshUI();
         saveData();
+
+        // Trigger Success Haptic
+        if (typeof window.triggerHaptic === 'function') {
+            window.triggerHaptic('success');
+        }
+
         Toast.fire({ icon: 'success', title: txId ? 'Transaction updated' : 'Transaction added' });
     });
 
@@ -602,6 +773,14 @@ function getHeaders() {
 
 function showLoading(show) {
     loadingOverlay.style.display = show ? 'flex' : 'none';
+    if (show && window.innerWidth <= 768) {
+        const skeletonRow = `<div class="skeleton-box mb-2 w-100" style="height: 70px;"></div>`;
+        const skeletons = skeletonRow.repeat(6);
+        $('#recentTransactionsBody').html(skeletons);
+        $('#transactionsTableBody').html(skeletons);
+        $('#budgetsList').html(skeletons);
+        $('#goalsContainer').html(skeletons);
+    }
 }
 
 function initializeDatabaseSchema(data) {
@@ -1627,26 +1806,33 @@ window.renderTransactionsPage = function () {
                 </td>
 
                 <!-- Mobile View (Hidden on Desktop) -->
-                <td class="d-md-none p-3 w-100 border-0 border-bottom" style="border-color: rgba(255,255,255,0.05) !important; background: transparent;">
-                    <div class="d-flex align-items-center justify-content-between">
-                        <div class="d-flex align-items-center gap-3 overflow-hidden">
-                            <div class="rounded-circle d-flex justify-content-center align-items-center flex-shrink-0" style="width: 44px; height: 44px; background: rgba(255,255,255,0.05);">
-                                <i class="fa-solid ${tx.type === 'income' ? 'fa-arrow-trend-up text-success' : 'fa-basket-shopping text-white-50'}"></i>
-                            </div>
-                            <div class="overflow-hidden">
-                                <h6 class="mb-0 fw-bold text-truncate" style="max-width: 160px;">${escapeHTML(tx.merchant)}</h6>
-                                <small class="text-white-50 d-block text-truncate">${escapeHTML(catName)} • ${formattedDate.split(' ')[0]}</small>
-                            </div>
+                <td class="d-md-none p-0 w-100 border-0">
+                    <div class="swipe-row-wrapper">
+                        ${isNew ? `
+                        <div class="swipe-actions-left">
+                            <button class="swipe-action-btn swipe-action-review" onclick="markTransactionAsReviewed('${tx.id}')"><i class="fa-solid fa-check-double"></i></button>
                         </div>
-                        <div class="text-end ms-2 flex-shrink-0 d-flex align-items-center">
-                            <div class="d-flex flex-column align-items-end">
-                                <h6 class="mb-0 fw-bold ${amtColor}">${amtPrefix} AED ${tx.amount}</h6>
-                                ${newBadge ? `<span class="badge bg-info text-dark mt-1" style="font-size: 0.55rem;">NEW</span>` : ''}
+                        ` : ''}
+                        <div class="swipe-actions-right">
+                            <button class="swipe-action-btn swipe-action-edit" onclick="editTransaction('${tx.id}')"><i class="fa-solid fa-pen"></i></button>
+                            <button class="swipe-action-btn swipe-action-delete" onclick="deleteTransaction('${tx.id}')"><i class="fa-solid fa-trash"></i></button>
+                        </div>
+                        <div class="swipe-content p-3 d-flex align-items-center justify-content-between">
+                            <div class="d-flex align-items-center gap-3 overflow-hidden">
+                                <div class="rounded-circle d-flex justify-content-center align-items-center flex-shrink-0" style="width: 44px; height: 44px; background: rgba(255,255,255,0.05);">
+                                    <i class="fa-solid ${tx.type === 'income' ? 'fa-arrow-trend-up text-success' : 'fa-basket-shopping text-white-50'}"></i>
+                                </div>
+                                <div class="overflow-hidden">
+                                    <h6 class="mb-0 fw-bold text-truncate" style="max-width: 160px;">${escapeHTML(tx.merchant)}</h6>
+                                    <small class="text-white-50 d-block text-truncate">${escapeHTML(catName)} • ${formattedDate.split(' ')[0]}</small>
+                                </div>
                             </div>
-                            <!-- Subtle Context Menu Trigger -->
-                            <button class="btn btn-link text-white-50 p-0 ms-3" style="text-decoration: none;" onclick="editTransaction('${tx.id}')">
-                                <i class="fa-solid fa-ellipsis-vertical fs-5"></i>
-                            </button>
+                            <div class="text-end ms-2 flex-shrink-0 d-flex align-items-center">
+                                <div class="d-flex flex-column align-items-end">
+                                    <h6 class="mb-0 fw-bold ${amtColor}">${amtPrefix} AED ${tx.amount}</h6>
+                                    ${newBadge ? `<span class="badge bg-info text-dark mt-1" style="font-size: 0.55rem;">NEW</span>` : ''}
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </td>
@@ -2297,13 +2483,20 @@ window.markTransactionAsReviewed = function (id) {
 };
 
 window.deleteTransaction = function (id) {
-    confirmAction('Delete Transaction?', 'Are you sure you want to delete this transaction?', 'Yes, Delete', () => {
+    confirmAction('Delete Transaction?', 'Are you sure you want to delete this record?', 'Yes, Delete', () => {
         appData.transactions = appData.transactions.filter(t => t.id !== id);
-        refreshUI();
         saveData();
+        renderTransactionsPage();
+        renderRecentTransactions();
+        refreshUI();
+        
+        if (typeof window.triggerHaptic === 'function') {
+            window.triggerHaptic('heavy');
+        }
+        
         Toast.fire({ icon: 'success', title: 'Transaction deleted' });
     });
-}
+};
 
 // Initialize modal state on open
 $('#addTransactionModal').on('show.bs.modal', function () {
@@ -2703,35 +2896,34 @@ function renderGoals() {
                 </div>
 
                 <!-- Mobile Native List Row (Hidden on Desktop) -->
-                <div class="d-md-none border-0 border-bottom py-3 px-2" style="border-color: rgba(255,255,255,0.05) !important;">
-                    <div class="d-flex align-items-center justify-content-between mb-2">
-                        <div class="d-flex align-items-center gap-3">
-                            <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 44px; height: 44px; background: ${isComplete ? 'rgba(16, 185, 129, 0.15)' : 'rgba(255,255,255,0.05)'};">
-                                <i class="fa-solid ${isComplete ? 'fa-check text-success' : 'fa-bullseye text-white-50'}" style="font-size: 1.1rem;"></i>
+                <div class="d-md-none border-0 w-100">
+                    <div class="swipe-row-wrapper">
+                        <div class="swipe-actions-right">
+                            <button class="swipe-action-btn swipe-action-edit" onclick="editGoal('${goal.id}')"><i class="fa-solid fa-pen"></i></button>
+                            <button class="swipe-action-btn swipe-action-delete" onclick="deleteGoal('${goal.id}')"><i class="fa-solid fa-trash"></i></button>
+                        </div>
+                        <div class="swipe-content py-3 px-2">
+                            <div class="d-flex align-items-center justify-content-between mb-2">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 44px; height: 44px; background: ${isComplete ? 'rgba(16, 185, 129, 0.15)' : 'rgba(255,255,255,0.05)'};">
+                                        <i class="fa-solid ${isComplete ? 'fa-check text-success' : 'fa-bullseye text-white-50'}" style="font-size: 1.1rem;"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="fw-bold mb-0 text-white text-truncate" style="max-width: 170px;">${escapeHTML(goal.name)}</h6>
+                                        <small class="text-white-50 d-block mt-1" style="font-size: 0.75rem;">AED ${goal.savedAmount.toFixed(0)} / ${goal.targetAmount.toFixed(0)}</small>
+                                    </div>
+                                </div>
+                                <div class="d-flex align-items-center gap-2">
+                                    ${isComplete 
+                                        ? `<span class="badge bg-success rounded-pill px-2 py-1"><i class="fa-solid fa-trophy"></i></span>` 
+                                        : `<button class="btn btn-sm btn-success rounded-circle d-flex align-items-center justify-content-center p-0" style="width: 32px; height: 32px;" onclick="showDepositModal('${goal.id}')" title="Deposit"><i class="fa-solid fa-plus"></i></button>`
+                                    }
+                                </div>
                             </div>
-                            <div>
-                                <h6 class="fw-bold mb-0 text-white text-truncate" style="max-width: 170px;">${escapeHTML(goal.name)}</h6>
-                                <small class="text-white-50 d-block mt-1" style="font-size: 0.75rem;">AED ${goal.savedAmount.toFixed(0)} / ${goal.targetAmount.toFixed(0)}</small>
+                            <div class="progress mt-3" style="height: 4px; background: rgba(255,255,255,0.1); border-radius: 4px;">
+                                <div class="progress-bar ${isComplete ? 'bg-success' : 'bg-primary'}" role="progressbar" style="width: ${pct}%"></div>
                             </div>
                         </div>
-                        <div class="d-flex align-items-center gap-2">
-                            ${isComplete 
-                                ? `<span class="badge bg-success rounded-pill px-2 py-1"><i class="fa-solid fa-trophy"></i></span>` 
-                                : `<button class="btn btn-sm btn-success rounded-circle d-flex align-items-center justify-content-center p-0" style="width: 32px; height: 32px;" onclick="showDepositModal('${goal.id}')" title="Deposit"><i class="fa-solid fa-plus"></i></button>`
-                            }
-                            <div class="dropdown">
-                                <button class="btn btn-link text-white-50 p-0 ms-1" style="text-decoration: none;" data-bs-toggle="dropdown">
-                                    <i class="fa-solid fa-ellipsis-vertical fs-5 px-2"></i>
-                                </button>
-                                <ul class="dropdown-menu dropdown-menu-end dropdown-menu-dark">
-                                    <li><a class="dropdown-item" href="javascript:void(0);" onclick="editGoal('${goal.id}')">Edit Goal</a></li>
-                                    <li><a class="dropdown-item text-danger" href="javascript:void(0);" onclick="deleteGoal('${goal.id}')">Delete</a></li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="progress mt-3" style="height: 4px; background: rgba(255,255,255,0.1); border-radius: 4px;">
-                        <div class="progress-bar ${isComplete ? 'bg-success' : 'bg-primary'}" role="progressbar" style="width: ${pct}%"></div>
                     </div>
                 </div>
             </div>

@@ -730,11 +730,12 @@ input:-webkit-autofill:active{
         right: 0;
         height: calc(70px + env(safe-area-inset-bottom));
         padding: 0 0.5rem env(safe-area-inset-bottom) 0.5rem;
-        background: rgba(15, 23, 42, 0.95);
-        backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
-        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        background: rgba(15, 23, 42, 0.65);
+        backdrop-filter: blur(24px) saturate(180%);
+        -webkit-backdrop-filter: blur(24px) saturate(180%);
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
         border-bottom: none;
+        box-shadow: 0 -4px 30px rgba(0, 0, 0, 0.5);
     }
     
     .nav-links {
@@ -1014,4 +1015,65 @@ input:-webkit-autofill:active{
     #transactionsPagination .page-item:not(:first-child):not(:last-child):not(:nth-child(2)):not(:nth-last-child(2)) {
         display: none !important;
     }
+}
+
+/* Skeleton Loaders */
+@keyframes shimmer {
+    0% { background-position: -1000px 0; }
+    100% { background-position: 1000px 0; }
+}
+
+.skeleton-box {
+    background: #1e293b;
+    background-image: linear-gradient(to right, #1e293b 0%, #334155 20%, #1e293b 40%, #1e293b 100%);
+    background-repeat: no-repeat;
+    background-size: 1000px 100%;
+    animation: shimmer 2s infinite linear forwards;
+    border-radius: 8px;
+}
+
+/* Swipe-to-Action Gestures */
+.swipe-row-wrapper {
+    position: relative;
+    overflow: hidden;
+    width: 100%;
+    touch-action: pan-y;
+}
+
+.swipe-actions-left, .swipe-actions-right {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    display: flex;
+    z-index: 1;
+}
+.swipe-actions-left { left: 0; }
+.swipe-actions-right { right: 0; }
+
+.swipe-action-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 75px;
+    height: 100%;
+    color: white;
+    font-size: 1.2rem;
+    border: none;
+    outline: none;
+}
+.swipe-action-delete { background: #ef4444; }
+.swipe-action-edit { background: #3b82f6; }
+.swipe-action-review { background: #10b981; }
+
+.swipe-content {
+    position: relative;
+    z-index: 2;
+    background: #111827; /* Dark background to cover buttons */
+    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1);
+    width: 100%;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.swipe-content.dragging {
+    transition: none;
 }
