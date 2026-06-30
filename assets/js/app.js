@@ -1173,12 +1173,30 @@ function renderCategories() {
     expList.empty();
     appData.expenseCategories.forEach((cat, index) => {
         expList.append(`
-            <div class="category-tag">
+            <!-- Desktop Tag -->
+            <div class="category-tag d-none d-md-inline-block">
                 <span class="me-2 text-truncate d-inline-block" style="max-width: 150px; vertical-align: bottom;">${escapeHTML(cat.name)}</span> 
                 ${index > 0 ? `<i class="fa-solid fa-chevron-left text-secondary me-2 cursor-pointer" onclick="moveCategory('expense', '${cat.id}', -1)" title="Move Left"></i>` : ''}
                 ${index < appData.expenseCategories.length - 1 ? `<i class="fa-solid fa-chevron-right text-secondary me-2 cursor-pointer" onclick="moveCategory('expense', '${cat.id}', 1)" title="Move Right"></i>` : ''}
                 <i class="fa-solid fa-pen text-info me-2 cursor-pointer" onclick="editCategory('expense', '${cat.id}')" title="Edit"></i>
                 <i class="fa-solid fa-xmark text-danger cursor-pointer" onclick="deleteCategory('expense', '${cat.id}')" title="Delete"></i>
+            </div>
+            
+            <!-- Mobile List Item -->
+            <div class="d-md-none w-100 d-flex justify-content-between align-items-center p-3 rounded" style="background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.05);">
+                <span class="text-white fw-bold">${escapeHTML(cat.name)}</span>
+                <div class="dropdown">
+                    <button class="btn btn-link text-white-50 p-0" data-bs-toggle="dropdown" style="text-decoration: none;">
+                        <i class="fa-solid fa-ellipsis-vertical fs-5 px-3 py-1"></i>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end dropdown-menu-dark shadow-lg">
+                        ${index > 0 ? `<li><a class="dropdown-item" href="javascript:void(0);" onclick="moveCategory('expense', '${cat.id}', -1)"><i class="fa-solid fa-arrow-up me-2"></i>Move Up</a></li>` : ''}
+                        ${index < appData.expenseCategories.length - 1 ? `<li><a class="dropdown-item" href="javascript:void(0);" onclick="moveCategory('expense', '${cat.id}', 1)"><i class="fa-solid fa-arrow-down me-2"></i>Move Down</a></li>` : ''}
+                        ${(index > 0 || index < appData.expenseCategories.length - 1) ? `<li><hr class="dropdown-divider"></li>` : ''}
+                        <li><a class="dropdown-item text-info" href="javascript:void(0);" onclick="editCategory('expense', '${cat.id}')"><i class="fa-solid fa-pen me-2"></i>Edit</a></li>
+                        <li><a class="dropdown-item text-danger" href="javascript:void(0);" onclick="deleteCategory('expense', '${cat.id}')"><i class="fa-solid fa-trash me-2"></i>Delete</a></li>
+                    </ul>
+                </div>
             </div>
         `);
     });
@@ -1187,12 +1205,30 @@ function renderCategories() {
     incList.empty();
     appData.incomeCategories.forEach((cat, index) => {
         incList.append(`
-            <div class="category-tag">
+            <!-- Desktop Tag -->
+            <div class="category-tag d-none d-md-inline-block">
                 <span class="me-2 text-truncate d-inline-block" style="max-width: 150px; vertical-align: bottom;">${escapeHTML(cat.name)}</span> 
                 ${index > 0 ? `<i class="fa-solid fa-chevron-left text-secondary me-2 cursor-pointer" onclick="moveCategory('income', '${cat.id}', -1)" title="Move Left"></i>` : ''}
                 ${index < appData.incomeCategories.length - 1 ? `<i class="fa-solid fa-chevron-right text-secondary me-2 cursor-pointer" onclick="moveCategory('income', '${cat.id}', 1)" title="Move Right"></i>` : ''}
                 <i class="fa-solid fa-pen text-info me-2 cursor-pointer" onclick="editCategory('income', '${cat.id}')" title="Edit"></i>
                 <i class="fa-solid fa-xmark text-danger cursor-pointer" onclick="deleteCategory('income', '${cat.id}')" title="Delete"></i>
+            </div>
+            
+            <!-- Mobile List Item -->
+            <div class="d-md-none w-100 d-flex justify-content-between align-items-center p-3 rounded" style="background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.05);">
+                <span class="text-white fw-bold">${escapeHTML(cat.name)}</span>
+                <div class="dropdown">
+                    <button class="btn btn-link text-white-50 p-0" data-bs-toggle="dropdown" style="text-decoration: none;">
+                        <i class="fa-solid fa-ellipsis-vertical fs-5 px-3 py-1"></i>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end dropdown-menu-dark shadow-lg">
+                        ${index > 0 ? `<li><a class="dropdown-item" href="javascript:void(0);" onclick="moveCategory('income', '${cat.id}', -1)"><i class="fa-solid fa-arrow-up me-2"></i>Move Up</a></li>` : ''}
+                        ${index < appData.incomeCategories.length - 1 ? `<li><a class="dropdown-item" href="javascript:void(0);" onclick="moveCategory('income', '${cat.id}', 1)"><i class="fa-solid fa-arrow-down me-2"></i>Move Down</a></li>` : ''}
+                        ${(index > 0 || index < appData.incomeCategories.length - 1) ? `<li><hr class="dropdown-divider"></li>` : ''}
+                        <li><a class="dropdown-item text-info" href="javascript:void(0);" onclick="editCategory('income', '${cat.id}')"><i class="fa-solid fa-pen me-2"></i>Edit</a></li>
+                        <li><a class="dropdown-item text-danger" href="javascript:void(0);" onclick="deleteCategory('income', '${cat.id}')"><i class="fa-solid fa-trash me-2"></i>Delete</a></li>
+                    </ul>
+                </div>
             </div>
         `);
     });
