@@ -2798,6 +2798,7 @@ $('#goalForm').submit(function (e) {
         if (goal) {
             goal.name = name;
             goal.targetAmount = target;
+            Toast.fire({ icon: 'success', title: 'Goal updated!' });
         }
     } else {
         appData.goals.push({
@@ -2807,6 +2808,7 @@ $('#goalForm').submit(function (e) {
             savedAmount: 0,
             createdAt: new Date().toISOString()
         });
+        Toast.fire({ icon: 'success', title: 'Goal created!' });
     }
 
     $('#addGoalModal').modal('hide');
@@ -2829,6 +2831,7 @@ window.deleteGoal = function (id) {
         appData.goals = appData.goals.filter(g => g.id !== id);
         renderGoals();
         saveData();
+        Toast.fire({ icon: 'success', title: 'Goal deleted!' });
     });
 };
 
