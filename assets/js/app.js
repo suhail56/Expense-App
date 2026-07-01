@@ -1409,7 +1409,8 @@ window.editCategory = async function (type, id) {
                 return 'A category with this name already exists!';
             }
         },
-        heightAuto: false
+        heightAuto: false,
+        inputAutoFocus: false
     });
 
     if (newCat && newCat.trim() !== oldName) {
@@ -1533,7 +1534,8 @@ window.editRule = async function (categoryId) {
         confirmButtonColor: '#10b981',
         background: '#1e293b',
         color: '#f8fafc',
-        heightAuto: false
+        heightAuto: false,
+        inputAutoFocus: false
     });
 
     if (newKeywords !== undefined) {
@@ -1604,7 +1606,8 @@ window.editLimit = async function (catId) {
         confirmButtonColor: '#10b981',
         background: '#1e293b',
         color: '#f8fafc',
-        heightAuto: false
+        heightAuto: false,
+        inputAutoFocus: false
     });
 
     if (newLimit !== undefined) {
