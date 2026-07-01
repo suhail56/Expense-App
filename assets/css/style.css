@@ -957,7 +957,7 @@ input:-webkit-autofill:active{
     }
     
     .chart-container {
-        height: 320px !important; /* Larger pie chart on mobile */
+        height: 380px !important; /* Larger pie chart on mobile */
     }
 
     #view-dashboard .custom-table tbody td {
