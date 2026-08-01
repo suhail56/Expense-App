@@ -2357,20 +2357,6 @@ function renderYearlyChart() {
             labels: labels,
             datasets: [
                 {
-                    type: 'line',
-                    label: 'Net Balance',
-                    data: monthlyBalance,
-                    borderColor: '#3b82f6',
-                    backgroundColor: 'rgba(59, 130, 246, 0.2)',
-                    borderWidth: 2,
-                    tension: 0.3,
-                    fill: false,
-                    order: 0,
-                    datalabels: {
-                        display: false
-                    }
-                },
-                {
                     type: 'bar',
                     label: 'Income',
                     data: monthlyIncome,
@@ -2385,6 +2371,14 @@ function renderYearlyChart() {
                     backgroundColor: 'rgba(239, 68, 68, 0.7)',
                     borderRadius: 4,
                     order: 2
+                },
+                {
+                    type: 'bar',
+                    label: 'Net Balance',
+                    data: monthlyBalance,
+                    backgroundColor: 'rgba(59, 130, 246, 0.7)',
+                    borderRadius: 4,
+                    order: 3
                 }
             ]
         },
