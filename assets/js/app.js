@@ -2539,7 +2539,11 @@ window.deleteTransaction = function (id) {
 $('#addTransactionModal').on('show.bs.modal', function () {
     if (!$('#txId').val()) { // Only set to current time if creating a new record
         const fp = document.querySelector('#txDate')._flatpickr;
-        if (fp) fp.setDate(new Date());
+        if (fp) {
+            const d = new Date();
+            d.setSeconds(0, 0); // Strip seconds to prevent HTML5 native datetime-local validation errors on mobile
+            fp.setDate(d);
+        }
     }
 });
 
