@@ -534,12 +534,16 @@ $(document).ready(function () {
             let updatedCount = 0;
             appData.transactions.forEach(tx => {
                 if (tx.isReviewed === true) return; // Skip already reviewed/manually edited transactions
-                const merchantLower = tx.merchant.toLowerCase();
+                const merchantLower = (tx.merchant || '').toLowerCase();
+                if (!merchantLower) return;
                 for (const catId in appData.categoryRules) {
                     const keywords = appData.categoryRules[catId];
                     if (keywords.some(kw => merchantLower.includes(kw))) {
                         if (tx.categoryId !== catId) {
                             tx.categoryId = catId;
+                            let isExp = appData.expenseCategories.find(c => c.id === catId);
+                            if(isExp) tx.type = 'expense';
+                            else tx.type = 'income';
                             updatedCount++;
                         }
                         break;
@@ -686,12 +690,16 @@ window.autoCategorizeNewTransactions = function () {
     appData.transactions.forEach(tx => {
         // Only apply to newly imported (unreviewed) transactions
         if (tx.isReviewed !== true) {
-            const merchantLower = tx.merchant.toLowerCase();
+            const merchantLower = (tx.merchant || '').toLowerCase();
+            if (!merchantLower) return;
             for (const catId in appData.categoryRules) {
                 const keywords = appData.categoryRules[catId];
                 if (keywords.some(kw => merchantLower.includes(kw))) {
                     if (tx.categoryId !== catId) {
                         tx.categoryId = catId;
+                        let isExp = appData.expenseCategories.find(c => c.id === catId);
+                        if(isExp) tx.type = 'expense';
+                        else tx.type = 'income';
                         updatedCount++;
                     }
                     break;
