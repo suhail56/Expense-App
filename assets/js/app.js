@@ -2332,8 +2332,12 @@ function renderYearlyChart() {
     }
 
     // Calculate net balance for each month
+    const monthlyBalanceAbs = new Array(12).fill(0);
+    const monthlyBalanceColors = new Array(12).fill('');
     for (let i = 0; i < 12; i++) {
         monthlyBalance[i] = monthlyIncome[i] - monthlyExpense[i];
+        monthlyBalanceAbs[i] = Math.abs(monthlyBalance[i]);
+        monthlyBalanceColors[i] = monthlyBalance[i] >= 0 ? 'rgba(59, 130, 246, 0.7)' : 'rgba(239, 68, 68, 0.9)';
     }
 
     const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -2383,8 +2387,8 @@ function renderYearlyChart() {
                 {
                     type: 'bar',
                     label: 'Net Balance',
-                    data: monthlyBalance,
-                    backgroundColor: 'rgba(59, 130, 246, 0.7)',
+                    data: monthlyBalanceAbs,
+                    backgroundColor: monthlyBalanceColors,
                     borderRadius: 4,
                     order: 3
                 }
@@ -2407,12 +2411,16 @@ function renderYearlyChart() {
                         weight: 'bold',
                         size: 10
                     },
-                    formatter: function (value) {
+                    formatter: function (value, context) {
                         if (value === 0) return '';
-                        if (Math.abs(value) >= 1000) {
-                            return (value / 1000).toFixed(1) + 'k';
+                        let realValue = value;
+                        if (context.dataset.label === 'Net Balance') {
+                            realValue = monthlyBalance[context.dataIndex];
                         }
-                        return value.toFixed(0);
+                        if (Math.abs(realValue) >= 1000) {
+                            return (realValue / 1000).toFixed(1) + 'k';
+                        }
+                        return realValue.toFixed(0);
                     }
                 },
                 legend: {
@@ -2428,7 +2436,11 @@ function renderYearlyChart() {
                                 label += ': ';
                             }
                             if (context.parsed.y !== null) {
-                                label += 'AED ' + context.parsed.y.toFixed(2);
+                                let realValue = context.parsed.y;
+                                if (context.dataset.label === 'Net Balance') {
+                                    realValue = monthlyBalance[context.dataIndex];
+                                }
+                                label += 'AED ' + realValue.toFixed(2);
                             }
                             return label;
                         }
