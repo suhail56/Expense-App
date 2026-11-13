@@ -3234,3 +3234,87 @@ function renderExpenseCalendar(filteredTx, currentYear, currentMonth, dailyExpen
     }
 }
 
+// --- WhatsApp Share Function ---
+window.shareBudgetToWhatsApp = function() {
+    try {
+        // Get current month and year
+        const now = new Date();
+        const currentMonth = now.getMonth();
+        const currentYear = now.getFullYear();
+
+        // Calculate monthly totals
+        let monthlyIncome = 0;
+        let monthlyExpense = 0;
+        let monthlySpent = 0;
+        let monthlyLimit = 0;
+        let monthlyRemaining = 0;
+
+        appData.transactions.forEach(tx => {
+            const dateObj = new Date(tx.date);
+            if (dateObj.getMonth() === currentMonth && dateObj.getFullYear() === currentYear) {
+                if (tx.type === 'income') {
+                    monthlyIncome += parseFloat(tx.amount);
+                } else if (tx.type === 'expense') {
+                    monthlyExpense += parseFloat(tx.amount);
+                    monthlySpent += parseFloat(tx.amount);
+                }
+            }
+        });
+
+        // Calculate category limits
+        let totalLimit = 0;
+        Object.keys(appData.categoryLimits).forEach(cat => {
+            totalLimit += parseFloat(appData.categoryLimits[cat] || 0);
+        });
+
+        monthlyRemaining = totalLimit - monthlySpent;
+
+        // Format the message
+        const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+            'July', 'August', 'September', 'October', 'November', 'December'];
+        const monthName = monthNames[currentMonth];
+        const year = currentYear;
+        const today = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+
+        let message = `*Budget Summary*\n`;
+        message += `${today}\n\n`;
+        message += `*TOTAL BUDGET*: AED ${totalLimit.toFixed(2)}\n`;
+        message += `*TOTAL SPENT*: AED ${monthlySpent.toFixed(2)}\n`;
+        message += `*REMAINING*: AED ${monthlyRemaining.toFixed(2)}\n`;
+        message += `*INCOME*: AED ${monthlyIncome.toFixed(2)}\n`;
+        message += `*EXPENSES*: AED ${monthlyExpense.toFixed(2)}\n\n`;
+        message += `*BUDGET USAGE*: ${((monthlySpent / totalLimit) * 100).toFixed(1)}%`;
+
+        if (monthlySpent > totalLimit) {
+            message += `\n\n*WARNING*: You have exceeded your budget!`;
+        } else if (monthlyRemaining < totalLimit * 0.2) {
+            message += `\n\n*WARNING*: Only ${((monthlyRemaining / totalLimit) * 100).toFixed(0)}% budget remaining!`;
+        }
+
+        // Encode for URL
+        const encodedMessage = encodeURIComponent(message);
+
+        // Create WhatsApp URL
+        const whatsappUrl = `https://wa.me/?text=${encodedMessage}`;
+
+        // Open WhatsApp
+        window.open(whatsappUrl, '_blank');
+
+        // Show feedback
+        Toast.fire({
+            icon: 'success',
+            title: 'Opening WhatsApp...'
+        });
+
+    } catch (error) {
+        console.error('Error sharing to WhatsApp:', error);
+        Swal.fire({
+            title: 'Error',
+            text: 'Failed to share budget. Please try again.',
+            icon: 'error',
+            background: 'rgba(15, 23, 42, 0.85)',
+            color: '#f8fafc'
+        });
+    }
+};
+
